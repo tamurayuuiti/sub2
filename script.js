@@ -29,11 +29,8 @@ async function loadPrimes() {
 }
 
 function updateProgress() {
-    if (isCalculating) {
-        document.getElementById("progress").textContent = `経過時間: ${( (performance.now() - startTime) / 1000).toFixed(3)} 秒`;
-    } else {
-        clearInterval(progressInterval);
-    }
+    let elapsedTime = ((performance.now() - startTime) / 1000).toFixed(3);
+    document.getElementById("progress").textContent = `経過時間: ${elapsedTime} 秒`;
 }
 
 async function startFactorization() {
@@ -58,7 +55,7 @@ async function startFactorization() {
         await new Promise(resolve => setTimeout(resolve, 10));
 
         isCalculating = true;
-        startTime = performance.now();
+        startTime = performance.now(); // 計測開始
         progressInterval = setInterval(updateProgress, 1); // 1msごとに経過時間更新
 
         if (primes.length === 0) {
