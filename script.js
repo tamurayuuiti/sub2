@@ -2,23 +2,27 @@ let currentInput = null;
 let startTime = null;
 let isCalculating = false;
 let progressInterval = null;
-let primeList = []; // 外部から取得する素数リスト
-
-// 素数リストをロードする
-async function loadPrimes() {
-    const response = await fetch("primes.txt");
-    const text = await response.text();
-    primeList = text.split(" ").map(n => BigInt(n));
-}
-
-// 初回ロード
-loadPrimes();
+let primes = [];
 
 document.getElementById("numberInput").addEventListener("keypress", function(event) {
     if (event.key === "Enter") {
         startFactorization();
     }
 });
+
+async function loadPrimes() {
+    const response = await fetch("primes.txt");
+    const text = await response.text();
+    primes = text.split(/\s+/).map(n => BigInt(n));
+}
+
+function updateProgress() {
+    if (isCalculating) {
+        document.getElementById("progress").textContent = `経過時間: ${( (performance.now() - startTime) / 1000).toFixed(3)} 秒`;
+    } else {
+        clearInterval(progressInterval);
+    }
+}
 
 async function startFactorization() {
     if (isCalculating || currentInput === BigInt(document.getElementById("numberInput").value.trim())) return;
@@ -41,8 +45,8 @@ async function startFactorization() {
     isCalculating = true;
     progressInterval = setInterval(updateProgress, 1);
 
-    let factors = await hybridFactorization(num);
-
+    let factors = num <= 1000000n ? await trialDivisionFromFile(num) : await hybridFactorization(num);
+    
     document.getElementById("spinner").style.display = "none";
     document.getElementById("loading").style.display = "none";
     document.getElementById("progress").style.display = "none";
@@ -54,41 +58,22 @@ async function startFactorization() {
     clearInterval(progressInterval);
 }
 
-// 試し割り + Pollard’s rho 法を組み合わせた素因数分解
-async function hybridFactorization(number) {
-    let factors = await trialDivisionWithPrimes(number);
-    if (number > 1n) {
-        while (number > 1n) {
-            let factor = pollardsRho(number);
-            if (!factor) {
-                factors.push(number);
-                break;
-            }
-            while (number % factor === 0n) {
-                factors.push(factor);
-                number /= factor;
-            }
-            await new Promise(resolve => setTimeout(resolve, 0));
-        }
+// 外部ファイルを使った試し割り法
+async function trialDivisionFromFile(number) {
+    if (primes.length === 0) {
+        await loadPrimes();
     }
-    return factors;
-}
 
-// 外部の素数リストを使った試し割り法
-async function trialDivisionWithPrimes(number) {
     let factors = [];
-    
-    // 素数リストがまだロードされていない場合は待機
-    while (primeList.length === 0) {
-        await new Promise(resolve => setTimeout(resolve, 10));
-    }
-
-    for (let prime of primeList) {
+    for (let prime of primes) {
         if (prime * prime > number) break;
         while (number % prime === 0n) {
             factors.push(prime);
             number /= prime;
         }
+    }
+    if (number > 1n) {
+        factors.push(number);
     }
     return factors;
 }
@@ -106,6 +91,37 @@ function pollardsRho(n) {
     return d === n ? null : d;
 }
 
+// 組み合わせ素因数分解（試し割り + Pollard’s rho）
+async function hybridFactorization(number) {
+    let factors = [];
+    if (primes.length === 0) {
+        await loadPrimes();
+    }
+
+    for (let prime of primes) {
+        if (prime * prime > number) break;
+        while (number % prime === 0n) {
+            factors.push(prime);
+            number /= prime;
+        }
+    }
+    if (number > 1n) {
+        while (number > 1n) {
+            let factor = pollardsRho(number);
+            if (!factor) {
+                factors.push(number);
+                break;
+            }
+            while (number % factor === 0n) {
+                factors.push(factor);
+                number /= factor;
+            }
+            await new Promise(resolve => setTimeout(resolve, 0));
+        }
+    }
+    return factors;
+}
+
 // 最大公約数計算
 function gcd(a, b) {
     while (b) {
@@ -120,3 +136,6 @@ function gcd(a, b) {
 function abs(n) {
     return n < 0n ? -n : n;
 }
+
+// 初回ロード時に素数データをプリロード
+loadPrimes();
