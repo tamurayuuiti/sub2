@@ -2,20 +2,23 @@ let currentInput = null;
 let startTime = null;
 let isCalculating = false;
 let progressInterval = null;
+let primeList = []; // 外部から取得する素数リスト
+
+// 素数リストをロードする
+async function loadPrimes() {
+    const response = await fetch("primes.txt");
+    const text = await response.text();
+    primeList = text.split(" ").map(n => BigInt(n));
+}
+
+// 初回ロード
+loadPrimes();
 
 document.getElementById("numberInput").addEventListener("keypress", function(event) {
     if (event.key === "Enter") {
         startFactorization();
     }
 });
-
-function updateProgress() {
-    if (isCalculating) {
-        document.getElementById("progress").textContent = `経過時間: ${( (performance.now() - startTime) / 1000).toFixed(3)} 秒`;
-    } else {
-        clearInterval(progressInterval);
-    }
-}
 
 async function startFactorization() {
     if (isCalculating || currentInput === BigInt(document.getElementById("numberInput").value.trim())) return;
@@ -38,8 +41,8 @@ async function startFactorization() {
     isCalculating = true;
     progressInterval = setInterval(updateProgress, 1);
 
-    let factors = num <= 1000000n ? trialDivision6k(num) : await hybridFactorization(num);
-    
+    let factors = await hybridFactorization(num);
+
     document.getElementById("spinner").style.display = "none";
     document.getElementById("loading").style.display = "none";
     document.getElementById("progress").style.display = "none";
@@ -51,72 +54,9 @@ async function startFactorization() {
     clearInterval(progressInterval);
 }
 
-// 6k±1の試し割り法
-function trialDivision6k(number) {
-    let factors = [];
-    while (number % 2n === 0n) {
-        factors.push(2n);
-        number /= 2n;
-    }
-    while (number % 3n === 0n) {
-        factors.push(3n);
-        number /= 3n;
-    }
-    let k = 5n;
-    while (k * k <= number) {
-        while (number % k === 0n) {
-            factors.push(k);
-            number /= k;
-        }
-        while (number % (k + 2n) === 0n) {
-            factors.push(k + 2n);
-            number /= (k + 2n);
-        }
-        k += 6n;
-    }
-    if (number > 1n) {
-        factors.push(number);
-    }
-    return factors;
-}
-
-// Pollard’s rho 法（Floyd's cycle detection）
-function pollardsRho(n) {
-    if (n % 2n === 0n) return 2n;
-    let x = 2n, y = 2n, d = 1n;
-    function f(x) { return (x * x + 1n) % n; }
-    while (d === 1n) {
-        x = f(x);
-        y = f(f(y));
-        d = gcd(abs(x - y), n);
-    }
-    return d === n ? null : d;
-}
-
-// 組み合わせ素因数分解（試し割り + Pollard’s rho）
+// 試し割り + Pollard’s rho 法を組み合わせた素因数分解
 async function hybridFactorization(number) {
-    let factors = [];
-    while (number % 2n === 0n) {
-        factors.push(2n);
-        number /= 2n;
-    }
-    while (number % 3n === 0n) {
-        factors.push(3n);
-        number /= 3n;
-    }
-    let k = 5n;
-    while (k * k <= number) {
-        while (number % k === 0n) {
-            factors.push(k);
-            number /= k;
-        }
-        while (number % (k + 2n) === 0n) {
-            factors.push(k + 2n);
-            number /= (k + 2n);
-        }
-        k += 6n;
-        await new Promise(resolve => setTimeout(resolve, 0));
-    }
+    let factors = await trialDivisionWithPrimes(number);
     if (number > 1n) {
         while (number > 1n) {
             let factor = pollardsRho(number);
@@ -132,6 +72,38 @@ async function hybridFactorization(number) {
         }
     }
     return factors;
+}
+
+// 外部の素数リストを使った試し割り法
+async function trialDivisionWithPrimes(number) {
+    let factors = [];
+    
+    // 素数リストがまだロードされていない場合は待機
+    while (primeList.length === 0) {
+        await new Promise(resolve => setTimeout(resolve, 10));
+    }
+
+    for (let prime of primeList) {
+        if (prime * prime > number) break;
+        while (number % prime === 0n) {
+            factors.push(prime);
+            number /= prime;
+        }
+    }
+    return factors;
+}
+
+// Pollard’s rho 法（Floyd's cycle detection）
+function pollardsRho(n) {
+    if (n % 2n === 0n) return 2n;
+    let x = 2n, y = 2n, d = 1n;
+    function f(x) { return (x * x + 1n) % n; }
+    while (d === 1n) {
+        x = f(x);
+        y = f(f(y));
+        d = gcd(abs(x - y), n);
+    }
+    return d === n ? null : d;
 }
 
 // 最大公約数計算
