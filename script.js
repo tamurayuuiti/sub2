@@ -38,39 +38,38 @@ function updateProgress() {
 
 async function startFactorization() {
     try {
-        if (isCalculating || currentInput === BigInt(document.getElementById("numberInput").value.trim())) return;
-        let num = BigInt(document.getElementById("numberInput").value.trim());
+        if (isCalculating) return; // 計算中なら無視
+        let inputValue = document.getElementById("numberInput").value.trim();
+        if (!inputValue) return; // 空入力は無視
+
+        let num = BigInt(inputValue);
         if (num < 2n) {
             document.getElementById("result").textContent = "有効な整数を入力してください";
             return;
         }
 
-        if (primes.length === 0) {
-            await loadPrimes(); // 素数リストをロード
-            if (primes.length === 0) {
-                document.getElementById("result").textContent = "素数リストが空のため、計算できません";
-                return;
-            }
-        }
-
-        if (currentInput !== num) {
-            currentInput = num;
-            document.getElementById("result").textContent = "";
-            document.getElementById("time").textContent = "";
-            document.getElementById("progress").textContent = "経過時間: 0.000 ms";
-            startTime = performance.now();
-        }
+        // UIを即座に更新してラグを防ぐ
+        document.getElementById("result").textContent = "";
+        document.getElementById("time").textContent = "";
+        document.getElementById("progress").textContent = "経過時間: 0.000 秒";
         document.getElementById("spinner").style.display = "block";
         document.getElementById("loading").style.display = "flex";
         document.getElementById("progress").style.display = "block";
+        await new Promise(resolve => setTimeout(resolve, 10)); // UIの更新を即時反映
+
         isCalculating = true;
-        progressInterval = setInterval(updateProgress, 1);
+        startTime = performance.now();
+        progressInterval = setInterval(updateProgress, 100);
+
+        if (primes.length === 0) {
+            await loadPrimes();
+            if (primes.length === 0) {
+                throw new Error("素数リストが空のため、計算できません");
+            }
+        }
 
         let factors = num <= 1000000n ? await trialDivisionFromFile(num) : await hybridFactorization(num);
 
-        document.getElementById("spinner").style.display = "none";
-        document.getElementById("loading").style.display = "none";
-        document.getElementById("progress").style.display = "none";
         let elapsedTime = ((performance.now() - startTime) / 1000).toFixed(3);
         document.getElementById("result").textContent = `素因数:\n${factors.join(" × ")}`;
         document.getElementById("time").textContent = `計算時間: ${elapsedTime} 秒`;
@@ -80,6 +79,9 @@ async function startFactorization() {
     } finally {
         isCalculating = false;
         clearInterval(progressInterval);
+        document.getElementById("spinner").style.display = "none";
+        document.getElementById("loading").style.display = "none";
+        document.getElementById("progress").style.display = "none";
     }
 }
 
