@@ -2,6 +2,7 @@ let currentInput = null;
 let startTime = null;
 let isCalculating = false;
 let progressInterval = null;
+let timeoutHandle = null; // 追加: タイムアウト監視用
 let primes = [];
 
 document.getElementById("numberInput").addEventListener("keypress", function(event) {
@@ -58,6 +59,17 @@ async function startFactorization() {
         startTime = performance.now(); // 計測開始
         progressInterval = setInterval(updateProgress, 1); // 1msごとに経過時間更新
 
+        // 追加: 30秒タイムアウト処理
+        timeoutHandle = setTimeout(() => {
+            isCalculating = false;
+            clearInterval(progressInterval);
+            document.getElementById("spinner").style.display = "none";
+            document.getElementById("loading").style.display = "none";
+            document.getElementById("progress").style.display = "none";
+            document.getElementById("result").textContent = "計算時間が制限を超えました";
+            throw new Error("計算が30秒を超えたため強制停止しました");
+        }, 30000);
+
         if (primes.length === 0) {
             await loadPrimes();
             if (primes.length === 0) {
@@ -76,6 +88,7 @@ async function startFactorization() {
     } finally {
         isCalculating = false;
         clearInterval(progressInterval);
+        clearTimeout(timeoutHandle); // 追加: 計算完了時にタイムアウト解除
         document.getElementById("spinner").style.display = "none";
         document.getElementById("loading").style.display = "none";
         document.getElementById("progress").style.display = "none";
