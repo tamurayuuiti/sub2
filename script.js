@@ -2,7 +2,6 @@ let currentInput = null;
 let startTime = null;
 let isCalculating = false;
 let progressInterval = null;
-let timeoutHandle = null; // 追加: タイムアウト監視用
 let primes = [];
 
 document.getElementById("numberInput").addEventListener("keypress", function(event) {
@@ -14,7 +13,7 @@ document.getElementById("numberInput").addEventListener("keypress", function(eve
 // 外部の素数リストを読み込む
 async function loadPrimes() {
     try {
-        const response = await fetch("https://tamurayuuiti.github.io/sub2/data/primes.txt");
+        const response = await fetch("https://tamurayuuiti.github.io/sub2/dataprimes.txt");
         if (!response.ok) {
             throw new Error(`素数リストの読み込みに失敗しました (HTTP ${response.status})`);
         }
@@ -59,17 +58,6 @@ async function startFactorization() {
         startTime = performance.now(); // 計測開始
         progressInterval = setInterval(updateProgress, 1); // 1msごとに経過時間更新
 
-        // 追加: 30秒タイムアウト処理
-        timeoutHandle = setTimeout(() => {
-            isCalculating = false;
-            clearInterval(progressInterval);
-            document.getElementById("spinner").style.display = "none";
-            document.getElementById("loading").style.display = "none";
-            document.getElementById("progress").style.display = "none";
-            document.getElementById("result").textContent = "計算時間が制限を超えました";
-            throw new Error("計算が30秒を超えたため強制停止しました");
-        }, 30000);
-
         if (primes.length === 0) {
             await loadPrimes();
             if (primes.length === 0) {
@@ -88,7 +76,6 @@ async function startFactorization() {
     } finally {
         isCalculating = false;
         clearInterval(progressInterval);
-        clearTimeout(timeoutHandle); // 追加: 計算完了時にタイムアウト解除
         document.getElementById("spinner").style.display = "none";
         document.getElementById("loading").style.display = "none";
         document.getElementById("progress").style.display = "none";
