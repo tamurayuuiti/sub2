@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>素因数分解計算機</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: white;
+            text-align: center;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            flex-direction: column;
+        }
+        .container {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.2);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            max-width: 90%;
+            width: 400px;
+        }
+        input {
+            width: 200px;
+            padding: 10px;
+            font-size: 18px;
+            margin: 5px;
+            text-align: center;
+            border: 2px solid #4facfe;
+            border-radius: 5px;
+        }
+        button {
+            background: #00c6ff;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            cursor: pointer;
+            font-size: 18px;
+            border-radius: 5px;
+            margin-top: 10px;
+        }
+        button:hover {
+            background: #0072ff;
+        }
+        .result, .time, .progress {
+            font-size: 18px;
+            margin-top: 10px;
+            color: #333;
+            word-wrap: break-word;
+            overflow-wrap: break-word;
+            max-width: 100%;
+            text-align: left;
+            white-space: pre-wrap;
+            font-family: monospace;
+        }
+        .limits {
+            font-size: 14px;
+            margin-top: 10px;
+            color: red;
+        }
+        .loading {
+            font-size: 16px;
+            color: #0072ff;
+            margin-top: 10px;
+            display: none;
+        }
+        .spinner {
+            display: none;
+            border: 4px solid rgba(0, 0, 0, 0.1);
+            border-top-color: #0072ff;
+            border-radius: 50%;
+            width: 24px;
+            height: 24px;
+            animation: spin 1s linear infinite;
+            margin-top: 10px;
+        }
+        .progress {
+            font-size: 16px;
+            color: #0072ff;
+            margin-top: 10px;
+            display: none;
+        }
+        @keyframes spin {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h2>素因数分解計算機</h2>
+        <input type="number" id="numberInput" placeholder="数値を入力 (最大50桁)" maxlength="50" min="2">
+        <button onclick="startFactorization()">計算</button>
+        <div class="spinner" id="spinner"></div>
+        <div class="loading" id="loading">計算中...</div>
+        <div class="progress" id="progress"></div>
+        <div class="time" id="time"></div>
+        <div class="result" id="result"></div>
+        <div class="limits">※ 2以上の整数を入力してください</div>
+    </div>
+
+    <script>
+        let currentInput = null;
+        let startTime = null;
+        let isCalculating = false;
+        let progressInterval = null;
+
+        document.getElementById("numberInput").addEventListener("keypress", function(event) {
+            if (event.key === "Enter") {
+                startFactorization();
+            }
+        });
+
+        function updateProgress() {
+            if (isCalculating) {
+                document.getElementById("progress").textContent = `経過時間: ${( (performance.now() - startTime) / 1000).toFixed(3)} 秒`;
+            } else {
+                clearInterval(progressInterval);
+            }
+        }
+
+        async function startFactorization() {
+            if (isCalculating || currentInput === BigInt(document.getElementById("numberInput").value.trim())) return;
+            let num = BigInt(document.getElementById("numberInput").value.trim());
+            if (num < 2n) {
+                document.getElementById("result").textContent = "有効な整数を入力してください";
+                return;
+            }
+
+            if (currentInput !== num) {
+                currentInput = num;
+                document.getElementById("result").textContent = "";
+                document.getElementById("time").textContent = "";
+                document.getElementById("progress").textContent = "経過時間: 0.000 ms";
+                startTime = performance.now();
+            }
+            document.getElementById("spinner").style.display = "block";
+            document.getElementById("loading").style.display = "block";
+            document.getElementById("progress").style.display = "block";
+            isCalculating = true;
+            progressInterval = setInterval(updateProgress, 1);
+
+            await factorize(num);
+            isCalculating = false;
+            clearInterval(progressInterval);
+        }
+
+        async function factorize(number) {
+            let factors = [];
+            let divisor = 2n;
+            while (number % divisor === 0n) {
+                factors.push(divisor);
+                number /= divisor;
+            }
+            divisor = 3n;
+            while (divisor * divisor <= number) {
+                while (number % divisor === 0n) {
+                    factors.push(divisor);
+                    number /= divisor;
+                }
+                divisor += 2n;
+                await new Promise(resolve => setTimeout(resolve, 0));
+            }
+            if (number > 1n) factors.push(number);
+            document.getElementById("spinner").style.display = "none";
+            document.getElementById("loading").style.display = "none";
+            document.getElementById("progress").style.display = "none";
+            let elapsedTime = ((performance.now() - startTime) / 1000).toFixed(3);
+            document.getElementById("result").textContent = `素因数:\n${factors.join(" × ")}`;
+            document.getElementById("time").textContent = `計算時間: ${elapsedTime} 秒`;
+        }
+    </script>
+</body>
+</html>
