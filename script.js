@@ -10,10 +10,22 @@ document.getElementById("numberInput").addEventListener("keypress", function(eve
     }
 });
 
+// 外部の素数リストを読み込む
 async function loadPrimes() {
-    const response = await fetch("primes.txt");
-    const text = await response.text();
-    primes = text.split(/\s+/).map(n => BigInt(n));
+    try {
+        const response = await fetch("primes.txt");
+        if (!response.ok) {
+            throw new Error(`素数リストの読み込みに失敗しました (HTTP ${response.status})`);
+        }
+        const text = await response.text();
+        primes = text.split(/\s+/).filter(n => n).map(n => BigInt(n)); // 空白・改行対応
+        if (primes.length === 0) {
+            throw new Error("素数リストが空です");
+        }
+    } catch (error) {
+        console.error("素数リストの取得エラー:", error);
+        alert("素数リストの読み込みに失敗しました。ページを更新して再試行してください。");
+    }
 }
 
 function updateProgress() {
@@ -25,55 +37,69 @@ function updateProgress() {
 }
 
 async function startFactorization() {
-    if (isCalculating || currentInput === BigInt(document.getElementById("numberInput").value.trim())) return;
-    let num = BigInt(document.getElementById("numberInput").value.trim());
-    if (num < 2n) {
-        document.getElementById("result").textContent = "有効な整数を入力してください";
-        return;
+    try {
+        if (isCalculating || currentInput === BigInt(document.getElementById("numberInput").value.trim())) return;
+        let num = BigInt(document.getElementById("numberInput").value.trim());
+        if (num < 2n) {
+            document.getElementById("result").textContent = "有効な整数を入力してください";
+            return;
+        }
+
+        if (primes.length === 0) {
+            await loadPrimes(); // 素数リストをロード
+            if (primes.length === 0) {
+                document.getElementById("result").textContent = "素数リストが空のため、計算できません";
+                return;
+            }
+        }
+
+        if (currentInput !== num) {
+            currentInput = num;
+            document.getElementById("result").textContent = "";
+            document.getElementById("time").textContent = "";
+            document.getElementById("progress").textContent = "経過時間: 0.000 ms";
+            startTime = performance.now();
+        }
+        document.getElementById("spinner").style.display = "block";
+        document.getElementById("loading").style.display = "flex";
+        document.getElementById("progress").style.display = "block";
+        isCalculating = true;
+        progressInterval = setInterval(updateProgress, 1);
+
+        let factors = num <= 1000000n ? await trialDivisionFromFile(num) : await hybridFactorization(num);
+
+        document.getElementById("spinner").style.display = "none";
+        document.getElementById("loading").style.display = "none";
+        document.getElementById("progress").style.display = "none";
+        let elapsedTime = ((performance.now() - startTime) / 1000).toFixed(3);
+        document.getElementById("result").textContent = `素因数:\n${factors.join(" × ")}`;
+        document.getElementById("time").textContent = `計算時間: ${elapsedTime} 秒`;
+    } catch (error) {
+        console.error("計算エラー:", error);
+        document.getElementById("result").textContent = "計算中にエラーが発生しました";
+    } finally {
+        isCalculating = false;
+        clearInterval(progressInterval);
     }
-
-    if (currentInput !== num) {
-        currentInput = num;
-        document.getElementById("result").textContent = "";
-        document.getElementById("time").textContent = "";
-        document.getElementById("progress").textContent = "経過時間: 0.000 ms";
-        startTime = performance.now();
-    }
-    document.getElementById("spinner").style.display = "block";
-    document.getElementById("loading").style.display = "flex";
-    document.getElementById("progress").style.display = "block";
-    isCalculating = true;
-    progressInterval = setInterval(updateProgress, 1);
-
-    let factors = num <= 1000000n ? await trialDivisionFromFile(num) : await hybridFactorization(num);
-    
-    document.getElementById("spinner").style.display = "none";
-    document.getElementById("loading").style.display = "none";
-    document.getElementById("progress").style.display = "none";
-    let elapsedTime = ((performance.now() - startTime) / 1000).toFixed(3);
-    document.getElementById("result").textContent = `素因数:\n${factors.join(" × ")}`;
-    document.getElementById("time").textContent = `計算時間: ${elapsedTime} 秒`;
-
-    isCalculating = false;
-    clearInterval(progressInterval);
 }
 
 // 外部ファイルを使った試し割り法
 async function trialDivisionFromFile(number) {
-    if (primes.length === 0) {
-        await loadPrimes();
-    }
-
     let factors = [];
-    for (let prime of primes) {
-        if (prime * prime > number) break;
-        while (number % prime === 0n) {
-            factors.push(prime);
-            number /= prime;
+    try {
+        for (let prime of primes) {
+            if (prime * prime > number) break;
+            while (number % prime === 0n) {
+                factors.push(prime);
+                number /= prime;
+            }
         }
-    }
-    if (number > 1n) {
-        factors.push(number);
+        if (number > 1n) {
+            factors.push(number);
+        }
+    } catch (error) {
+        console.error("試し割りエラー:", error);
+        document.getElementById("result").textContent = "試し割り中にエラーが発生しました";
     }
     return factors;
 }
@@ -94,30 +120,31 @@ function pollardsRho(n) {
 // 組み合わせ素因数分解（試し割り + Pollard’s rho）
 async function hybridFactorization(number) {
     let factors = [];
-    if (primes.length === 0) {
-        await loadPrimes();
-    }
-
-    for (let prime of primes) {
-        if (prime * prime > number) break;
-        while (number % prime === 0n) {
-            factors.push(prime);
-            number /= prime;
-        }
-    }
-    if (number > 1n) {
-        while (number > 1n) {
-            let factor = pollardsRho(number);
-            if (!factor) {
-                factors.push(number);
-                break;
+    try {
+        for (let prime of primes) {
+            if (prime * prime > number) break;
+            while (number % prime === 0n) {
+                factors.push(prime);
+                number /= prime;
             }
-            while (number % factor === 0n) {
-                factors.push(factor);
-                number /= factor;
-            }
-            await new Promise(resolve => setTimeout(resolve, 0));
         }
+        if (number > 1n) {
+            while (number > 1n) {
+                let factor = pollardsRho(number);
+                if (!factor) {
+                    factors.push(number);
+                    break;
+                }
+                while (number % factor === 0n) {
+                    factors.push(factor);
+                    number /= factor;
+                }
+                await new Promise(resolve => setTimeout(resolve, 0));
+            }
+        }
+    } catch (error) {
+        console.error("Pollard's rho 法のエラー:", error);
+        document.getElementById("result").textContent = "素因数分解中にエラーが発生しました";
     }
     return factors;
 }
