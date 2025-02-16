@@ -65,7 +65,7 @@ async function startFactorization() {
             }
         }
 
-        let factors = num <= 1000000n ? await trialDivisionFromFile(num) : await hybridFactorization(num);
+        let factors = num <= 10000000n ? await trialDivisionFromFile(num) : await hybridFactorization(num);
 
         let elapsedTime = ((performance.now() - startTime) / 1000).toFixed(3);
         document.getElementById("result").textContent = `素因数:\n${factors.join(" × ")}`;
