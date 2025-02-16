@@ -14,7 +14,7 @@ document.getElementById("numberInput").addEventListener("keypress", function(eve
 // 外部の素数リストを読み込む
 async function loadPrimes() {
     try {
-        const response = await fetch("https://tamurayuuiti.github.io/sub2/primes.txt");
+        const response = await fetch("https://tamurayuuiti.github.io/sub2/data/primes.txt");
         if (!response.ok) {
             throw new Error(`素数リストの読み込みに失敗しました (HTTP ${response.status})`);
         }
