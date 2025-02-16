@@ -32,8 +32,12 @@ async function startFactorization() {
         document.getElementById("progress").textContent = "経過時間: 0.000 ms";
         startTime = performance.now();
     }
-    document.getElementById("spinner").style.display = "block";
     document.getElementById("loading").style.display = "flex";
+    document.getElementById("loading").textContent = "計算中...";
+    let spinner = document.createElement("div");
+    spinner.className = "spinner";
+    spinner.id = "spinner";
+    document.getElementById("loading").appendChild(spinner);
     document.getElementById("progress").style.display = "block";
     isCalculating = true;
     progressInterval = setInterval(updateProgress, 1);
@@ -60,7 +64,7 @@ async function factorize(number) {
         await new Promise(resolve => setTimeout(resolve, 0));
     }
     if (number > 1n) factors.push(number);
-    document.getElementById("spinner").style.display = "none";
+    
     document.getElementById("loading").style.display = "none";
     document.getElementById("progress").style.display = "none";
     let elapsedTime = ((performance.now() - startTime) / 1000).toFixed(3);
