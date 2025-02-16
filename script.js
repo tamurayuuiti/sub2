@@ -48,18 +48,18 @@ async function startFactorization() {
             return;
         }
 
-        // UIを即座に更新してラグを防ぐ
+        // UIを即座に更新
         document.getElementById("result").textContent = "";
         document.getElementById("time").textContent = "";
         document.getElementById("progress").textContent = "経過時間: 0.000 秒";
         document.getElementById("spinner").style.display = "block";
         document.getElementById("loading").style.display = "flex";
         document.getElementById("progress").style.display = "block";
-        await new Promise(resolve => setTimeout(resolve, 10)); // UIの更新を即時反映
+        await new Promise(resolve => setTimeout(resolve, 10));
 
         isCalculating = true;
         startTime = performance.now();
-        progressInterval = setInterval(updateProgress, 100);
+        progressInterval = setInterval(updateProgress, 1); // 1msごとに経過時間更新
 
         if (primes.length === 0) {
             await loadPrimes();
@@ -89,12 +89,14 @@ async function startFactorization() {
 async function trialDivisionFromFile(number) {
     let factors = [];
     try {
-        for (let prime of primes) {
+        for (let i = 0; i < primes.length; i++) {
+            let prime = primes[i];
             if (prime * prime > number) break;
             while (number % prime === 0n) {
                 factors.push(prime);
                 number /= prime;
             }
+            if (i % 100 === 0) await new Promise(resolve => setTimeout(resolve, 0)); // 処理を分割
         }
         if (number > 1n) {
             factors.push(number);
@@ -123,12 +125,14 @@ function pollardsRho(n) {
 async function hybridFactorization(number) {
     let factors = [];
     try {
-        for (let prime of primes) {
+        for (let i = 0; i < primes.length; i++) {
+            let prime = primes[i];
             if (prime * prime > number) break;
             while (number % prime === 0n) {
                 factors.push(prime);
                 number /= prime;
             }
+            if (i % 100 === 0) await new Promise(resolve => setTimeout(resolve, 0)); // 処理を分割
         }
         if (number > 1n) {
             while (number > 1n) {
