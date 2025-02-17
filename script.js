@@ -40,7 +40,7 @@ function updateProgress() {
     document.getElementById("progress").textContent = `経過時間: ${elapsedTime} 秒`;
 }
 
-// AKS 素数判定法（簡易版：試し割り + sqrt(n) のチェック）
+// ミラー・ラビン素数判定法
 function isPrimeMillerRabin(n, k = 5) {
     if (n < 2n) return false;
     if (n === 2n || n === 3n) return true;
@@ -80,6 +80,7 @@ function isPrimeMillerRabin(n, k = 5) {
     }
     return true;
 }
+
 async function startFactorization() {
     try {
         if (isCalculating) return; // 計算中なら無視
@@ -92,7 +93,7 @@ async function startFactorization() {
             return;
         }
 
-        // n >= 10^7 の場合、試し割りの前に AKS 素数判定
+        // n >= 10^7 の場合、試し割りの前にミラー・ラビン素数判定
         if (num >= 10000000n && isPrimeMillerRabin(num)) {
             document.getElementById("result").textContent = `素数: ${num}`;
             return;
@@ -166,7 +167,7 @@ async function trialDivisionFromFile(number) {
 async function pollardsRhoFactorization(number) {
     let factors = [];
     while (number > 1n) {
-        if (isPrimeAKS(number)) { // 計算途中で AKS 素数判定
+        if (isPrimeMillerRabin(number)) { // AKS の代わりにミラー・ラビン法を使用
             factors.push(number);
             break;
         }
@@ -184,6 +185,7 @@ async function pollardsRhoFactorization(number) {
     }
     return factors;
 }
+
 
 function pollardsRho(n) {
     if (n % 2n === 0n) return 2n;
