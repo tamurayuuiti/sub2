@@ -137,15 +137,24 @@ async function pollardsRhoFactorization(number) {
 function pollardsRho(n) {
     if (n % 2n === 0n) return 2n;
 
-    let x = 2n, y = 2n, d = 1n;
-    let c = BigInt(Math.floor(Math.random() * 10) + 1); // ランダム係数
+    let x = 2n, y = 2n, d = 1n, c = BigInt(Math.floor(Math.random() * 10) + 1);
+    let m = 128n, g = 1n, q = 1n;
     function f(x) { return (x * x + c) % n; }
 
+    x = f(x);
+    y = f(f(y));
+
     while (d === 1n) {
-        x = f(x);
-        y = f(f(y));
-        d = gcd(abs(x - y), n);
+        let ys = y;
+        for (let i = 0n; i < m; i++) {
+            y = f(y);
+            q = (q * abs(x - y)) % n;
+        }
+        d = gcd(q, n);
+        x = ys;
+        if (d === 1n) m *= 2n; // サイクルの長さを2倍に拡張
     }
+
     return d === n ? null : d;
 }
 
