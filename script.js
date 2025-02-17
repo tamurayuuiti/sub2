@@ -42,18 +42,26 @@ function updateProgress() {
 
 async function startFactorization() {
     try {
-        if (isCalculating) return; // 計算中なら無視
-        let inputValue = document.getElementById("numberInput").value.trim();
-        if (!inputValue) return; // 空入力は無視
-
-        let num = BigInt(inputValue);
+        let num = BigInt(document.getElementById("numberInput").value.trim());
         if (num < 2n) {
             document.getElementById("result").textContent = "有効な整数を入力してください";
             return;
         }
 
-         // Web Worker による試し割り
+        // Web Worker による試し割り
         let { factors, remainder } = await trialDivisionFromFile(num);
+
+        // 残りが 1 より大きければ Pollard’s rho 法で分解
+        if (remainder > 1n) {
+            let extraFactors = await pollardsRhoFactorization(remainder);
+            factors = factors.concat(extraFactors);
+        }
+
+        document.getElementById("result").textContent = `素因数:\n${factors.join(" × ")}`;
+    } catch (error) {
+        console.error("計算エラー:", error);
+    }
+}
 
         // UIを即座に更新
         document.getElementById("result").textContent = "";
