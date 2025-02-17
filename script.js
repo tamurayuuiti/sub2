@@ -41,7 +41,7 @@ function updateProgress() {
 }
 
 // ミラー・ラビン素数判定法
-function isPrimeMillerRabin(n, k = 5) {
+function isPrimeMillerRabin(n) {
     if (n < 2n) return false;
     if (n === 2n || n === 3n) return true;
     if (n % 2n === 0n) return false;
@@ -51,17 +51,20 @@ function isPrimeMillerRabin(n, k = 5) {
 
     function powerMod(base, exp, mod) {
         let result = 1n;
-        base = base % mod;
+        base %= mod;
         while (exp > 0n) {
-            if (exp % 2n === 1n) result = (result * base) % mod;
-            exp = exp >> 1n;
+            if (exp & 1n) result = (result * base) % mod; // ビット演算で最適化
+            exp >>= 1n;
             base = (base * base) % mod;
         }
         return result;
     }
 
-    for (let i = 0; i < k; i++) {
-        let a = BigInt(Math.floor(Math.random() * (Number(n - 3n))) + 2);
+    // 12個の固定基数（n < 2²⁵⁶ なら確定的に判定可能）
+    const witnesses = [2n, 3n, 5n, 7n, 11n, 13n, 17n, 19n, 23n, 29n, 31n, 37n];
+
+    for (let a of witnesses) {
+        if (a >= n) break; // `n` より大きな `a` は無視
         let x = powerMod(a, d, n);
         if (x === 1n || x === n - 1n) continue;
 
@@ -78,6 +81,7 @@ function isPrimeMillerRabin(n, k = 5) {
         }
         if (isComposite) return false;
     }
+
     return true;
 }
 
