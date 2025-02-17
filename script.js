@@ -98,22 +98,20 @@ async function startFactorization() {
 
 // 外部ファイルを使った試し割り法
 async function trialDivisionFromFile(number) {
-    let factors = [];
-    try {
-        for (let i = 0; i < primes.length; i++) {
-            let prime = primes[i];
-            if (prime * prime > number) break;
-            while (number % prime === 0n) {
-                factors.push(prime);
-                number /= prime;
-            }
-            if (i % 100 === 0) await new Promise(resolve => setTimeout(resolve, 0)); // 処理を分割
-        }
-    } catch (error) {
-        console.error("試し割りエラー:", error);
-        document.getElementById("result").textContent = "試し割り中にエラーが発生しました";
-    }
-    return factors;
+    return new Promise((resolve, reject) => {
+        const worker = new Worker('trialDivisionWorker.js');  // Worker を作成
+        worker.postMessage({ number: number.toString(), primes });  // Worker に `n` を送信
+
+        worker.onmessage = function(event) {
+            worker.terminate();  // 処理終了後に Worker を停止
+            resolve(event.data);  // 試し割りの結果を返す
+        };
+
+        worker.onerror = function(error) {
+            worker.terminate();
+            reject(error);
+        };
+    });
 }
 
 // 改良版 Pollard’s rho 法
