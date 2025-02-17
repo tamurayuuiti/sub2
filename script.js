@@ -65,13 +65,7 @@ async function startFactorization() {
             }
         }
 
-        let factors = await new Promise(resolve => {
-            if (num <= 10000000n) {
-                trialDivisionFromFile(num, resolve);
-            } else {
-                hybridFactorization(num, resolve);
-            }
-        });
+        let factors = num <= 10000000n ? await trialDivisionFromFile(num) : await hybridFactorization(num);
 
         let elapsedTime = ((performance.now() - startTime) / 1000).toFixed(3);
         document.getElementById("result").textContent = `素因数:\n${factors.join(" × ")}`;
@@ -88,21 +82,27 @@ async function startFactorization() {
     }
 }
 
-// 外部ファイルを使った試し割り法（setTimeout で分割実行）
-function trialDivisionFromFile(number, callback, i = 0, factors = []) {
-    if (i >= primes.length || primes[i] * primes[i] > number) {
-        if (number > 1n) factors.push(number);
-        callback(factors);
-        return;
+// 外部ファイルを使った試し割り法
+async function trialDivisionFromFile(number) {
+    let factors = [];
+    try {
+        for (let i = 0; i < primes.length; i++) {
+            let prime = primes[i];
+            if (prime * prime > number) break;
+            while (number % prime === 0n) {
+                factors.push(prime);
+                number /= prime;
+            }
+            if (i % 100 === 0) await new Promise(resolve => setTimeout(resolve, 0)); // 処理を分割
+        }
+        if (number > 1n) {
+            factors.push(number);
+        }
+    } catch (error) {
+        console.error("試し割りエラー:", error);
+        document.getElementById("result").textContent = "試し割り中にエラーが発生しました";
     }
-
-    let prime = primes[i];
-    while (number % prime === 0n) {
-        factors.push(prime);
-        number /= prime;
-    }
-
-    setTimeout(() => trialDivisionFromFile(number, callback, i + 1, factors), 0); // 次の素数へ
+    return factors;
 }
 
 // Pollard’s rho 法（Floyd's cycle detection）
@@ -118,45 +118,38 @@ function pollardsRho(n) {
     return d === n ? null : d;
 }
 
-// 組み合わせ素因数分解（setTimeout で分割実行）
-function hybridFactorization(number, callback, i = 0, factors = []) {
-    if (i >= primes.length || primes[i] * primes[i] > number) {
-        if (number > 1n) {
-            pollardsRhoFactorization(number, factors, callback);
-        } else {
-            callback(factors);
+// 組み合わせ素因数分解（試し割り + Pollard’s rho）
+async function hybridFactorization(number) {
+    let factors = [];
+    try {
+        for (let i = 0; i < primes.length; i++) {
+            let prime = primes[i];
+            if (prime * prime > number) break;
+            while (number % prime === 0n) {
+                factors.push(prime);
+                number /= prime;
+            }
+            if (i % 100 === 0) await new Promise(resolve => setTimeout(resolve, 0)); // 処理を分割
         }
-        return;
+        if (number > 1n) {
+            while (number > 1n) {
+                let factor = pollardsRho(number);
+                if (!factor) {
+                    factors.push(number);
+                    break;
+                }
+                while (number % factor === 0n) {
+                    factors.push(factor);
+                    number /= factor;
+                }
+                await new Promise(resolve => setTimeout(resolve, 0));
+            }
+        }
+    } catch (error) {
+        console.error("Pollard's rho 法のエラー:", error);
+        document.getElementById("result").textContent = "素因数分解中にエラーが発生しました";
     }
-
-    let prime = primes[i];
-    while (number % prime === 0n) {
-        factors.push(prime);
-        number /= prime;
-    }
-
-    setTimeout(() => hybridFactorization(number, callback, i + 1, factors), 0);
-}
-
-// Pollard’s rho 法を setTimeout で分割実行
-function pollardsRhoFactorization(number, factors, callback) {
-    let factor = pollardsRho(number);
-    if (!factor) {
-        factors.push(number);
-        callback(factors);
-        return;
-    }
-
-    while (number % factor === 0n) {
-        factors.push(factor);
-        number /= factor;
-    }
-
-    if (number > 1n) {
-        setTimeout(() => pollardsRhoFactorization(number, factors, callback), 0);
-    } else {
-        callback(factors);
-    }
+    return factors;
 }
 
 // 最大公約数計算
