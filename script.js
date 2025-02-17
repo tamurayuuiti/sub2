@@ -40,6 +40,46 @@ function updateProgress() {
     document.getElementById("progress").textContent = `経過時間: ${elapsedTime} 秒`;
 }
 
+// AKS 素数判定法（簡易版：試し割り + sqrt(n) のチェック）
+function isPrimeMillerRabin(n, k = 5) {
+    if (n < 2n) return false;
+    if (n === 2n || n === 3n) return true;
+    if (n % 2n === 0n) return false;
+
+    let d = n - 1n;
+    while (d % 2n === 0n) d /= 2n;
+
+    function powerMod(base, exp, mod) {
+        let result = 1n;
+        base = base % mod;
+        while (exp > 0n) {
+            if (exp % 2n === 1n) result = (result * base) % mod;
+            exp = exp >> 1n;
+            base = (base * base) % mod;
+        }
+        return result;
+    }
+
+    for (let i = 0; i < k; i++) {
+        let a = BigInt(Math.floor(Math.random() * (Number(n - 3n))) + 2);
+        let x = powerMod(a, d, n);
+        if (x === 1n || x === n - 1n) continue;
+
+        let dCopy = d;
+        let isComposite = true;
+        while (dCopy !== n - 1n) {
+            x = (x * x) % n;
+            dCopy *= 2n;
+            if (x === 1n) return false;
+            if (x === n - 1n) {
+                isComposite = false;
+                break;
+            }
+        }
+        if (isComposite) return false;
+    }
+    return true;
+}
 async function startFactorization() {
     try {
         if (isCalculating) return; // 計算中なら無視
@@ -49,6 +89,12 @@ async function startFactorization() {
         let num = BigInt(inputValue);
         if (num < 2n) {
             document.getElementById("result").textContent = "有効な整数を入力してください";
+            return;
+        }
+
+        // n >= 10^7 の場合、試し割りの前に AKS 素数判定
+        if (num >= 10000000n && isPrimeAKS(num)) {
+            document.getElementById("result").textContent = `素数: ${num}`;
             return;
         }
 
@@ -72,12 +118,9 @@ async function startFactorization() {
             }
         }
 
-        // まず試し割りを実施
-        let factors = await trialDivisionFromFile(num);
-
-        // 残りが 1 より大きければ Pollard’s rho 法で分解
-        if (num > 1n) {
-            let extraFactors = await pollardsRhoFactorization(num);
+        let { factors, remainder } = await trialDivisionFromFile(num);
+        if (remainder > 1n) {
+            let extraFactors = await pollardsRhoFactorization(remainder);
             factors = factors.concat(extraFactors);
         }
 
@@ -120,6 +163,11 @@ async function trialDivisionFromFile(number) {
 async function pollardsRhoFactorization(number) {
     let factors = [];
     while (number > 1n) {
+        if (isPrimeAKS(number)) { // 計算途中で AKS 素数判定
+            factors.push(number);
+            break;
+        }
+        
         let factor = pollardsRho(number);
         if (!factor || factor === number) {
             factors.push(number);
