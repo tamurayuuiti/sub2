@@ -10,6 +10,13 @@ document.getElementById("numberInput").addEventListener("keypress", function(eve
     }
 });
 
+// 入力の桁数制限（30桁まで）
+document.getElementById("numberInput").addEventListener("input", function(event) {
+    if (event.target.value.length > 30) {
+        event.target.value = event.target.value.slice(0, 30);
+    }
+});
+
 // 外部の素数リストを読み込む
 async function loadPrimes() {
     try {
@@ -65,7 +72,14 @@ async function startFactorization() {
             }
         }
 
-        let factors = num <= 10000000n ? await trialDivisionFromFile(num) : await hybridFactorization(num);
+        // まず試し割りを実施
+        let factors = await trialDivisionFromFile(num);
+
+        // 残りが 1 より大きければ Pollard’s rho 法で分解
+        if (num > 1n) {
+            let extraFactors = await pollardsRhoFactorization(num);
+            factors = factors.concat(extraFactors);
+        }
 
         let elapsedTime = ((performance.now() - startTime) / 1000).toFixed(3);
         document.getElementById("result").textContent = `素因数:\n${factors.join(" × ")}`;
@@ -95,9 +109,6 @@ async function trialDivisionFromFile(number) {
             }
             if (i % 100 === 0) await new Promise(resolve => setTimeout(resolve, 0)); // 処理を分割
         }
-        if (number > 1n) {
-            factors.push(number);
-        }
     } catch (error) {
         console.error("試し割りエラー:", error);
         document.getElementById("result").textContent = "試し割り中にエラーが発生しました";
@@ -105,51 +116,37 @@ async function trialDivisionFromFile(number) {
     return factors;
 }
 
-// Pollard’s rho 法（Floyd's cycle detection）
+// 改良版 Pollard’s rho 法
+async function pollardsRhoFactorization(number) {
+    let factors = [];
+    while (number > 1n) {
+        let factor = pollardsRho(number);
+        if (!factor || factor === number) {
+            factors.push(number);
+            break;
+        }
+        while (number % factor === 0n) {
+            factors.push(factor);
+            number /= factor;
+        }
+        await new Promise(resolve => setTimeout(resolve, 0)); // 負荷分散
+    }
+    return factors;
+}
+
 function pollardsRho(n) {
     if (n % 2n === 0n) return 2n;
+
     let x = 2n, y = 2n, d = 1n;
-    function f(x) { return (x * x + 1n) % n; }
+    let c = BigInt(Math.floor(Math.random() * 10) + 1); // ランダム係数
+    function f(x) { return (x * x + c) % n; }
+
     while (d === 1n) {
         x = f(x);
         y = f(f(y));
         d = gcd(abs(x - y), n);
     }
     return d === n ? null : d;
-}
-
-// 組み合わせ素因数分解（試し割り + Pollard’s rho）
-async function hybridFactorization(number) {
-    let factors = [];
-    try {
-        for (let i = 0; i < primes.length; i++) {
-            let prime = primes[i];
-            if (prime * prime > number) break;
-            while (number % prime === 0n) {
-                factors.push(prime);
-                number /= prime;
-            }
-            if (i % 100 === 0) await new Promise(resolve => setTimeout(resolve, 0)); // 処理を分割
-        }
-        if (number > 1n) {
-            while (number > 1n) {
-                let factor = pollardsRho(number);
-                if (!factor) {
-                    factors.push(number);
-                    break;
-                }
-                while (number % factor === 0n) {
-                    factors.push(factor);
-                    number /= factor;
-                }
-                await new Promise(resolve => setTimeout(resolve, 0));
-            }
-        }
-    } catch (error) {
-        console.error("Pollard's rho 法のエラー:", error);
-        document.getElementById("result").textContent = "素因数分解中にエラーが発生しました";
-    }
-    return factors;
 }
 
 // 最大公約数計算
