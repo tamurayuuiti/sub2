@@ -93,7 +93,7 @@ async function startFactorization() {
         }
 
         // n >= 10^7 の場合、試し割りの前に AKS 素数判定
-        if (num >= 10000000n && isPrimeAKS(num)) {
+        if (num >= 10000000n && isPrimeMillerRabin(num)) {
             document.getElementById("result").textContent = `素数: ${num}`;
             return;
         }
@@ -119,14 +119,14 @@ async function startFactorization() {
         }
 
         // まず試し割りを実施
-        let factors = await trialDivisionFromFile(num);
+        let { factors, remainder } = await trialDivisionFromFile(num); // `remainder` を取得
 
         // 残りが 1 より大きければ Pollard’s rho 法で分解
-        if (num > 1n) {
-            let extraFactors = await pollardsRhoFactorization(num);
+        if (remainder > 1n) {
+            let extraFactors = await pollardsRhoFactorization(remainder);
             factors = factors.concat(extraFactors);
         }
-        
+
         let elapsedTime = ((performance.now() - startTime) / 1000).toFixed(3);
         document.getElementById("result").textContent = `素因数:\n${factors.join(" × ")}`;
         document.getElementById("time").textContent = `計算時間: ${elapsedTime} 秒`;
@@ -159,7 +159,7 @@ async function trialDivisionFromFile(number) {
         console.error("試し割りエラー:", error);
         document.getElementById("result").textContent = "試し割り中にエラーが発生しました";
     }
-    return factors;
+    return { factors, remainder: number };
 }
 
 // 改良版 Pollard’s rho 法
