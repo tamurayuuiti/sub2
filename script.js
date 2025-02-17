@@ -42,26 +42,15 @@ function updateProgress() {
 
 async function startFactorization() {
     try {
-        let num = BigInt(document.getElementById("numberInput").value.trim());
+        if (isCalculating) return; // 計算中なら無視
+        let inputValue = document.getElementById("numberInput").value.trim();
+        if (!inputValue) return; // 空入力は無視
+
+        let num = BigInt(inputValue);
         if (num < 2n) {
             document.getElementById("result").textContent = "有効な整数を入力してください";
             return;
         }
-
-        // Web Worker による試し割り
-        let { factors, remainder } = await trialDivisionFromFile(num);
-
-        // 残りが 1 より大きければ Pollard’s rho 法で分解
-        if (remainder > 1n) {
-            let extraFactors = await pollardsRhoFactorization(remainder);
-            factors = factors.concat(extraFactors);
-        }
-
-        document.getElementById("result").textContent = `素因数:\n${factors.join(" × ")}`;
-    } catch (error) {
-        console.error("計算エラー:", error);
-    }
-}
 
         // UIを即座に更新
         document.getElementById("result").textContent = "";
@@ -109,20 +98,22 @@ async function startFactorization() {
 
 // 外部ファイルを使った試し割り法
 async function trialDivisionFromFile(number) {
-    return new Promise((resolve, reject) => {
-        const worker = new Worker('trialDivisionWorker.js');  // Worker を作成
-        worker.postMessage({ number: number.toString(), primes });  // Worker に `n` を送信
-
-        worker.onmessage = function(event) {
-            worker.terminate();  // 処理終了後に Worker を停止
-            resolve(event.data);  // 試し割りの結果を返す
-        };
-
-        worker.onerror = function(error) {
-            worker.terminate();
-            reject(error);
-        };
-    });
+    let factors = [];
+    try {
+        for (let i = 0; i < primes.length; i++) {
+            let prime = primes[i];
+            if (prime * prime > number) break;
+            while (number % prime === 0n) {
+                factors.push(prime);
+                number /= prime;
+            }
+            if (i % 100 === 0) await new Promise(resolve => setTimeout(resolve, 0)); // 処理を分割
+        }
+    } catch (error) {
+        console.error("試し割りエラー:", error);
+        document.getElementById("result").textContent = "試し割り中にエラーが発生しました";
+    }
+    return factors;
 }
 
 // 改良版 Pollard’s rho 法
