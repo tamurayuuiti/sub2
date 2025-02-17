@@ -10,6 +10,7 @@ self.onmessage = function(event) {
             factors.push(prime);
             number /= prime;
         }
+        if (i % 100 === 0) await new Promise(resolve => setTimeout(resolve, 0)); // 処理を分割
     }
 
     // 試し割りの結果をメインスレッドに送信
