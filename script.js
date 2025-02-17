@@ -190,7 +190,6 @@ async function pollardsRhoFactorization(number) {
     return factors;
 }
 
-
 function pollardsRho(n) {
     if (n % 2n === 0n) return 2n;
 
