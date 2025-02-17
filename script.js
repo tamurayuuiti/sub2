@@ -119,15 +119,14 @@ async function startFactorization() {
         }
 
         // まず試し割りを実施
-        let { factors, remainder } = await trialDivisionFromFile(num);
         let factors = await trialDivisionFromFile(num);
-        if (remainder > 1n) {
 
-            let extraFactors = await pollardsRhoFactorization(remainder);
         // 残りが 1 より大きければ Pollard’s rho 法で分解
         if (num > 1n) {
             let extraFactors = await pollardsRhoFactorization(num);
-
+            factors = factors.concat(extraFactors);
+        }
+        
         let elapsedTime = ((performance.now() - startTime) / 1000).toFixed(3);
         document.getElementById("result").textContent = `素因数:\n${factors.join(" × ")}`;
         document.getElementById("time").textContent = `計算時間: ${elapsedTime} 秒`;
