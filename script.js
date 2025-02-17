@@ -52,6 +52,9 @@ async function startFactorization() {
             return;
         }
 
+         // Web Worker による試し割り
+        let { factors, remainder } = await trialDivisionFromFile(num);
+
         // UIを即座に更新
         document.getElementById("result").textContent = "";
         document.getElementById("time").textContent = "";
