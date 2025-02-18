@@ -201,40 +201,30 @@ async function trialDivisionFromFile(number) {
 // 改良版 Pollard’s rho 法
 async function pollardsRhoFactorization(number) {
     let factors = [];
-
     while (number > 1n) {
-        if (isPrimeMillerRabin(number)) {
+        if (isPrimeMillerRabin(number)) { // AKS の代わりにミラー・ラビン法を使用
             factors.push(number);
             break;
         }
 
         let factor = null;
 
-        // 20桁以上なら ECM を試す
-        if (number > 10n ** 19n) {  
+        if (number > 10n ** 19n) { // 20桁以上なら ECM を試す
             factor = ecmFactorization(number);
-        } 
+            if (factor) console.log(`ECM found factor: ${factor}`);
+        }
         
-        // ECM で因数を見つけられなかった場合、Pollard’s Rho を適用
-        if (!factor) {  
-            factor = pollardsRho(number);
+        let factor = pollardsRho(number);
+        if (!factor || factor === number) {
+            factors.push(number);
+            break;
         }
-
-        if (factor) {
+        while (number % factor === 0n) {
             factors.push(factor);
-            while (number % factor === 0n) {
-                number /= factor;
-            }
-            if (isPrimeMillerRabin(number)) {
-                factors.push(number);
-                break;
-            }
-            continue; // まだ素因数分解が必要ならループを継続
+            number /= factor;
         }
-
         await new Promise(resolve => setTimeout(resolve, 0)); // 負荷分散
     }
-
     return factors;
 }
 
