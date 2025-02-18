@@ -101,12 +101,6 @@ async function startFactorization() {
             return;
         }
 
-        if (num >= 10000000n && isPrimeMillerRabin(num)) {
-            document.getElementById("result").textContent = `素数: ${num}`;
-            console.log(`入力値 ${num} は素数でした`);
-            return;
-        }
-
         document.getElementById("result").textContent = "";
         document.getElementById("time").textContent = "";
         document.getElementById("progress").textContent = "経過時間: 0.000 秒";
