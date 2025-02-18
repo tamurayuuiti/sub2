@@ -154,6 +154,7 @@ async function trialDivisionFromFile(number) {
     
     try {
         for (let i = 0; i < limit; i++) {
+            let prime = BigInt(primes[i]);
             let prime = primes[i];
             if (prime * prime > number) break;
             while (number % prime === 0n) {
