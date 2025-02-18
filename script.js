@@ -171,12 +171,19 @@ async function trialDivisionFromFile(number) {
 async function pollardsRhoFactorization(number) {
     let factors = [];
     while (number > 1n) {
-        if (isPrimeMillerRabin(number)) { // AKS の代わりにミラー・ラビン法を使用
+        if (isPrimeMillerRabin(number)) {
             factors.push(number);
             break;
         }
-        
-        let factor = pollardsRho(number);
+
+        let factor = null;
+        if (number >= 10n ** 20n) {
+            factor = ecmFactorization(number);
+        }
+        if (!factor) {
+            factor = pollardsRho(number);
+        }
+
         if (!factor || factor === number) {
             factors.push(number);
             break;
@@ -185,9 +192,39 @@ async function pollardsRhoFactorization(number) {
             factors.push(factor);
             number /= factor;
         }
-        await new Promise(resolve => setTimeout(resolve, 0)); // 負荷分散
+        await new Promise(resolve => setTimeout(resolve, 0));
     }
     return factors;
+}
+
+function ecmFactorization(n, maxCurves = 5) {
+    function gcd(a, b) {
+        while (b) {
+            let temp = b;
+            b = a % b;
+            a = temp;
+        }
+        return a;
+    }
+
+    for (let i = 0; i < maxCurves; i++) {
+        let a = BigInt(Math.floor(Math.random() * Number(n)));
+        let x = BigInt(Math.floor(Math.random() * Number(n)));
+        let y = (x ** 3n + a * x + 1n) % n;
+
+        let factor = gcd(2n * y, n);
+        if (factor > 1n && factor < n) return factor;
+
+        let k = 2n;
+        while (k < 1000n) {
+            x = (x * x + a) % n;
+            y = (y * y + a) % n;
+            k *= 2n;
+            factor = gcd(x - y, n);
+            if (factor > 1n && factor < n) return factor;
+        }
+    }
+    return null;
 }
 
 function pollardsRho(n) {
