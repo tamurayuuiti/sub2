@@ -149,6 +149,7 @@ async function startFactorization() {
 // 外部ファイルを使った試し割り法
 async function trialDivisionFromFile(number) {
     let factors = [];
+    let lastLoggedPrime = 0n;
     try {
         for (let i = 0; i < primes.length; i++) {
             let prime = primes[i];
