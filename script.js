@@ -177,7 +177,7 @@ async function pollardsRhoFactorization(number) {
         }
 
         let factor = null;
-        if (number >= 10n ** 18n) {
+        if (number >= 10n ** 17n) {
             factor = ecmFactorization(number);
         }
         if (!factor) {
