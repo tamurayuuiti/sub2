@@ -161,7 +161,7 @@ async function trialDivisionFromFile(number) {
                 number /= prime;
             }
             
-            if (i % 10000 === 0 && prime !== lastLoggedPrime) {
+            if (i % 5000 === 0 && prime !== lastLoggedPrime) {
                 console.clear();
                 console.log(`試し割り中... 現在の素数: ${prime}`);
                 lastLoggedPrime = prime;
