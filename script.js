@@ -20,6 +20,7 @@ document.getElementById("numberInput").addEventListener("input", function(event)
 // 外部の素数リストを読み込む
 async function loadPrimes() {
     try {
+        console.log("素数リストの読み込みを開始します...");
         const response = await fetch("https://tamurayuuiti.github.io/sub2/data/primes.txt");
         if (!response.ok) {
             throw new Error(`素数リストの読み込みに失敗しました (HTTP ${response.status})`);
@@ -29,6 +30,7 @@ async function loadPrimes() {
         if (primes.length === 0) {
             throw new Error("素数リストが空です");
         }
+        console.log(`素数リストの読み込みが完了しました。${primes.length} 個の素数を取得しました。`);
     } catch (error) {
         console.error("素数リストの取得エラー:", error);
         alert("素数リストの読み込みに失敗しました。ページを更新して再試行してください。");
@@ -38,10 +40,12 @@ async function loadPrimes() {
 function updateProgress() {
     let elapsedTime = ((performance.now() - startTime) / 1000).toFixed(3);
     document.getElementById("progress").textContent = `経過時間: ${elapsedTime} 秒`;
+    console.log(`進行状況更新: ${elapsedTime} 秒経過`);
 }
 
 // ミラー・ラビン素数判定法
 function isPrimeMillerRabin(n) {
+    console.log(`ミラー・ラビン素数判定を実行: n = ${n}`);
     if (n < 2n) return false;
     if (n === 2n || n === 3n) return true;
     if (n % 2n === 0n) return false;
@@ -60,11 +64,10 @@ function isPrimeMillerRabin(n) {
         return result;
     }
 
-    // 12個の固定基数（n < 2²⁵⁶ なら確定的に判定可能）
     const witnesses = [2n, 3n, 5n, 7n, 11n, 13n, 17n, 19n, 23n, 29n, 31n, 37n];
 
     for (let a of witnesses) {
-        if (a >= n) break; // `n` より大きな `a` は無視
+        if (a >= n) break;
         let x = powerMod(a, d, n);
         if (x === 1n || x === n - 1n) continue;
 
@@ -87,23 +90,24 @@ function isPrimeMillerRabin(n) {
 
 async function startFactorization() {
     try {
-        if (isCalculating) return; // 計算中なら無視
+        if (isCalculating) return;
         let inputValue = document.getElementById("numberInput").value.trim();
-        if (!inputValue) return; // 空入力は無視
+        if (!inputValue) return;
 
         let num = BigInt(inputValue);
+        console.log(`因数分解を開始: ${num}`);
+
         if (num < 2n) {
             document.getElementById("result").textContent = "有効な整数を入力してください";
             return;
         }
 
-        // n >= 10^7 の場合、試し割りの前にミラー・ラビン素数判定
         if (num >= 10000000n && isPrimeMillerRabin(num)) {
             document.getElementById("result").textContent = `素数: ${num}`;
+            console.log(`入力値 ${num} は素数でした`);
             return;
         }
 
-        // UIを即座に更新
         document.getElementById("result").textContent = "";
         document.getElementById("time").textContent = "";
         document.getElementById("progress").textContent = "経過時間: 0.000 秒";
@@ -113,8 +117,8 @@ async function startFactorization() {
         await new Promise(resolve => setTimeout(resolve, 10));
 
         isCalculating = true;
-        startTime = performance.now(); // 計測開始
-        progressInterval = setInterval(updateProgress, 1); // 1msごとに経過時間更新
+        startTime = performance.now();
+        progressInterval = setInterval(updateProgress, 1);
 
         if (primes.length === 0) {
             await loadPrimes();
@@ -123,11 +127,12 @@ async function startFactorization() {
             }
         }
 
-        // まず試し割りを実施
-        let { factors, remainder } = await trialDivisionFromFile(num); // `remainder` を取得
+        console.log("試し割り法を実行します...");
+        let { factors, remainder } = await trialDivisionFromFile(num);
+        console.log(`試し割り法完了。残りの数: ${remainder}`);
 
-        // 残りが 1 より大きければ Pollard’s rho 法で分解
         if (remainder > 1n) {
+            console.log("Pollard’s rho 法による因数分解を実行します...");
             let extraFactors = await pollardsRhoFactorization(remainder);
             factors = factors.concat(extraFactors);
         }
@@ -135,6 +140,7 @@ async function startFactorization() {
         let elapsedTime = ((performance.now() - startTime) / 1000).toFixed(3);
         document.getElementById("result").textContent = `素因数:\n${factors.join(" × ")}`;
         document.getElementById("time").textContent = `計算時間: ${elapsedTime} 秒`;
+        console.log(`因数分解完了: ${factors.join(" × ")}, 時間: ${elapsedTime} 秒`);
     } catch (error) {
         console.error("計算エラー:", error);
         document.getElementById("result").textContent = "計算中にエラーが発生しました";
@@ -198,6 +204,8 @@ async function pollardsRhoFactorization(number) {
 }
 
 function ecmFactorization(n) {
+    console.log(`ECM因数分解を開始: n = ${n}`);
+    
     function gcd(a, b) {
         while (b) {
             let temp = b;
@@ -231,8 +239,13 @@ function ecmFactorization(n) {
         let x = BigInt(Math.floor(Math.random() * Number(n)));
         let y = (x ** 3n + a * x + 1n) % n;
 
+        console.log(`  ECM曲線 ${i + 1}/${maxCurves}: a = ${a}, x = ${x}, y = ${y}`);
+
         let factor = gcd(2n * y, n);
-        if (factor > 1n && factor < n) return factor;
+        if (factor > 1n && factor < n) {
+            console.log(`  ECM因数分解成功: factor = ${factor}`);
+            return factor;
+        }
 
         let k = 2n;
         while (k < B1) {
@@ -240,17 +253,26 @@ function ecmFactorization(n) {
             y = (y * y + a) % n;
             k *= 2n;
             factor = gcd(x - y, n);
-            if (factor > 1n && factor < n) return factor;
+            if (factor > 1n && factor < n) {
+                console.log(`  ECM因数分解成功（B1段階）: factor = ${factor}`);
+                return factor;
+            }
         }
 
         // **Stage 2: B2範囲で更に探索**
+        console.log(`  ECM Stage 2 開始: B1 = ${B1}, B2 = ${B2}`);
         for (let j = B1; j < B2; j *= 2n) {
             x = (x * modInverse(j, n)) % n;
             y = (y * modInverse(j + 1n, n)) % n;
             factor = gcd(x - y, n);
-            if (factor > 1n && factor < n) return factor;
+            if (factor > 1n && factor < n) {
+                console.log(`  ECM因数分解成功（B2段階）: factor = ${factor}`);
+                return factor;
+            }
         }
     }
+
+    console.log("  ECM因数分解失敗: 有効な因数が見つかりませんでした");
     return null;
 }
 
