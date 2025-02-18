@@ -211,10 +211,19 @@ async function pollardsRhoFactorization(number) {
 
         if (number > 10n ** 19n) { // 20桁以上なら ECM を試す
             factor = ecmFactorization(number);
-            if (factor) console.log(`ECM found factor: ${factor}`);
-        }
-        
-        let factor = pollardsRho(number);
+            if (factor) {
+                factors.push(factor);
+                while (number % factor === 0n) {
+                    number /= factor;
+                }
+                if (isPrimeMillerRabin(number)) {
+                    factors.push(number);
+                    break;
+                }
+                continue; // まだ素因数分解が必要なら Pollard’s Rho へ進む
+            }
+            
+        factor = pollardsRho(number);
         if (!factor || factor === number) {
             factors.push(number);
             break;
