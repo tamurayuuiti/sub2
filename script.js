@@ -150,8 +150,10 @@ async function startFactorization() {
 async function trialDivisionFromFile(number) {
     let factors = [];
     let lastLoggedPrime = 0n;
+    let limit = number >= 10n ** 10n ? 100000 : primes.length; // 10^10 以上なら 10万まで試す
+    
     try {
-        for (let i = 0; i < primes.length; i++) {
+        for (let i = 0; i < limit; i++) {
             let prime = primes[i];
             if (prime * prime > number) break;
             while (number % prime === 0n) {
