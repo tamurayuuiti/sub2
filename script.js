@@ -157,6 +157,13 @@ async function trialDivisionFromFile(number) {
                 factors.push(prime);
                 number /= prime;
             }
+            
+            if (i % 1000 === 0 && prime !== lastLoggedPrime) {
+                console.clear();
+                console.log(`試し割り中... 現在の素数: ${prime}`);
+                lastLoggedPrime = prime;
+            }
+            
             if (i % 100 === 0) await new Promise(resolve => setTimeout(resolve, 0)); // 処理を分割
         }
     } catch (error) {
