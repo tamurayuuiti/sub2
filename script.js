@@ -197,7 +197,7 @@ async function pollardsRhoFactorization(number) {
     return factors;
 }
 
-function ecmFactorization(n, maxCurves = 5) {
+function ecmFactorization(n) {
     function gcd(a, b) {
         while (b) {
             let temp = b;
@@ -206,6 +206,25 @@ function ecmFactorization(n, maxCurves = 5) {
         }
         return a;
     }
+
+    function modInverse(a, m) {
+        let m0 = m, t, q;
+        let x0 = 0n, x1 = 1n;
+        if (m === 1n) return 0n;
+        while (a > 1n) {
+            q = a / m;
+            t = m;
+            m = a % m;
+            a = t;
+            t = x0;
+            x0 = x1 - q * x0;
+            x1 = t;
+        }
+        return x1 < 0n ? x1 + m0 : x1;
+    }
+
+    let maxCurves = n > 10n ** 20n ? 10 : 5;
+    let B1 = 1000n, B2 = 2000n;
 
     for (let i = 0; i < maxCurves; i++) {
         let a = BigInt(Math.floor(Math.random() * Number(n)));
@@ -216,10 +235,18 @@ function ecmFactorization(n, maxCurves = 5) {
         if (factor > 1n && factor < n) return factor;
 
         let k = 2n;
-        while (k < 1000n) {
+        while (k < B1) {
             x = (x * x + a) % n;
             y = (y * y + a) % n;
             k *= 2n;
+            factor = gcd(x - y, n);
+            if (factor > 1n && factor < n) return factor;
+        }
+
+        // **Stage 2: B2範囲で更に探索**
+        for (let j = B1; j < B2; j *= 2n) {
+            x = (x * modInverse(j, n)) % n;
+            y = (y * modInverse(j + 1n, n)) % n;
             factor = gcd(x - y, n);
             if (factor > 1n && factor < n) return factor;
         }
