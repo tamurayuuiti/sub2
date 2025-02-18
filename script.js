@@ -208,7 +208,7 @@ async function pollardsRhoFactorization(number) {
             break;
         }
 
-        let factor = null;
+        factor = pollardsRho(number);
 
         // 20桁以上なら ECM を試す
         if (number > 10n ** 19n) {  
