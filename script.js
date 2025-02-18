@@ -40,6 +40,37 @@ function updateProgress() {
     document.getElementById("progress").textContent = `経過時間: ${elapsedTime} 秒`;
 }
 
+// ECM（楕円曲線法）
+function ecmFactorization(n, maxCurves = 5, B = 1000) {
+    function gcd(a, b) {
+        while (b) {
+            let temp = b;
+            b = a % b;
+            a = temp;
+        }
+        return a;
+    }
+
+    for (let i = 0; i < maxCurves; i++) {
+        let a = BigInt(Math.floor(Math.random() * Number(n))); 
+        let x = BigInt(Math.floor(Math.random() * Number(n))); 
+        let y = (x ** 3n + a * x + 1n) % n;
+
+        let factor = gcd(2n * y, n); 
+        if (factor > 1n && factor < n) return factor;
+
+        let k = 2n;
+        while (k < B) {
+            x = (x * x + a) % n;
+            y = (y * y + a) % n;
+            k *= 2n;
+            factor = gcd(x - y, n);
+            if (factor > 1n && factor < n) return factor;
+        }
+    }
+    return null;
+}
+
 // ミラー・ラビン素数判定法
 function isPrimeMillerRabin(n) {
     if (n < 2n) return false;
@@ -174,6 +205,13 @@ async function pollardsRhoFactorization(number) {
         if (isPrimeMillerRabin(number)) { // AKS の代わりにミラー・ラビン法を使用
             factors.push(number);
             break;
+        }
+
+        let factor = null;
+
+        if (number > 10n ** 19n) { // 20桁以上なら ECM を試す
+            factor = ecmFactorization(number);
+            if (factor) console.log(`ECM found factor: ${factor}`);
         }
         
         let factor = pollardsRho(number);
