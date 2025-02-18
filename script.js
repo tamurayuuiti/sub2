@@ -208,34 +208,28 @@ async function pollardsRhoFactorization(number) {
             break;
         }
 
+        let factor = null;
+
+        // 20桁以上なら ECM を試す
         if (number > 10n ** 19n) {  
             factor = ecmFactorization(number);
-        } else {
+        } 
+        
+        // ECM で因数を見つけられなかった場合、Pollard’s Rho を適用
+        if (!factor) {  
             factor = pollardsRho(number);
         }
-            if (factor) {
-                factors.push(factor);
-                while (number % factor === 0n) {
-                    number /= factor;
-                }
-                if (isPrimeMillerRabin(number)) {
-                    factors.push(number);
-                    break;
-                }
-                continue; // まだ素因数分解が必要なら Pollard’s Rho へ進む
-            }
-        }
 
-        // Pollard’s Rho による分解
-        let factor = pollardsRho(number);
-        if (!factor || factor === number) {
-            factors.push(number);
-            break;
-        }
-
-        while (number % factor === 0n) {
+        if (factor) {
             factors.push(factor);
-            number /= factor;
+            while (number % factor === 0n) {
+                number /= factor;
+            }
+            if (isPrimeMillerRabin(number)) {
+                factors.push(number);
+                break;
+            }
+            continue; // まだ素因数分解が必要ならループを継続
         }
 
         await new Promise(resolve => setTimeout(resolve, 0)); // 負荷分散
