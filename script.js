@@ -208,11 +208,11 @@ async function pollardsRhoFactorization(number) {
             break;
         }
 
-        factor = pollardsRho(number);
-
-        // 20桁以上なら ECM を試す
         if (number > 10n ** 19n) {  
             factor = ecmFactorization(number);
+        } else {
+            factor = pollardsRho(number);
+        }
             if (factor) {
                 factors.push(factor);
                 while (number % factor === 0n) {
@@ -227,7 +227,7 @@ async function pollardsRhoFactorization(number) {
         }
 
         // Pollard’s Rho による分解
-        factor = pollardsRho(number);
+        let factor = pollardsRho(number);
         if (!factor || factor === number) {
             factors.push(number);
             break;
