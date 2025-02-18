@@ -40,7 +40,6 @@ async function loadPrimes() {
 function updateProgress() {
     let elapsedTime = ((performance.now() - startTime) / 1000).toFixed(3);
     document.getElementById("progress").textContent = `経過時間: ${elapsedTime} 秒`;
-    console.log(`進行状況更新: ${elapsedTime} 秒経過`);
 }
 
 // ミラー・ラビン素数判定法
