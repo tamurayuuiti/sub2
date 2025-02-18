@@ -151,23 +151,21 @@ async function trialDivisionFromFile(number) {
     let factors = [];
     let lastLoggedPrime = 0n;
     try {
-        let limit = (number <= 10n ** 10n) ? number ** 0.5n : 100000n;
-
         for (let i = 0; i < primes.length; i++) {
             let prime = primes[i];
-            if (prime > limit) break;
-            
+            if (prime * prime > number) break;
             while (number % prime === 0n) {
                 factors.push(prime);
                 number /= prime;
             }
             
             if (i % 10000 === 0 && prime !== lastLoggedPrime) {
-                console.log(`試し割り中... 現在の素数: ${prime}`);
+                console.clear();
+                console.log(試し割り中... 現在の素数: ${prime});
                 lastLoggedPrime = prime;
             }
-
-            if (i % 100 === 0) await new Promise(resolve => setTimeout(resolve, 0));
+            
+            if (i % 100 === 0) await new Promise(resolve => setTimeout(resolve, 0)); // 処理を分割
         }
     } catch (error) {
         console.error("試し割りエラー:", error);
