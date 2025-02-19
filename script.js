@@ -201,7 +201,7 @@ async function pollardsRhoFactorization(number) {
 
         let factor = null;
         if (number >= 10n ** 17n) {
-            factor = await ecmFactorization(number);
+            factor = await ecmFactorization(number); // `await` を追加
         }
         if (!factor) {
             factor = pollardsRho(number);
@@ -212,7 +212,7 @@ async function pollardsRhoFactorization(number) {
             break;
         }
 
-        // **因数が配列なら concat() で結合**
+        // **因数が配列の場合に対応**
         if (Array.isArray(factor)) {
             factors = factors.concat(factor);
         } else {
@@ -266,7 +266,7 @@ async function ecmFactorization(n) {
 
         let factor = gcd(2n * y, n);
         if (factor > 1n && factor < n) {
-            return await processFactor(factor); // **配列を返す**
+            return await processFactor(factor);
         }
 
         let k = 2n;
@@ -276,7 +276,7 @@ async function ecmFactorization(n) {
             k *= 2n;
             factor = gcd(x - y, n);
             if (factor > 1n && factor < n) {
-                return await processFactor(factor); // **配列を返す**
+                return await processFactor(factor);
             }
         }
 
@@ -287,25 +287,25 @@ async function ecmFactorization(n) {
             y = (y * modInverse(j + 1n, n)) % n;
             factor = gcd(x - y, n);
             if (factor > 1n && factor < n) {
-                return await processFactor(factor); // **配列を返す**
+                return await processFactor(factor);
             }
         }
     }
 
     console.log("  ECM因数分解失敗: 有効な因数が見つかりませんでした");
-    return [];
+    return null;
 }
 
 // **新しく追加した関数: 因数の処理**
 async function processFactor(factor) {
     if (isPrimeMillerRabin(factor)) {
         console.log(`  ECM因数分解成功: 素数 factor = ${factor}`);
-        return [factor]; // **常に配列で返す**
+        return factor;
     } else {
         console.log(`  ECM因数分解成功: しかし factor = ${factor} は合成数なのでさらに分解`);
         let subFactors = await pollardsRhoFactorization(factor);
         console.log(`  合成数 ${factor} の分解結果: ${subFactors.join(" × ")}`);
-        return subFactors; // **既に配列なのでそのまま返す**
+        return subFactors;
     }
 }
 
