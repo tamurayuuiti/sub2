@@ -201,7 +201,7 @@ async function pollardsRhoFactorization(number) {
 
         let factor = null;
         if (number >= 10n ** 17n) {
-            factor = await ecmFactorization(number); // `await` を追加
+            factor = await ecmFactorization(number);
         }
         if (!factor) {
             factor = pollardsRho(number);
@@ -214,11 +214,20 @@ async function pollardsRhoFactorization(number) {
 
         // **因数が配列の場合に対応**
         if (Array.isArray(factor)) {
-            factors = factors.concat(factor);
+            for (let f of factor) {
+                if (isPrimeMillerRabin(f)) {
+                    factors.push(f);
+                } else {
+                    let subFactors = await pollardsRhoFactorization(f);
+                    factors = factors.concat(subFactors);
+                }
+            }
         } else {
-            while (number % factor === 0n) {
+            if (isPrimeMillerRabin(factor)) {
                 factors.push(factor);
-                number /= factor;
+            } else {
+                let subFactors = await pollardsRhoFactorization(factor);
+                factors = factors.concat(subFactors);
             }
         }
         await new Promise(resolve => setTimeout(resolve, 0));
@@ -296,7 +305,7 @@ async function ecmFactorization(n) {
     return null;
 }
 
-// **新しく追加した関数: 因数の処理**
+// **ECMで得られた因数を適切に処理**
 async function processFactor(factor) {
     if (isPrimeMillerRabin(factor)) {
         console.log(`  ECM因数分解成功: 素数 factor = ${factor}`);
