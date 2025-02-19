@@ -154,6 +154,11 @@ async function trialDivisionFromFile(number) {
     
     try {
         for (let i = 0; i < limit; i++) {
+            if (primes[i] === undefined) {
+                console.error(`試し割りエラー: primes[${i}] が未定義`);
+                continue; // スキップ
+            }
+            
             let prime = BigInt(primes[i]);
             if (prime * prime > number) break;
             while (number % prime === 0n) {
