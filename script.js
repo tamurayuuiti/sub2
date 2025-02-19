@@ -250,6 +250,7 @@ function ecmFactorization(n) {
 
     let maxCurves = n > 10n ** 20n ? 10 : 5;
     let B1 = 1000n, B2 = 2000n;
+    let foundFactor = false; // 因数を見つけたかどうかのフラグ
 
     for (let i = 0; i < maxCurves; i++) {
         let a = BigInt(Math.floor(Math.random() * Number(n)));
@@ -261,6 +262,7 @@ function ecmFactorization(n) {
         let factor = gcd(2n * y, n);
         if (factor > 1n && factor < n) {
             console.log(`  ECM因数分解成功: factor = ${factor}`);
+            foundFactor = true;
             return factor;
         }
 
@@ -272,6 +274,7 @@ function ecmFactorization(n) {
             factor = gcd(x - y, n);
             if (factor > 1n && factor < n) {
                 console.log(`  ECM因数分解成功（B1段階）: factor = ${factor}`);
+                foundFactor = true;
                 return factor;
             }
         }
@@ -284,12 +287,16 @@ function ecmFactorization(n) {
             factor = gcd(x - y, n);
             if (factor > 1n && factor < n) {
                 console.log(`  ECM因数分解成功（B2段階）: factor = ${factor}`);
+                foundFactor = true;
                 return factor;
             }
         }
     }
 
-    console.log("  ECM因数分解失敗: 有効な因数が見つかりませんでした");
+    // ここまで来た場合、因数が見つかっていない
+    if (!foundFactor) {
+        console.log("  ECM因数分解失敗: 有効な因数が見つかりませんでした");
+    }
     return null;
 }
 
