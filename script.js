@@ -151,6 +151,7 @@ async function trialDivisionFromFile(number) {
     let factors = [];
     let lastLoggedPrime = 0n;
     let limit = number >= 10n ** 10n ? 100000 : primes.length; // 10^10 以上なら 10万まで試す
+    limit = Math.min(limit, 499979); // 最大 499979 で明確に終了
     
     try {
         for (let i = 0; i < limit; i++) {
