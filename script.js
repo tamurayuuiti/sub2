@@ -10,12 +10,14 @@ document.getElementById("numberInput").addEventListener("keypress", function(eve
     }
 });
 
+// 入力の桁数制限（30桁まで）
 document.getElementById("numberInput").addEventListener("input", function(event) {
     if (event.target.value.length > 30) {
         event.target.value = event.target.value.slice(0, 30);
     }
 });
 
+// 外部の素数リストを読み込む
 async function loadPrimes() {
     try {
         console.log("素数リストの読み込みを開始します...");
@@ -24,7 +26,7 @@ async function loadPrimes() {
             throw new Error(`素数リストの読み込みに失敗しました (HTTP ${response.status})`);
         }
         const text = await response.text();
-        primes = text.split(/\s+/).filter(n => n).map(n => BigInt(n));
+        primes = text.split(/\s+/).filter(n => n).map(n => BigInt(n)); // 空白・改行対応
         if (primes.length === 0) {
             throw new Error("素数リストが空です");
         }
@@ -40,10 +42,13 @@ function updateProgress() {
     document.getElementById("progress").textContent = `経過時間: ${elapsedTime} 秒`;
 }
 
+// ミラー・ラビン素数判定法
 function isPrimeMillerRabin(n) {
+    console.log(`ミラー・ラビン素数判定を実行: n = ${n}`);
     if (n < 2n) return false;
     if (n === 2n || n === 3n) return true;
     if (n % 2n === 0n) return false;
+
     let d = n - 1n;
     while (d % 2n === 0n) d /= 2n;
 
@@ -51,7 +56,7 @@ function isPrimeMillerRabin(n) {
         let result = 1n;
         base %= mod;
         while (exp > 0n) {
-            if (exp & 1n) result = (result * base) % mod;
+            if (exp & 1n) result = (result * base) % mod; // ビット演算で最適化
             exp >>= 1n;
             base = (base * base) % mod;
         }
@@ -59,10 +64,12 @@ function isPrimeMillerRabin(n) {
     }
 
     const witnesses = [2n, 3n, 5n, 7n, 11n, 13n, 17n, 19n, 23n, 29n, 31n, 37n];
+
     for (let a of witnesses) {
         if (a >= n) break;
         let x = powerMod(a, d, n);
         if (x === 1n || x === n - 1n) continue;
+
         let dCopy = d;
         let isComposite = true;
         while (dCopy !== n - 1n) {
@@ -76,6 +83,7 @@ function isPrimeMillerRabin(n) {
         }
         if (isComposite) return false;
     }
+
     return true;
 }
 
@@ -116,20 +124,10 @@ async function startFactorization() {
         let { factors, remainder } = await trialDivisionFromFile(num);
         console.log(`試し割り法完了。残りの数: ${remainder}`);
 
-        while (remainder > 1n) {
-            if (isPrimeMillerRabin(remainder)) {
-                factors.push(remainder);
-                break;
-            }
-            let factor = remainder >= 10n ** 17n ? ecmFactorization(remainder) : pollardsRho(remainder);
-            if (!factor || factor === remainder) {
-                factors.push(remainder);
-                break;
-            }
-            while (remainder % factor === 0n) {
-                factors.push(factor);
-                remainder /= factor;
-            }
+        if (remainder > 1n) {
+            console.log("Pollard’s rho 法による因数分解を実行します...");
+            let extraFactors = await pollardsRhoFactorization(remainder);
+            factors = factors.concat(extraFactors);
         }
 
         let elapsedTime = ((performance.now() - startTime) / 1000).toFixed(3);
