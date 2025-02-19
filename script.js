@@ -220,7 +220,7 @@ async function pollardsRhoFactorization(number) {
     return factors;
 }
 
-function ecmFactorization(n) {
+async function ecmFactorization(n) {
     console.log(`ECM因数分解を開始: n = ${n}`);
     
     function gcd(a, b) {
@@ -250,7 +250,6 @@ function ecmFactorization(n) {
 
     let maxCurves = n > 10n ** 20n ? 10 : 5;
     let B1 = 1000n, B2 = 2000n;
-    let foundFactor = false; // 因数を見つけたかどうかのフラグ
 
     for (let i = 0; i < maxCurves; i++) {
         let a = BigInt(Math.floor(Math.random() * Number(n)));
@@ -261,9 +260,7 @@ function ecmFactorization(n) {
 
         let factor = gcd(2n * y, n);
         if (factor > 1n && factor < n) {
-            console.log(`  ECM因数分解成功: factor = ${factor}`);
-            foundFactor = true;
-            return factor;
+            return await processFactor(factor);
         }
 
         let k = 2n;
@@ -273,9 +270,7 @@ function ecmFactorization(n) {
             k *= 2n;
             factor = gcd(x - y, n);
             if (factor > 1n && factor < n) {
-                console.log(`  ECM因数分解成功（B1段階）: factor = ${factor}`);
-                foundFactor = true;
-                return factor;
+                return await processFactor(factor);
             }
         }
 
@@ -286,18 +281,26 @@ function ecmFactorization(n) {
             y = (y * modInverse(j + 1n, n)) % n;
             factor = gcd(x - y, n);
             if (factor > 1n && factor < n) {
-                console.log(`  ECM因数分解成功（B2段階）: factor = ${factor}`);
-                foundFactor = true;
-                return factor;
+                return await processFactor(factor);
             }
         }
     }
 
-    // ここまで来た場合、因数が見つかっていない
-    if (!foundFactor) {
-        console.log("  ECM因数分解失敗: 有効な因数が見つかりませんでした");
-    }
+    console.log("  ECM因数分解失敗: 有効な因数が見つかりませんでした");
     return null;
+}
+
+// **新しく追加した関数: 因数の処理**
+async function processFactor(factor) {
+    if (isPrimeMillerRabin(factor)) {
+        console.log(`  ECM因数分解成功: 素数 factor = ${factor}`);
+        return factor;
+    } else {
+        console.log(`  ECM因数分解成功: しかし factor = ${factor} は合成数なのでさらに分解`);
+        let subFactors = await pollardsRhoFactorization(factor);
+        console.log(`  合成数 ${factor} の分解結果: ${subFactors.join(" × ")}`);
+        return subFactors;
+    }
 }
 
 function pollardsRho(n) {
