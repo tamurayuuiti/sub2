@@ -171,6 +171,7 @@ async function trialDivisionFromFile(number) {
             
             if (i % 100 === 0) await new Promise(resolve => setTimeout(resolve, 0)); // 処理を分割
         }
+        
     } catch (error) {
         console.error("試し割りエラー:", error);
         document.getElementById("result").textContent = "試し割り中にエラーが発生しました";
