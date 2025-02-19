@@ -201,7 +201,7 @@ async function pollardsRhoFactorization(number) {
 
         let factor = null;
         if (number >= 10n ** 17n) {
-            factor = ecmFactorization(number);
+            factor = await ecmFactorization(number); // `await` を追加
         }
         if (!factor) {
             factor = pollardsRho(number);
@@ -211,9 +211,15 @@ async function pollardsRhoFactorization(number) {
             factors.push(number);
             break;
         }
-        while (number % factor === 0n) {
-            factors.push(factor);
-            number /= factor;
+
+        // **因数が配列の場合に対応**
+        if (Array.isArray(factor)) {
+            factors = factors.concat(factor);
+        } else {
+            while (number % factor === 0n) {
+                factors.push(factor);
+                number /= factor;
+            }
         }
         await new Promise(resolve => setTimeout(resolve, 0));
     }
