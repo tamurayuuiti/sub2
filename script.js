@@ -199,34 +199,29 @@ async function pollardsRhoFactorization(number) {
     let factors = [];
     while (number > 1n) {
         if (isPrimeMillerRabin(number)) {
-            factors.push(number);
+            if (!factors.includes(number)) factors.push(number); // 二重追加防止
             break;
         }
 
         let factor = null;
         if (number >= 10n ** 17n) {
-            factor = await ecmFactorization(number); // `await` を追加
+            factor = await ecmFactorization(number);
         }
         if (!factor) {
             factor = pollardsRho(number);
         }
 
         if (!factor || factor === number) {
-            factors.push(number);
+            if (!factors.includes(number)) factors.push(number); // 二重追加防止
             break;
         }
 
-        // **因数が配列の場合に対応**
-        if (!factor || factor === number) {
-            factors.push(number);
-            break;
-        }
         if (!isPrimeMillerRabin(factor)) {
             let extraFactors = await pollardsRhoFactorization(factor);
             factors = factors.concat(extraFactors);
         } else {
             while (number % factor === 0n) {
-                factors.push(factor);
+                if (!factors.includes(factor)) factors.push(factor); // 二重追加防止
                 number /= factor;
             }
         }
