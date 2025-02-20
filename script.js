@@ -279,10 +279,14 @@ async function ecmFactorization(n) {
         let factor = gcd(2n * y, n);
         if (factor > 1n && factor < n) {
             let remainder = n / factor;
+            if (isPrimeMillerRabin(remainder)) {
+                console.log(`  ECM因数分解成功: 残り値 ${remainder} は素数`);
+                return [factor, remainder];
+            }
             if (remainder < 10n ** 17n) {
-                return await pollardsRhoFactorization(remainder);
+                return [factor, ...(await pollardsRhoFactorization(remainder))];
             } else {
-                return await processFactor(factor, remainder);
+                return [await processFactor(factor, remainder)];
             }
         }
 
@@ -294,10 +298,14 @@ async function ecmFactorization(n) {
             factor = gcd(x - y, n);
             if (factor > 1n && factor < n) {
                 let remainder = n / factor;
+                if (isPrimeMillerRabin(remainder)) {
+                    console.log(`  ECM因数分解成功: 残り値 ${remainder} は素数`);
+                    return [factor, remainder];
+                }
                 if (remainder < 10n ** 17n) {
-                    return await pollardsRhoFactorization(remainder);
+                    return [factor, ...(await pollardsRhoFactorization(remainder))];
                 } else {
-                    return await processFactor(factor, remainder);
+                    return [await processFactor(factor, remainder)];
                 }
             }
         }
@@ -310,10 +318,14 @@ async function ecmFactorization(n) {
             factor = gcd(x - y, n);
             if (factor > 1n && factor < n) {
                 let remainder = n / factor;
+                if (isPrimeMillerRabin(remainder)) {
+                    console.log(`  ECM因数分解成功: 残り値 ${remainder} は素数`);
+                    return [factor, remainder];
+                }
                 if (remainder < 10n ** 17n) {
-                    return await pollardsRhoFactorization(remainder);
+                    return [factor, ...(await pollardsRhoFactorization(remainder))];
                 } else {
-                    return await processFactor(factor, remainder);
+                    return [await processFactor(factor, remainder)];
                 }
             }
         }
