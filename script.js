@@ -226,6 +226,18 @@ async function pollardsRhoFactorization(number) {
     return factors;
 }
 
+async function processFactor(factor, remainder) {
+    if (isPrimeMillerRabin(factor)) {
+        console.log(`  ECM因数分解成功: 素数 factor = ${factor}`);
+        return factor;
+    } else {
+        console.log(`  ECM因数分解成功: しかし factor = ${factor} は合成数なのでさらに分解`);
+        let subFactors = await pollardsRhoFactorization(factor);
+        console.log(`  合成数 ${factor} の分解結果: ${subFactors.join(" × ")}`);
+        return subFactors;
+    }
+}
+
 async function ecmFactorization(n) {
     console.log(`ECM因数分解を開始: n = ${n}`);
     
@@ -266,7 +278,12 @@ async function ecmFactorization(n) {
 
         let factor = gcd(2n * y, n);
         if (factor > 1n && factor < n) {
-            return await processFactor(factor);
+            let remainder = n / factor;
+            if (remainder < 10n ** 17n) {
+                return await pollardsRhoFactorization(remainder);
+            } else {
+                return await processFactor(factor, remainder);
+            }
         }
 
         let k = 2n;
@@ -276,7 +293,12 @@ async function ecmFactorization(n) {
             k *= 2n;
             factor = gcd(x - y, n);
             if (factor > 1n && factor < n) {
-                return await processFactor(factor);
+                let remainder = n / factor;
+                if (remainder < 10n ** 17n) {
+                    return await pollardsRhoFactorization(remainder);
+                } else {
+                    return await processFactor(factor, remainder);
+                }
             }
         }
 
@@ -287,26 +309,18 @@ async function ecmFactorization(n) {
             y = (y * modInverse(j + 1n, n)) % n;
             factor = gcd(x - y, n);
             if (factor > 1n && factor < n) {
-                return await processFactor(factor);
+                let remainder = n / factor;
+                if (remainder < 10n ** 17n) {
+                    return await pollardsRhoFactorization(remainder);
+                } else {
+                    return await processFactor(factor, remainder);
+                }
             }
         }
     }
 
     console.log("  ECM因数分解失敗: 有効な因数が見つかりませんでした");
     return null;
-}
-
-// **新しく追加した関数: 因数の処理**
-async function processFactor(factor) {
-    if (isPrimeMillerRabin(factor)) {
-        console.log(`  ECM因数分解成功: 素数 factor = ${factor}`);
-        return factor;
-    } else {
-        console.log(`  ECM因数分解成功: しかし factor = ${factor} は合成数なのでさらに分解`);
-        let subFactors = await pollardsRhoFactorization(factor);
-        console.log(`  合成数 ${factor} の分解結果: ${subFactors.join(" × ")}`);
-        return subFactors;
-    }
 }
 
 function pollardsRho(n) {
