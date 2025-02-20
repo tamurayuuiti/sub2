@@ -66,13 +66,12 @@ function isPrimeMillerRabin(n) {
     const witnesses = [2n, 3n, 5n, 7n, 11n, 13n, 17n, 19n, 23n, 29n, 31n, 37n];
 
     for (let a of witnesses) {
-        if (a >= n) continue; // すべての証人を試すように変更
         let x = powerMod(a, d, n);
         if (x === 1n || x === n - 1n) continue;
 
         let dCopy = d;
         let isComposite = true;
-        while (dCopy < n - 1n) { // `dCopy !== n - 1n` → `dCopy < n - 1n`
+        while (dCopy !== n - 1n) { // `dCopy < n - 1n` → `dCopy !== n - 1n`
             x = (x * x) % n;
             dCopy *= 2n;
             if (x === 1n) return false;
