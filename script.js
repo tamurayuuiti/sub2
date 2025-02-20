@@ -53,6 +53,7 @@ function isPrimeMillerRabin(n) {
     while (d % 2n === 0n) d /= 2n;
 
     function powerMod(base, exp, mod) {
+        if (mod === 0n) return 0n;  // 追加：mod が 0 ならエラー防止
         let result = 1n;
         base %= mod;
         while (exp > 0n) {
@@ -63,8 +64,8 @@ function isPrimeMillerRabin(n) {
         return result;
     }
 
-    // `2^64` 以下の決定的な証人セットを使用
-    const witnesses = [2n, 3n, 5n, 7n, 11n, 13n, 17n, 19n, 23n, 31n, 37n, 61n];
+    // 2^64 以下の決定的な証人セット
+    const witnesses = [2n, 3n, 5n, 7n, 11n, 13n, 17n, 19n, 23n, 31n, 37n];
 
     for (let a of witnesses) {
         let x = powerMod(a, d, n);
@@ -72,7 +73,7 @@ function isPrimeMillerRabin(n) {
 
         let dCopy = d;
         let isComposite = true;
-        while (dCopy < n - 1n) { // `dCopy !== n - 1n` → `dCopy < n - 1n` に修正
+        while (dCopy < n - 1n) {  // 修正: `dCopy !== n - 1n` → `dCopy < n - 1n`
             x = (x * x) % n;
             dCopy *= 2n;
             if (x === 1n) return false;
