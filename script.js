@@ -131,7 +131,7 @@ async function startFactorization() {
         }
 
         let elapsedTime = ((performance.now() - startTime) / 1000).toFixed(3);
-        document.getElementById("result").textContent = `素因数:\n${factors.join(" × ")}`;
+        document.getElementById("result").textContent = `素因数:\n${factors.sort((a, b) => a - b).join(" × ")}`;
         document.getElementById("time").textContent = `計算時間: ${elapsedTime} 秒`;
         console.log(`因数分解完了: ${factors.join(" × ")}, 時間: ${elapsedTime} 秒`);
     } catch (error) {
