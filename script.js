@@ -217,8 +217,13 @@ async function pollardsRhoFactorization(number) {
         }
 
         // **因数が配列の場合に対応**
-        if (Array.isArray(factor)) {
-            factors = factors.concat(factor);
+        if (!factor || factor === number) {
+            factors.push(number);
+            break;
+        }
+        if (!isPrimeMillerRabin(factor)) {
+            let extraFactors = await pollardsRhoFactorization(factor);
+            factors = factors.concat(extraFactors);
         } else {
             while (number % factor === 0n) {
                 factors.push(factor);
@@ -308,7 +313,6 @@ async function processFactor(factor) {
     } else {
         console.log(`  ECM因数分解成功: しかし factor = ${factor} は合成数なのでさらに分解`);
         let subFactors = await pollardsRhoFactorization(factor);
-        console.log(`  合成数 ${factor} の分解結果: ${subFactors.join(" × ")}`);
         return subFactors;
     }
 }
