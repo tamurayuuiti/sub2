@@ -128,8 +128,17 @@ async function startFactorization() {
             if (isPrimeMillerRabin(remainder)) {
                 factors.push(remainder);  // ← ここで素数ならそのまま追加
             } else {
-                console.log("Pollard’s rho 法による因数分解を実行します...");
-                let extraFactors = await pollardsRhoFactorization(remainder);
+                console.log("因数分解を続行します...");
+        
+                let extraFactors;
+                if (remainder >= 10n ** 17n) {
+                    console.log("ECM 法による因数分解を実行します...");
+                    extraFactors = await ecmFactorization(remainder);
+                } else {
+                    console.log("Pollard’s rho 法による因数分解を実行します...");
+                    extraFactors = await pollardsRhoFactorization(remainder);
+                }
+
                 factors = factors.concat(extraFactors);
             }
         }
@@ -203,13 +212,7 @@ async function pollardsRhoFactorization(number) {
             break;
         }
 
-        let factor = null;
-        if (number >= 10n ** 17n) {
-            factor = await ecmFactorization(number);
-        }
-        if (!factor) {
-            factor = pollardsRho(number);
-        }
+        let factor = pollardsRho(number); // 直接 Pollard’s rho を実行
 
         if (!factor || factor === number) {
             if (!factors.includes(number)) factors.push(number); // 二重追加防止
