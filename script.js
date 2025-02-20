@@ -64,7 +64,7 @@ function isPrimeMillerRabin(n) {
     }
 
     // `2^64` 以下の決定的な証人セットを使用
-    const witnesses = [2n, 3n, 5n, 7n, 11n, 13n, 17n, 19n, 23n, 31n, 61n];
+    const witnesses = [2n, 3n, 5n, 7n, 11n, 13n, 17n, 19n, 23n, 31n, 37n, 61n];
 
     for (let a of witnesses) {
         let x = powerMod(a, d, n);
