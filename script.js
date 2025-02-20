@@ -202,7 +202,7 @@ async function pollardsRhoFactorization(number) {
 
         let factor = null;
         if (number >= 10n ** 17n) {
-            factor = await ecmFactorization(number); // `await` を追加
+            factor = await ecmFactorization(number);
         }
         if (!factor) {
             factor = pollardsRho(number);
@@ -213,15 +213,16 @@ async function pollardsRhoFactorization(number) {
             break;
         }
 
-        // **因数が配列の場合に対応**
-        if (Array.isArray(factor)) {
-            factors = factors.concat(factor);
+        // **因数が合成数の場合、再帰的に分解する**
+        if (isPrimeMillerRabin(factor)) {
+            factors.push(factor);
         } else {
-            while (number % factor === 0n) {
-                factors.push(factor);
-                number /= factor;
-            }
+            console.log(`合成数を発見: ${factor} → さらに分解`);
+            let subFactors = await pollardsRhoFactorization(factor);
+            factors = factors.concat(subFactors);
         }
+
+        number /= factor;
         await new Promise(resolve => setTimeout(resolve, 0));
     }
     return factors;
