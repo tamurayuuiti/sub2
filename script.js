@@ -129,8 +129,8 @@ async function startFactorization() {
                 factors.push(remainder);  // ← ここで素数ならそのまま追加
             } else {
                 console.log("因数分解を続行します...");
-        
-                let extraFactors;
+
+                let extraFactors = [];
                 if (remainder >= 10n ** 17n) {
                     console.log("ECM 法による因数分解を実行します...");
                     extraFactors = await ecmFactorization(remainder);
@@ -139,7 +139,13 @@ async function startFactorization() {
                     extraFactors = await pollardsRhoFactorization(remainder);
                 }
 
-                factors = factors.concat(extraFactors);
+                // extraFactors が null や undefined ではないか確認し、適切に処理
+                if (extraFactors) {
+                    if (!Array.isArray(extraFactors)) {
+                        extraFactors = [extraFactors]; // 配列でない場合、配列に変換
+                    }
+                    factors = factors.concat(extraFactors);
+                }
             }
         }
 
