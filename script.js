@@ -212,13 +212,7 @@ async function pollardsRhoFactorization(number) {
             break;
         }
 
-        let factor = null;
-        if (number >= 10n ** 17n) {
-            factor = await ecmFactorization(number); // `await` を追加
-        }
-        if (!factor) {
-            factor = pollardsRho(number);
-        }
+        let factor = pollardsRho(number);
 
         if (!factor || factor === number) {
             factors.push(number);
