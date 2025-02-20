@@ -53,7 +53,6 @@ function isPrimeMillerRabin(n) {
     while (d % 2n === 0n) d /= 2n;
 
     function powerMod(base, exp, mod) {
-        if (mod === 0n) return 0n;  // 追加：mod が 0 ならエラー防止
         let result = 1n;
         base %= mod;
         while (exp > 0n) {
@@ -73,17 +72,17 @@ function isPrimeMillerRabin(n) {
 
         let dCopy = d;
         let isComposite = true;
-        while (dCopy < n - 1n) {  // 修正: `dCopy !== n - 1n` → `dCopy < n - 1n`
+        while (dCopy !== n - 1n) {  // `dCopy < n - 1n` → `dCopy !== n - 1n` に修正
             x = (x * x) % n;
             dCopy *= 2n;
-            if (x === 1n) return false;
+    
+            if (x === 1n) return false;  // 合成数と判定
             if (x === n - 1n) {
                 isComposite = false;
-                break;
+                break;  // ループを抜ける
             }
         }
         if (isComposite) return false;
-    }
 
     return true;
 }
