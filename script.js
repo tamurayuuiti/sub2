@@ -259,6 +259,7 @@ async function pollardsRhoFactorization(number) {
 }
 
 async function processFactor(factor, remainder) {
+    // 素数かどうかを判定し、素数ならそのまま返す
     if (isPrimeMillerRabin(factor)) {
         console.log(`  ECM因数分解成功: 素数 factor = ${factor}`);
         return factor;
@@ -273,11 +274,13 @@ async function processFactor(factor, remainder) {
 async function ecmFactorization(n) {
     console.log(`ECM因数分解を開始: n = ${n}`);
     
+    // 事前に素数判定し、素数ならすぐ返す
     if (isPrimeMillerRabin(n)) {
         console.log(`  初期チェック: ${n} は素数`);
         return [n];
     }
     
+    // 最大公約数を求める関数
     function gcd(a, b) {
         while (b) {
             let temp = b;
@@ -287,6 +290,7 @@ async function ecmFactorization(n) {
         return a;
     }
 
+    // モジュラー逆元を求める関数
     function modInverse(a, m) {
         let m0 = m, t, q;
         let x0 = 0n, x1 = 1n;
@@ -303,73 +307,79 @@ async function ecmFactorization(n) {
         return x1 < 0n ? x1 + m0 : x1;
     }
 
-    let maxCurves = n > 10n ** 20n ? 10 : 5;
+    let maxCurves = n > 10n ** 20n ? 10 : 5; // 大きな数には試行回数を増やす
     let B1 = 1000n, B2 = 2000n;
+    
+    while (true) { // 因数が見つかるまで繰り返す
+        for (let i = 0; i < maxCurves; i++) {
+            let a = BigInt(Math.floor(Math.random() * Number(n))); // ランダムな係数
+            let x = BigInt(Math.floor(Math.random() * Number(n))); // ランダムな点
+            let y = (x ** 3n + a * x + 1n) % n; // 楕円曲線の方程式
 
-    for (let i = 0; i < maxCurves; i++) {
-        let a = BigInt(Math.floor(Math.random() * Number(n)));
-        let x = BigInt(Math.floor(Math.random() * Number(n)));
-        let y = (x ** 3n + a * x + 1n) % n;
+            console.log(`  ECM曲線 ${i + 1}/${maxCurves}: a = ${a}, x = ${x}, y = ${y}`);
 
-        console.log(`  ECM曲線 ${i + 1}/${maxCurves}: a = ${a}, x = ${x}, y = ${y}`);
-
-        let factor = gcd(2n * y, n);
-        if (factor > 1n && factor < n) {
-            let remainder = n / factor;
-            if (isPrimeMillerRabin(remainder)) {
-                console.log(`  ECM因数分解成功: 残り値 ${remainder} は素数`);
-                return [factor, remainder];
-            }
-            if (remainder < 10n ** 17n) {
-                return [factor, ...(await pollardsRhoFactorization(remainder))];
-            } else {
-                return [await processFactor(factor, remainder)];
-            }
-        }
-
-        let k = 2n;
-        while (k < B1) {
-            x = (x * x + a) % n;
-            y = (y * y + a) % n;
-            k *= 2n;
-            factor = gcd(x - y, n);
+            let factor = gcd(2n * y, n);
             if (factor > 1n && factor < n) {
                 let remainder = n / factor;
-                if (isPrimeMillerRabin(remainder)) {
-                    console.log(`  ECM因数分解成功: 残り値 ${remainder} は素数`);
-                    return [factor, remainder];
-                }
-                if (remainder < 10n ** 17n) {
-                    return [factor, ...(await pollardsRhoFactorization(remainder))];
+                let results = [];
+                
+                // 因数と残り値の両方を処理
+                if (isPrimeMillerRabin(factor)) {
+                    results.push(factor);
+                } else if (factor >= 10n ** 17n) {
+                    results.push(...(await ecmFactorization(factor)));
                 } else {
-                    return [await processFactor(factor, remainder)];
+                    results.push(...(await pollardsRhoFactorization(factor)));
                 }
+                
+                if (isPrimeMillerRabin(remainder)) {
+                    results.push(remainder);
+                } else if (remainder >= 10n ** 17n) {
+                    results.push(...(await ecmFactorization(remainder)));
+                } else {
+                    results.push(...(await pollardsRhoFactorization(remainder)));
+                }
+                
+                return results;
             }
-        }
 
-        // **Stage 2: B2範囲で更に探索**
-        console.log(`  ECM Stage 2 開始: B1 = ${B1}, B2 = ${B2}`);
-        for (let j = B1; j < B2; j *= 2n) {
-            x = (x * modInverse(j, n)) % n;
-            y = (y * modInverse(j + 1n, n)) % n;
-            factor = gcd(x - y, n);
-            if (factor > 1n && factor < n) {
-                let remainder = n / factor;
-                if (isPrimeMillerRabin(remainder)) {
-                    console.log(`  ECM因数分解成功: 残り値 ${remainder} は素数`);
-                    return [factor, remainder];
-                }
-                if (remainder < 10n ** 17n) {
-                    return [factor, ...(await pollardsRhoFactorization(remainder))];
+            let k = 2n;
+            while (k < B2) { // B1 と B2 の両方の範囲でループ
+                if (k < B1) {
+                    x = (x * x + a) % n; // B1 の範囲では通常の ECM 操作
+                    y = (y * y + a) % n;
                 } else {
-                    return [await processFactor(factor, remainder)];
+                    x = (x * modInverse(k, n)) % n; // B2 の範囲ではモジュラー逆元を使用
+                    y = (y * modInverse(k + 1n, n)) % n;
+                }
+                k *= 2n;
+                factor = gcd(x - y, n);
+                if (factor > 1n && factor < n) {
+                    let remainder = n / factor;
+                    let results = [];
+                    
+                    // 因数と残り値の両方を処理
+                    if (isPrimeMillerRabin(factor)) {
+                        results.push(factor);
+                    } else if (factor >= 10n ** 17n) {
+                        results.push(...(await ecmFactorization(factor)));
+                    } else {
+                        results.push(...(await pollardsRhoFactorization(factor)));
+                    }
+                    
+                    if (isPrimeMillerRabin(remainder)) {
+                        results.push(remainder);
+                    } else if (remainder >= 10n ** 17n) {
+                        results.push(...(await ecmFactorization(remainder)));
+                    } else {
+                        results.push(...(await pollardsRhoFactorization(remainder)));
+                    }
+                    
+                    return results;
                 }
             }
         }
     }
-
-    console.log("  ECM因数分解失敗: 有効な因数が見つかりませんでした");
-    return null;
 }
 
 function pollardsRho(n) {
