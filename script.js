@@ -50,45 +50,65 @@ function isPrimeMillerRabin(n) {
     if (n % 2n === 0n) return false;
 
     let d = n - 1n;
-    while (d % 2n === 0n) d /= 2n;
+    let r = 0n;
+    while (d % 2n === 0n) {
+        d /= 2n;
+        r++;
+    }
+    console.log(`n - 1 を 2 で割り続けた結果: d = ${d}, r = ${r}`);
 
     function powerMod(base, exp, mod) {
         let result = 1n;
         base %= mod;
+        console.log(`  powerMod 計算開始: base = ${base}, exp = ${exp}, mod = ${mod}`);
         while (exp > 0n) {
-            if (exp & 1n) result = (result * base) % mod;
+            if (exp & 1n) {
+                result = (result * base) % mod;
+                console.log(`    result 更新: ${result}`);
+            }
             exp >>= 1n;
             base = (base * base) % mod;
         }
+        console.log(`  powerMod 計算完了: result = ${result}`);
         return result;
     }
 
     const witnesses = [2n, 3n, 5n, 7n, 11n, 13n, 17n, 19n, 23n, 29n, 31n, 37n];
 
     for (let a of witnesses) {
-        if (a >= n) continue; // n より大きい証人はスキップ
+        if (a >= n) continue;
+        console.log(`証人 a = ${a} によるテスト開始`);
         let x = powerMod(a, d, n);
-        if (x === 1n || x === n - 1n) continue;
+        console.log(`  x = ${x}`);
+
+        if (x === 1n || x === n - 1n) {
+            console.log(`  a = ${a} は合格 (x = ${x})`);
+            continue;
+        }
 
         let dCopy = d;
         let isComposite = true;
-        while (dCopy !== n - 1n) {  // 修正: dCopy の増やし方
+        for (let i = 0n; i < r - 1n; i++) {
             x = (x * x) % n;
-            let dCopy = d;
-            while (dCopy !== n - 1n) {  
-                x = (x * x) % n;
-                dCopy *= 2n;
-                if (x === 1n) return false;
-                if (x === n - 1n) {
-                    isComposite = false;
-                    break;
-                }
-                if (dCopy > n - 1n) break; 
+            dCopy *= 2n;
+            console.log(`    2^${i + 1n} * d のステップ: x = ${x}, dCopy = ${dCopy}`);
+
+            if (x === 1n) {
+                console.log(`  証人 a = ${a} により合成数判定`);
+                return false;
+            }
+            if (x === n - 1n) {
+                console.log(`  x が n-1 に到達 (x = ${x})、a = ${a} は合格`);
+                isComposite = false;
+                break;
             }
         }
-        if (isComposite) return false;
+        if (isComposite) {
+            console.log(`  証人 a = ${a} により合成数確定`);
+            return false;
+        }
     }
-
+    console.log(`n = ${n} は素数と判定`);
     return true;
 }
 
