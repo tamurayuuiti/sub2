@@ -75,6 +75,7 @@ function isPrimeMillerRabin(n) {
 
     const witnesses = [2n, 3n, 5n, 7n, 11n, 13n, 17n, 19n, 23n, 29n, 31n, 37n];
 
+    let isCompositeConfirmed = false;
     for (let a of witnesses) {
         if (a >= n) continue;
         console.log(`証人 a = ${a} によるテスト開始`);
@@ -95,7 +96,8 @@ function isPrimeMillerRabin(n) {
 
             if (x === 1n) {
                 console.log(`  証人 a = ${a} により合成数判定`);
-                return false;
+                isCompositeConfirmed = true;
+                break;
             }
             if (x === n - 1n) {
                 console.log(`  x が n-1 に到達 (x = ${x})、a = ${a} は合格`);
@@ -105,9 +107,16 @@ function isPrimeMillerRabin(n) {
         }
         if (isComposite) {
             console.log(`  証人 a = ${a} により合成数確定`);
-            return false;
+            isCompositeConfirmed = true;
+            break;
         }
     }
+    
+    if (isCompositeConfirmed) {
+        console.log(`n = ${n} は合成数と確定。追加の因数分解が必要。`);
+        return false;
+    }
+    
     console.log(`n = ${n} は素数と判定`);
     return true;
 }
