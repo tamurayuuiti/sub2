@@ -273,6 +273,11 @@ async function processFactor(factor, remainder) {
 async function ecmFactorization(n) {
     console.log(`ECM因数分解を開始: n = ${n}`);
     
+    if (isPrimeMillerRabin(n)) {
+        console.log(`  初期チェック: ${n} は素数`);
+        return [n];
+    }
+    
     function gcd(a, b) {
         while (b) {
             let temp = b;
