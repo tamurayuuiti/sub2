@@ -300,11 +300,14 @@ async function ecmFactorization(n) {
 
     let maxCurves = n > 10n ** 20n ? 10 : 5;
     let B1 = 1000n, B2 = 2000n;
+    let factor = null;
 
-    for (let i = 0; i < maxCurves; i++) {
-        let a = BigInt(Math.floor(Math.random() * Number(n)));
-        let x = BigInt(Math.floor(Math.random() * Number(n)));
-        let y = (x ** 3n + a * x + 1n) % n;
+    while (!factor || factor === n) { // 成功するまで繰り返す
+        console.log(`ECM を再試行: n = ${n}`);
+        for (let i = 0; i < maxCurves; i++) {
+            let a = BigInt(Math.floor(Math.random() * Number(n)));
+            let x = BigInt(Math.floor(Math.random() * Number(n)));
+            let y = (x ** 3n + a * x + 1n) % n;
 
         console.log(`  ECM曲線 ${i + 1}/${maxCurves}: a = ${a}, x = ${x}, y = ${y}`);
 
