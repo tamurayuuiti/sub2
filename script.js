@@ -74,13 +74,17 @@ function isPrimeMillerRabin(n) {
         let isComposite = true;
         while (dCopy !== n - 1n) {  // 修正: dCopy の増やし方
             x = (x * x) % n;
-            dCopy *= 2n;
-            if (x === 1n) return false;
-            if (x === n - 1n) {
-                isComposite = false;
-                break;
+            let dCopy = d;
+            while (dCopy !== n - 1n) {  
+                x = (x * x) % n;
+                dCopy *= 2n;
+                if (x === 1n) return false;
+                if (x === n - 1n) {
+                    isComposite = false;
+                    break;
+                }
+                if (dCopy > n - 1n) break; 
             }
-            if (dCopy > n - 1n) break; // 追加: dCopy が n - 1n を超えたら終了
         }
         if (isComposite) return false;
     }
