@@ -265,7 +265,6 @@ async function processFactor(factor, remainder) {
     if (isPrimeMillerRabin(factor)) {
         console.log(`  ECM因数分解成功: 素数 factor = ${factor}`);
         results.push(factor);
-        break;
     } else if (factor >= 10n ** 17n) {
         results.push(...(await ecmFactorization(factor)));
     } else {
@@ -274,7 +273,6 @@ async function processFactor(factor, remainder) {
     
     if (isPrimeMillerRabin(remainder)) {
         results.push(remainder);
-        break;
     } else if (remainder >= 10n ** 17n) {
         results.push(...(await ecmFactorization(remainder)));
     } else {
@@ -290,9 +288,8 @@ async function ecmFactorization(n) {
     // 事前に素数判定し、素数ならすぐ返す
     if (isPrimeMillerRabin(n)) {
         console.log(`  初期チェック: ${n} は素数`);
-        factors.push(number);
-            break;
-    } 
+        return [n];
+    }
     
     // 最大公約数を求める関数
     function gcd(a, b) {
