@@ -237,13 +237,10 @@ async function pollardsRhoFactorization(number) {
         if (number >= 10n ** 17n) {
             factor = await ecmFactorization(number);
         }
-        if (!factor) {
+        
+        while (!factor || factor === number) { // 成功するまで繰り返す
+            console.log(`Pollard's rho を再試行: ${number}`);
             factor = pollardsRho(number);
-        }
-
-        if (!factor || factor === number) {
-            factors.push(number);
-            break;
         }
 
         // **因数が合成数の場合、再帰的に分解する**
