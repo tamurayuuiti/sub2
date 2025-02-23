@@ -284,8 +284,7 @@ async function processFactor(factor, remainder) {
 
 async function ecmFactorization(n) {
     console.log(`ECM因数分解を開始: n = ${n}`);
-
-    let factors = []; // ✅ ここで factors を明示的に定義
+    let factors = [];
 
     if (isPrimeMillerRabin(n)) {
         console.log(`  初期チェック: ${n} は素数`);
