@@ -317,7 +317,7 @@ async function ecmFactorization(n) {
     }
 
     let maxCurves = n > 10n ** 20n ? 10 : 5;
-    let B1 = 10000n, B2 = 20000n;
+    let B1 = 1000n, B2 = 2000n;
     
     for (let i = 0; i < maxCurves; i++) {
         let a = BigInt(Math.floor(Math.random() * Number(n))); 
@@ -337,7 +337,7 @@ async function ecmFactorization(n) {
             x = (x * x + a) % n;
             y = (y * y + a) % n;
             k *= 2n;
-            factor = gcd(x - y, n);
+            let factor = gcd(x - y, n);
             if (factor > 1n && factor < n) {
                 let remainder = n / factor;
                 return await processFactor(factor, remainder);
@@ -345,14 +345,25 @@ async function ecmFactorization(n) {
         }
         
         console.log(`  Stage 1 (B1) 完了。Stage 2 (B2) へ移行: B1 = ${B1}, B2 = ${B2}`);
+        console.log(`  B2のループ開始`);
+
+        let foundFactor = false;
         for (let j = B1; j < B2; j *= 2n) {
+            console.log(`    B2のループ内: j = ${j}, x = ${x}, y = ${y}`);
             x = (x * modInverse(j, n)) % n;
             y = (y * modInverse(j + 1n, n)) % n;
-            factor = gcd(x - y, n);
+            let factor = gcd(x - y, n);
+            console.log(`    B2内 gcd 計算結果: factor = ${factor}`);
             if (factor > 1n && factor < n) {
                 let remainder = n / factor;
+                console.log(`    B2で因数発見: factor = ${factor}, remainder = ${remainder}`);
+                foundFactor = true;
                 return await processFactor(factor, remainder);
             }
+        }
+
+        if (!foundFactor) {
+            console.log(`  B2完了: 因数が見つかりませんでした`);
         }
     }
     
