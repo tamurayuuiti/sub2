@@ -337,14 +337,14 @@ async function ecmFactorization(n) {
             x = (x * x + a) % n;
             y = (y * y + a) % n;
             k *= 2n;
-            let factor = gcd(x - y, n);
+            factor = gcd(x - y, n);
             if (factor > 1n && factor < n) {
                 let remainder = n / factor;
                 return await processFactor(factor, remainder);
             }
         }
         
-        console.log(`  Stage 1 (B1) 完了。Stage 2 (B2) へ移行: B1 = ${B1}, B2 = ${B2}`);
+        console.log(`  ECM Stage 2 開始: B1 = ${B1}, B2 = ${B2}`);
         console.log(`  B2のループ開始`);
 
         let foundFactor = false;
@@ -352,7 +352,7 @@ async function ecmFactorization(n) {
             console.log(`    B2のループ内: j = ${j}, x = ${x}, y = ${y}`);
             x = (x * modInverse(j, n)) % n;
             y = (y * modInverse(j + 1n, n)) % n;
-            let factor = gcd(x - y, n);
+            factor = gcd(x - y, n);
             console.log(`    B2内 gcd 計算結果: factor = ${factor}`);
             if (factor > 1n && factor < n) {
                 let remainder = n / factor;
