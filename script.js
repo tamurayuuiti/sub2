@@ -344,7 +344,7 @@ async function ecmFactorization(n) {
             }
         }
         
-        console.log(`  ECM Stage 2 開始: B1 = ${B1}, B2 = ${B2}`);
+        console.log(`  Stage 1 (B1) 完了。Stage 2 (B2) へ移行: B1 = ${B1}, B2 = ${B2}`);
         for (let j = B1; j < B2; j *= 2n) {
             x = (x * modInverse(j, n)) % n;
             y = (y * modInverse(j + 1n, n)) % n;
