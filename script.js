@@ -288,7 +288,8 @@ async function ecmFactorization(n) {
     // 事前に素数判定し、素数ならすぐ返す
     if (isPrimeMillerRabin(n)) {
         console.log(`  初期チェック: ${n} は素数`);
-        return [n];
+        factors.push(n);  // 素数を factors に追加
+        return factors;   // ここで処理を終了
     }
     
     // 最大公約数を求める関数
