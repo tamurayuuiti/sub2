@@ -263,26 +263,22 @@ async function pollardsRhoFactorization(number) {
 }
 
 async function processFactor(factor, remainder) {
-    let results = [];
-    
     if (isPrimeMillerRabin(factor)) {
         console.log(`  ECM因数分解成功: 素数 factor = ${factor}`);
-        results.push(factor); // 素因数として追加
+        factors.push(factor); // 🔥 直接 factors に追加
     } else if (factor >= 10n ** 17n) {
-        results.push(...(await ecmFactorization(factor))); // ここで return [n] が適用される可能性
+        factors.push(...(await ecmFactorization(factor))); 
     } else {
-        results.push(...(await pollardsRhoFactorization(factor)));
+        factors.push(...(await pollardsRhoFactorization(factor)));
     }
     
     if (isPrimeMillerRabin(remainder)) {
-        results.push(remainder); // 残りの数が素数なら追加
+        factors.push(remainder); // 🔥 直接 factors に追加
     } else if (remainder >= 10n ** 17n) {
-        results.push(...(await ecmFactorization(remainder)));
+        factors.push(...(await ecmFactorization(remainder)));
     } else {
-        results.push(...(await pollardsRhoFactorization(remainder)));
+        factors.push(...(await pollardsRhoFactorization(remainder)));
     }
-    
-    return results;
 }
 
 async function ecmFactorization(n) {
@@ -325,7 +321,7 @@ async function ecmFactorization(n) {
     let maxCurves = n > 10n ** 20n ? 10 : 5; // 大きな数には試行回数を増やす
     let B1 = 1000n, B2 = 2000n;
     
-    while { // 因数が見つかるまで繰り返す
+    while (true) { // 因数が見つかるまで繰り返す
         for (let i = 0; i < maxCurves; i++) {
             let a = BigInt(Math.floor(Math.random() * Number(n))); // ランダムな係数
             let x = BigInt(Math.floor(Math.random() * Number(n))); // ランダムな点
