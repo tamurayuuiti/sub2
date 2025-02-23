@@ -288,7 +288,7 @@ async function ecmFactorization(n) {
     if (isPrimeMillerRabin(n)) {
         console.log(`  初期チェック: ${n} は素数`);
         factors.push(n);
-        return;
+        return factors; // 修正
     }
     
     function gcd(a, b) {
@@ -351,6 +351,7 @@ async function ecmFactorization(n) {
     }
     
     console.log("ECM因数分解失敗: 有効な因数が見つかりませんでした");
+    return [];
 }
 
 function pollardsRho(n) {
