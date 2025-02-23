@@ -326,12 +326,18 @@ async function ecmFactorization(n) {
 
         console.log(`  ECM曲線 ${i + 1}/${maxCurves}: a = ${a}, x = ${x}, y = ${y}`);
 
+        let factor = gcd(2n * y, n);
+        if (factor > 1n && factor < n) {
+            let remainder = n / factor;
+            return await processFactor(factor, remainder);
+        }
+
         let k = 2n;
         while (k < B1) {
             x = (x * x + a) % n;
             y = (y * y + a) % n;
             k *= 2n;
-            let factor = gcd(x - y, n);
+            factor = gcd(x - y, n);
             if (factor > 1n && factor < n) {
                 let remainder = n / factor;
                 return await processFactor(factor, remainder);
@@ -342,7 +348,7 @@ async function ecmFactorization(n) {
         for (let j = B1; j < B2; j *= 2n) {
             x = (x * modInverse(j, n)) % n;
             y = (y * modInverse(j + 1n, n)) % n;
-            let factor = gcd(x - y, n);
+            factor = gcd(x - y, n);
             if (factor > 1n && factor < n) {
                 let remainder = n / factor;
                 return await processFactor(factor, remainder);
