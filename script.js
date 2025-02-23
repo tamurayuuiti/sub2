@@ -284,13 +284,15 @@ async function processFactor(factor, remainder) {
 
 async function ecmFactorization(n) {
     console.log(`ECM因数分解を開始: n = ${n}`);
-    
-    // 事前に素数判定し、素数ならすぐ返す
+
+    let factors = []; // ✅ ここで factors を明示的に定義
+
     if (isPrimeMillerRabin(n)) {
         console.log(`  初期チェック: ${n} は素数`);
-        factors.push(n);  // 素数を factors に追加
-        return factors;   // ここで処理を終了
+        factors.push(n);  // ✅ これでエラーにならない
+        return factors;
     }
+}
     
     // 最大公約数を求める関数
     function gcd(a, b) {
