@@ -318,40 +318,36 @@ async function ecmFactorization(n) {
         return x1 < 0n ? x1 + m0 : x1;
     }
 
-    let maxCurves = n > 10n ** 20n ? 10 : 5; // 大きな数には試行回数を増やす
+    let maxCurves = n > 10n ** 20n ? 10 : 5;
     let B1 = 1000n, B2 = 2000n;
     
-    while (true) { // 因数が見つかるまで繰り返す
-        for (let i = 0; i < maxCurves; i++) {
-            let a = BigInt(Math.floor(Math.random() * Number(n))); // ランダムな係数
-            let x = BigInt(Math.floor(Math.random() * Number(n))); // ランダムな点
-            let y = (x ** 3n + a * x + 1n) % n; // 楕円曲線の方程式
+    for (let i = 0; i < maxCurves; i++) {
+        let a = BigInt(Math.floor(Math.random() * Number(n))); 
+        let x = BigInt(Math.floor(Math.random() * Number(n))); 
+        let y = (x ** 3n + a * x + 1n) % n;
 
-            console.log(`  ECM曲線 ${i + 1}/${maxCurves}: a = ${a}, x = ${x}, y = ${y}`);
+        console.log(`  ECM曲線 ${i + 1}/${maxCurves}: a = ${a}, x = ${x}, y = ${y}`);
 
-            // Stage 1: B1 の範囲で因数探索
-            let k = 2n;
-            while (k < B1) {
-                x = (x * x + a) % n;
-                y = (y * y + a) % n;
-                k *= 2n;
-                let factor = gcd(x - y, n);
-                if (factor > 1n && factor < n) {
-                    let remainder = n / factor;
-                    return await processFactor(factor, remainder);
-                }
+        let k = 2n;
+        while (k < B1) {
+            x = (x * x + a) % n;
+            y = (y * y + a) % n;
+            k *= 2n;
+            let factor = gcd(x - y, n);
+            if (factor > 1n && factor < n) {
+                let remainder = n / factor;
+                return await processFactor(factor, remainder);
             }
-            
-            // Stage 2: B2 の範囲で因数探索
-            console.log(`  ECM Stage 2 開始: B1 = ${B1}, B2 = ${B2}`);
-            for (let j = B1; j < B2; j *= 2n) {
-                x = (x * modInverse(j, n)) % n;
-                y = (y * modInverse(j + 1n, n)) % n;
-                let factor = gcd(x - y, n);
-                if (factor > 1n && factor < n) {
-                    let remainder = n / factor;
-                    return await processFactor(factor, remainder);
-                }
+        }
+        
+        console.log(`  ECM Stage 2 開始: B1 = ${B1}, B2 = ${B2}`);
+        for (let j = B1; j < B2; j *= 2n) {
+            x = (x * modInverse(j, n)) % n;
+            y = (y * modInverse(j + 1n, n)) % n;
+            let factor = gcd(x - y, n);
+            if (factor > 1n && factor < n) {
+                let remainder = n / factor;
+                return await processFactor(factor, remainder);
             }
         }
     }
