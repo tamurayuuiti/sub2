@@ -284,14 +284,12 @@ async function processFactor(factor, remainder) {
 async function ecmFactorization(n) {
     console.log(`ECM因数分解を開始: n = ${n}`);
     
-    // 事前に素数判定し、素数ならすぐ返す
     if (isPrimeMillerRabin(n)) {
         console.log(`  初期チェック: ${n} は素数`);
         factors.push(n);
-        return;  // 処理終了
+        return;
     }
     
-    // 最大公約数を求める関数
     function gcd(a, b) {
         while (b) {
             let temp = b;
@@ -301,7 +299,6 @@ async function ecmFactorization(n) {
         return a;
     }
 
-    // モジュラー逆元を求める関数
     function modInverse(a, m) {
         let m0 = m, t, q;
         let x0 = 0n, x1 = 1n;
@@ -351,6 +348,8 @@ async function ecmFactorization(n) {
             }
         }
     }
+    
+    console.log("ECM因数分解失敗: 有効な因数が見つかりませんでした");
 }
 
 function pollardsRho(n) {
