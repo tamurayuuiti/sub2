@@ -288,9 +288,9 @@ async function ecmFactorization(n) {
     if (isPrimeMillerRabin(n)) {
         console.log(`  初期チェック: ${n} は素数`);
         factors.push(n);
-        return factors; // 修正
+        return factors;
     }
-    
+
     function gcd(a, b) {
         while (b) {
             let temp = b;
@@ -343,7 +343,7 @@ async function ecmFactorization(n) {
                 return await processFactor(factor, remainder);
             }
         }
-        
+
         console.log(`  ECM Stage 2 開始: B1 = ${B1}, B2 = ${B2}`);
         console.log(`  B2のループ開始`);
 
@@ -366,9 +366,12 @@ async function ecmFactorization(n) {
             console.log(`  B2完了: 因数が見つかりませんでした`);
         }
     }
-    
+
     console.log("ECM因数分解失敗: 有効な因数が見つかりませんでした");
-    return [];
+
+    // **修正ポイント: ECMが失敗したら Pollard's Rho法を試す**
+    console.log("Pollard's Rho 法による因数分解を試行...");
+    return await pollardsRhoFactorization(n);
 }
 
 function pollardsRho(n) {
