@@ -325,7 +325,7 @@ async function ecmFactorization(n) {
     let maxCurves = n > 10n ** 20n ? 10 : 5; // 大きな数には試行回数を増やす
     let B1 = 1000n, B2 = 2000n;
     
-    while (true) { // 因数が見つかるまで繰り返す
+    while { // 因数が見つかるまで繰り返す
         for (let i = 0; i < maxCurves; i++) {
             let a = BigInt(Math.floor(Math.random() * Number(n))); // ランダムな係数
             let x = BigInt(Math.floor(Math.random() * Number(n))); // ランダムな点
