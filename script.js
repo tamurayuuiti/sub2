@@ -259,43 +259,36 @@ async function pollardsRhoFactorization(number) {
 }
 
 async function processFactor(factor, remainder) {
+    let results = [];
+    
     if (isPrimeMillerRabin(factor)) {
         console.log(`  ECM因数分解成功: 素数 factor = ${factor}`);
-        factors.push(factor);
+        results.push(factor); // 素因数として追加
+    } else if (factor >= 10n ** 17n) {
+        results.push(...(await ecmFactorization(factor))); // ここで return [n] が適用される可能性
     } else {
-        console.log(`  因数 ${factor} は合成数なので再分解を実行`);
-        if (factor >= 10n ** 17n) {
-            factors.push(...(await ecmFactorization(factor)));
-        } else {
-            factors.push(...(await pollardsRhoFactorization(factor)));
-        }
+        results.push(...(await pollardsRhoFactorization(factor)));
     }
-
+    
     if (isPrimeMillerRabin(remainder)) {
-        console.log(`  ECM因数分解成功: 素数 remainder = ${remainder}`);
-        factors.push(remainder);
+        results.push(remainder); // 残りの数が素数なら追加
+    } else if (remainder >= 10n ** 17n) {
+        results.push(...(await ecmFactorization(remainder)));
     } else {
-        console.log(`  残り値 ${remainder} は合成数なので再分解を実行`);
-        if (remainder >= 10n ** 17n) {
-            factors.push(...(await ecmFactorization(remainder)));
-        } else {
-            factors.push(...(await pollardsRhoFactorization(remainder,)));
-        }
+        results.push(...(await pollardsRhoFactorization(remainder)));
     }
-
-    return factors;
+    
+    return results;
 }
 
-async function ecmFactorization(number) {
-    let factors = [];
-    console.log(`ECM因数分解を開始: n = ${number}`);
-
-    if (isPrimeMillerRabin(number)) {
-        console.log(`  初期チェック: ${number} は素数`);
-        factors.push(number);  // ✅ これでエラーにならない
-        return factors;
+async function ecmFactorization(n) {
+    console.log(`ECM因数分解を開始: n = ${n}`);
+    
+    // 事前に素数判定し、素数ならすぐ返す
+    if (isPrimeMillerRabin(n)) {
+        console.log(`  初期チェック: ${n} は素数`);
+        return [n]; // ここで素数なら即終了
     }
-}
     
     // 最大公約数を求める関数
     function gcd(a, b) {
