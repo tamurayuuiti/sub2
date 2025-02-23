@@ -259,7 +259,6 @@ async function pollardsRhoFactorization(number) {
 }
 
 async function processFactor(factor, remainder, factors) {
-    let factors = [];
     if (isPrimeMillerRabin(factor)) {
         console.log(`  ECM因数分解成功: 素数 factor = ${factor}`);
         factors.push(factor);
@@ -289,6 +288,7 @@ async function processFactor(factor, remainder, factors) {
 
 async function ecmFactorization(n) {
     console.log(`ECM因数分解を開始: n = ${n}`);
+    let factors = [];
 
     if (isPrimeMillerRabin(n)) {
         console.log(`  初期チェック: ${n} は素数`);
