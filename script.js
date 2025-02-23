@@ -265,7 +265,7 @@ async function pollardsRhoFactorization(number) {
 async function processFactor(factor, remainder) {
     if (isPrimeMillerRabin(factor)) {
         console.log(`  ECM因数分解成功: 素数 factor = ${factor}`);
-        factors.push(factor); // 🔥 直接 factors に追加
+        factors.push(factor);
     } else if (factor >= 10n ** 17n) {
         factors.push(...(await ecmFactorization(factor))); 
     } else {
@@ -273,7 +273,7 @@ async function processFactor(factor, remainder) {
     }
     
     if (isPrimeMillerRabin(remainder)) {
-        factors.push(remainder); // 🔥 直接 factors に追加
+        factors.push(remainder);
     } else if (remainder >= 10n ** 17n) {
         factors.push(...(await ecmFactorization(remainder)));
     } else {
@@ -287,7 +287,7 @@ async function ecmFactorization(n) {
     // 事前に素数判定し、素数ならすぐ返す
     if (isPrimeMillerRabin(n)) {
         console.log(`  初期チェック: ${n} は素数`);
-        factors.push(n);  // 🔥 直接 factors に追加する
+        factors.push(n);
         return;  // 処理終了
     }
     
