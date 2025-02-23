@@ -258,29 +258,28 @@ async function pollardsRhoFactorization(number) {
     return factors;
 }
 
-async function processFactor(factor, remainder) {
-    // 因数と残り値の両方を処理
-    let results = [];
-    
+async function processFactor(factor, remainder, factors) { // ✅ factors を引数として受け取る
     if (isPrimeMillerRabin(factor)) {
         console.log(`  ECM因数分解成功: 素数 factor = ${factor}`);
-        results.push(factor);
+        factors.push(factor);  // ✅ ここで factors に追加
     } else if (factor >= 10n ** 17n) {
-        results.push(...(await ecmFactorization(factor)));
+        factors.push(...(await ecmFactorization(factor, factors)));
     } else {
-        results.push(...(await pollardsRhoFactorization(factor)));
+        factors.push(...(await pollardsRhoFactorization(factor, factors)));
     }
-    
+
     if (isPrimeMillerRabin(remainder)) {
-        results.push(remainder);
+        console.log(`  ECM因数分解成功: 素数 remainder = ${remainder}`);
+        factors.push(remainder);  // ✅ ここで factors に追加
     } else if (remainder >= 10n ** 17n) {
-        results.push(...(await ecmFactorization(remainder)));
+        factors.push(...(await ecmFactorization(remainder, factors)));
     } else {
-        results.push(...(await pollardsRhoFactorization(remainder)));
+        factors.push(...(await pollardsRhoFactorization(remainder, factors)));
     }
-    
-    return results;
+
+    return factors;
 }
+
 
 async function ecmFactorization(n) {
     console.log(`ECM因数分解を開始: n = ${n}`);
