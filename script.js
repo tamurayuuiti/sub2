@@ -360,9 +360,6 @@ async function ecmFactorization(n) {
             }
         }
     }
-
-    console.log("ECM因数分解失敗: 有効な因数が見つかりませんでした");
-    console.log(ECM失敗後の n の状態: n = ${n}, maxCurves = ${maxCurves}, B1 = ${B1}, B2 = ${B2});
     console.log("Pollard's Rho 法による因数分解を試行...");
     return await pollardsRhoFactorization(n);
 }
