@@ -193,8 +193,8 @@ function pollardsRho(n) {
     let digitCount = n.toString().length;
     let useMontgomery = digitCount >= 30; // 30桁以上ならMontgomery乗算を使用
 
-    let R = useMontgomery ? (1n << BigInt(n.toString(2).length + 1)) : 0n;
-let nInv = useMontgomery ? modInverse(-n, R) : 0n;
+    let R = useMontgomery ? (1n << BigInt(Math.max(n.toString(2).length + 1, 1))) : 0n;
+    let nInv = useMontgomery ? (R > 0n ? modInverse(-n, R) : 1n) : 0n;
 
 // Montgomery 乗算
 function montgomeryMul(a, b, n, R, nInv) {
