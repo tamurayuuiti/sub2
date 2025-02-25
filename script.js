@@ -304,10 +304,12 @@ async function ecmFactorization(n) {
     }
 
     function modmul(a, b, m) {
+        if (m === 0n) return 1n;
         return (a * b) % m;
     }
 
     function modInverse(a, m) {
+        if (m === 0n) return null;
         let [m0, x0, x1] = [m, 0n, 1n];
         while (a > 1n) {
             let q = a / m;
@@ -337,14 +339,13 @@ async function ecmFactorization(n) {
     for (let i = 0; i < maxCurves; i++) {
         const a = BigInt(Math.floor(Math.random() * Number(n)));
         let x = BigInt(Math.floor(Math.random() * Number(n)));
-        let z = 1n;  
         let y = montgomery_ladder(x, 2n, a, n);
 
         console.log(`  ECM曲線 ${i + 1}/${maxCurves}: a = ${a}, x = ${x}, y = ${y}`);
 
         let factor = gcd(2n * y, n);
         if (factor > 1n && factor < n) {
-            return await processFactor(factor, remainder);
+            return await processFactor(factor);
         }
 
         let k = 2n;
@@ -354,7 +355,7 @@ async function ecmFactorization(n) {
             k *= 2n;
             factor = gcd(x - y, n);
             if (factor > 1n && factor < n) {
-                return await processFactor(factor, remainder);
+                return await processFactor(factor);
             }
         }
 
@@ -366,14 +367,16 @@ async function ecmFactorization(n) {
                 let yj = modmul(y, modInverse(j + 1n, n), n);
                 let factor = gcd(xj - yj, n);
                 if (factor > 1n && factor < n) {
-                    return processFactor(factor, remainder);
+                    return processFactor(factor);
                 }
             })());
         }
 
-        const results = await Promise.all(tasks);
+        const results = await Promise.allSettled(tasks);
         for (const result of results) {
-            if (result) return result;
+            if (result.status === "fulfilled" && result.value) {
+                return result.value;
+            }
         }
     }
 
