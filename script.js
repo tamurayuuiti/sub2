@@ -271,11 +271,11 @@ async function processFactor(factor, remainder) {
     } else if (factor >= 10n ** 17n) {
         console.log(`  factor ${factor} は大きい合成数のため ECM による分解を試みる`);
         let newFactors = await ecmFactorization(factor);
-        if (newFactors) factors.push(...newFactors);
+        if (Array.isArray(newFactors)) factors.push(...newFactors);
     } else {
         console.log(`  factor ${factor} は小さい合成数のため Pollard's Rho による分解を試みる`);
         let newFactors = await pollardsRhoFactorization(factor);
-        if (newFactors) factors.push(...newFactors);
+        if (Array.isArray(newFactors)) factors.push(...newFactors);
     }
 
     if (isPrimeMillerRabin(remainder)) {
@@ -284,11 +284,11 @@ async function processFactor(factor, remainder) {
     } else if (remainder >= 10n ** 17n) {
         console.log(`  remainder ${remainder} は大きい合成数のため ECM による分解を試みる`);
         let newFactors = await ecmFactorization(remainder);
-        if (newFactors) factors.push(...newFactors);
+        if (Array.isArray(newFactors)) factors.push(...newFactors);
     } else {
         console.log(`  remainder ${remainder} は小さい合成数のため Pollard's Rho による分解を試みる`);
         let newFactors = await pollardsRhoFactorization(remainder);
-        if (newFactors) factors.push(...newFactors);
+        if (Array.isArray(newFactors)) factors.push(...newFactors);
     }
 }
 
@@ -310,6 +310,23 @@ async function ecmFactorization(n) {
         return a;
     }
 
+    function modInverse(a, m) {
+        if (gcd(a, m) !== 1n) return null; // 互いに素でない場合は無効
+        let m0 = m, t, q;
+        let x0 = 0n, x1 = 1n;
+        if (m === 1n) return 0n;
+        while (a > 1n) {
+            q = a / m;
+            t = m;
+            m = a % m;
+            a = t;
+            t = x0;
+            x0 = x1 - q * x0;
+            x1 = t;
+        }
+        return x1 < 0n ? x1 + m0 : x1;
+    }
+
     let B1 = 50000n, B2 = 500000n;
     for (let i = 0; i < 20; i++) {
         let a = BigInt(Math.floor(Math.random() * Number(n)));
@@ -320,8 +337,8 @@ async function ecmFactorization(n) {
 
         let k = 2n;
         while (k < B1) {
-            x = (x ** 2n + a) % n;
-            y = (y ** 2n + a) % n;
+            x = (x * x + a) % n;
+            y = (y * y + a) % n;
             k *= 2n;
             let factor = gcd(x - y, n);
             if (factor > 1n && factor < n) {
@@ -334,8 +351,7 @@ async function ecmFactorization(n) {
             if (gcd(j, n) !== 1n) continue;
             let modInvJ = modInverse(j, n);
             let modInvJ1 = modInverse(j + 1n, n);
-            if (modInvJ < 0n) modInvJ += n;
-            if (modInvJ1 < 0n) modInvJ1 += n;
+            if (modInvJ === null || modInvJ1 === null) continue;
             x = (x * modInvJ) % n;
             y = (y * modInvJ1) % n;
             let factor = gcd(x - y, n);
@@ -348,7 +364,6 @@ async function ecmFactorization(n) {
 
     return [];
 }
-
 
 function pollardsRho(n) {
     if (n % 2n === 0n) return 2n;
