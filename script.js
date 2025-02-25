@@ -310,6 +310,23 @@ async function ecmFactorization(n) {
         return a;
     }
 
+    function modInverse(a, m) {
+    if (gcd(a, m) !== 1n) return null; // 互いに素でない場合は無効
+    let m0 = m, t, q;
+    let x0 = 0n, x1 = 1n;
+    if (m === 1n) return 0n;
+    while (a > 1n) {
+        q = a / m;
+        t = m;
+        m = a % m;
+        a = t;
+        t = x0;
+        x0 = x1 - q * x0;
+        x1 = t;
+    }
+    return x1 < 0n ? x1 + m0 : x1;
+}
+
     let B1 = 50000n, B2 = 500000n;
     for (let i = 0; i < 50; i++) {
         let a = BigInt(Math.floor(Math.random() * Number(n)));
