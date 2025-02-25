@@ -362,9 +362,10 @@ async function ecmFactorization(n) {
         for (let j = B1; j < B2; j *= 2n) {
             console.log(`    B2のループ内: j = ${j}, x = ${x}, y = ${y}`);
             let modInvJ = modInverse(j, n);
-            if (modInvJ < 0n) modInvJ += n;  // modInverse の負の値を修正
+            if (modInvJ < 0n) modInvJ += n;  // 負の値を修正
             x = (x * modInvJ) % n;
             y = (y * modInverse(j + 1n, n)) % n;
+
             factor = gcd(x - y, n);
             console.log(`    B2内 gcd 計算結果: factor = ${factor}`);
             if (factor > 1n && factor < n) {
