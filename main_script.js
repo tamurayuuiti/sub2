@@ -186,7 +186,7 @@ function pollardsRho(n) {
 
     let x = 2n, y = 2n, d = 1n, c = BigInt(Math.floor(Math.random() * 10) + 1); // c をランダムに設定
     let m = 128n, q = 1n;
-    function f(x) { return montgomeryMultiply(x, x, n) + c; }
+    function f(x) { return n > 10n**20n ? montgomeryMultiply(x, x, n) + c : (x * x + c) % n; }
 
     console.log(`初期値: x=${x}, y=${y}, c=${c}, n=${n}`);
 
@@ -198,7 +198,7 @@ function pollardsRho(n) {
         for (let i = 0n; i < m; i++) {
             y = f(y);
             q = (q * abs(x - y)) % n;
-            if (i % 10n === 0n) { // gcd 計算の頻度を減らす
+            if (i % 5n === 0n) { // gcd 計算の頻度を減らす
                 d = gcd(q, n);
                 console.log(`中間状態: i=${i}, x=${x}, y=${y}, q=${q}, d=${d}`);
                 if (d > 1n) break;
@@ -206,7 +206,7 @@ function pollardsRho(n) {
         }
         d = gcd(q, n);
         x = ys;
-        if (d === 1n) m = (m * 3n) / 2n; // m を 1.5 倍ずつ増やす
+        if (d === 1n) m = min((m * 3n) / 2n, n / 2n); // m を 1.5 倍ずつ増やす
     }
 
     console.log(`因数発見: d=${d}`);
