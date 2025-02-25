@@ -162,7 +162,7 @@ async function startFactorization() {
             console.log("因数分解を実行します...");
 
             let extraFactors;
-            if (remainder >= 10n ** 25n) {
+            if (remainder >= 10n ** 40n) {
                 extraFactors = await ecmFactorization(remainder);
             } else {
                 extraFactors = await pollardsRhoFactorization(remainder);
@@ -268,7 +268,7 @@ async function processFactor(factor, remainder, factors) {
     if (isPrimeMillerRabin(factor)) {
         console.log(`  ECM因数分解成功: 素数 factor = ${factor}`);
         factors.push(factor);
-    } else if (factor >= 10n ** 25n) {
+    } else if (factor >= 10n ** 40n) {
         console.log(`  factor ${factor} は大きい合成数のため ECM による分解を試みる`);
         factors.push(...(await ecmFactorization(factor, factors)));
     } else {
@@ -279,7 +279,7 @@ async function processFactor(factor, remainder, factors) {
     if (isPrimeMillerRabin(remainder)) {
         console.log(`  remainder ${remainder} は素数として確定`);
         factors.push(remainder);
-    } else if (remainder >= 10n ** 25n) {
+    } else if (remainder >= 10n ** 40n) {
         console.log(`  remainder ${remainder} は大きい合成数のため ECM による分解を試みる`);
         factors.push(...(await ecmFactorization(remainder, factors)));
     } else {
