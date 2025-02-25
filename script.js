@@ -263,6 +263,7 @@ async function pollardsRhoFactorization(number) {
 }
 
 async function processFactor(factor, remainder) {
+    let factors = [];
     console.log(`processFactor() 呼び出し: factor = ${factor}, remainder = ${remainder}`);
 
     if (isPrimeMillerRabin(factor)) {
