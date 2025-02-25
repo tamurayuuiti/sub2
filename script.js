@@ -2,7 +2,6 @@ let currentInput = null;
 let startTime = null;
 let isCalculating = false;
 let progressInterval = null;
-let factors = [];
 let primes = [];
 
 document.getElementById("numberInput").addEventListener("keypress", function(event) {
@@ -263,38 +262,39 @@ async function pollardsRhoFactorization(number) {
     return factors;
 }
 
-async function processFactor(factor, remainder) {
-    console.log(processFactor() 呼び出し: factor = ${factor}, remainder = ${remainder});
+async function processFactor(factor, remainder, factors) {
+    console.log(`processFactor() 呼び出し: factor = ${factor}, remainder = ${remainder}`);
 
     if (isPrimeMillerRabin(factor)) {
-        console.log(  ECM因数分解成功: 素数 factor = ${factor});
+        console.log(`  ECM因数分解成功: 素数 factor = ${factor}`);
         factors.push(factor);
     } else if (factor >= 10n ** 17n) {
-        console.log(  factor ${factor} は大きい合成数のため ECM による分解を試みる);
-        factors.push(...(await ecmFactorization(factor))); 
+        console.log(`  factor ${factor} は大きい合成数のため ECM による分解を試みる`);
+        factors.push(...(await ecmFactorization(factor, factors)));
     } else {
-        console.log(  factor ${factor} は小さい合成数のため Pollard's Rho による分解を試みる);
-        factors.push(...(await pollardsRhoFactorization(factor)));
+        console.log(`  factor ${factor} は小さい合成数のため Pollard's Rho による分解を試みる`);
+        factors.push(...(await pollardsRhoFactorization(factor, factors)));
     }
-    
+
     if (isPrimeMillerRabin(remainder)) {
-        console.log(  remainder ${remainder} は素数として確定);
+        console.log(`  remainder ${remainder} は素数として確定`);
         factors.push(remainder);
     } else if (remainder >= 10n ** 17n) {
-        console.log(  remainder ${remainder} は大きい合成数のため ECM による分解を試みる);
-        factors.push(...(await ecmFactorization(remainder)));
+        console.log(`  remainder ${remainder} は大きい合成数のため ECM による分解を試みる`);
+        factors.push(...(await ecmFactorization(remainder, factors)));
     } else {
-        console.log(  remainder ${remainder} は小さい合成数のため Pollard's Rho による分解を試みる);
-        factors.push(...(await pollardsRhoFactorization(remainder)));
+        console.log(`  remainder ${remainder} は小さい合成数のため Pollard's Rho による分解を試みる`);
+        factors.push(...(await pollardsRhoFactorization(remainder, factors)));
     }
 }
 
-async function ecmFactorization(n) {
+async function ecmFactorization(n, factors = []) {
     console.log(`ECM因数分解を開始: n = ${n}`);
 
     if (isPrimeMillerRabin(n)) {
         console.log(`  初期チェック: ${n} は素数`);
-        return [n];
+        factors.push(n);
+        return factors;
     }
 
     function gcd(a, b) {
@@ -338,14 +338,14 @@ async function ecmFactorization(n) {
     for (let i = 0; i < maxCurves; i++) {
         const a = BigInt(Math.floor(Math.random() * Number(n)));
         let x = BigInt(Math.floor(Math.random() * Number(n)));
-        let z = 1n;  
+        let z = 1n;
         let y = montgomery_ladder(x, 2n, a, n);
 
         console.log(`  ECM曲線 ${i + 1}/${maxCurves}: a = ${a}, x = ${x}, y = ${y}`);
 
         let factor = gcd(2n * y, n);
         if (factor > 1n && factor < n) {
-            return await processFactor(factor);
+            return await processFactor(factor, n / factor, factors);
         }
 
         let k = 2n;
@@ -355,31 +355,23 @@ async function ecmFactorization(n) {
             k *= 2n;
             factor = gcd(x - y, n);
             if (factor > 1n && factor < n) {
-                return await processFactor(factor);
+                return await processFactor(factor, n / factor, factors);
             }
         }
 
         console.log(`  ECM Stage 2 開始: B1 = ${B1}, B2 = ${B2}`);
-        let tasks = [];
         for (let j = B1; j < B2; j *= 2n) {
-            tasks.push((async () => {
-                let xj = modmul(x, modInverse(j, n), n);
-                let yj = modmul(y, modInverse(j + 1n, n), n);
-                let factor = gcd(xj - yj, n);
-                if (factor > 1n && factor < n) {
-                    return processFactor(factor);
-                }
-            })());
-        }
-
-        const results = await Promise.all(tasks);
-        for (const result of results) {
-            if (result) return result;
+            let xj = modmul(x, modInverse(j, n), n);
+            let yj = modmul(y, modInverse(j + 1n, n), n);
+            factor = gcd(xj - yj, n);
+            if (factor > 1n && factor < n) {
+                return await processFactor(factor, n / factor, factors);
+            }
         }
     }
 
-    console.log("Pollard's Rho 法による因数分解を試行...");
-    return await pollardsRhoFactorization(n);
+    console.log("ECM 因数分解に失敗。Pollard's Rho 法による因数分解を試行...");
+    return await pollardsRhoFactorization(n, factors);
 }
 
 function pollardsRho(n) {
