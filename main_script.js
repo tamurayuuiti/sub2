@@ -188,13 +188,33 @@ function pollardsRho(n) {
 
     let x = 2n, y = 2n, d = 1n, c = BigInt(Math.floor(Math.random() * 10) + 1);
     let m = 128n, q = 1n;
-    function f(x) { return (x * x + c) % n; }
+
+    // **nの桁数を取得**
+    let digitCount = n.toString().length;
+    let useMontgomery = digitCount >= 30; // 30桁以上ならMontgomery乗算を使用
+
+    let R = useMontgomery ? (1n << (n.toString(2).length + 1)) : null; // 2の冪
+    let nInv = useMontgomery ? (-n) % R : null; // n のモジュラー逆数
+
+    // Montgomery 乗算
+    function montgomeryMul(a, b, n, R, nInv) {
+        let t = a * b;
+        let m = (t * nInv) % R;
+        let u = (t + m * n) / R;
+        return u >= n ? u - n : u;
+    }
+
+    // **f(x) の切り替え**
+    function f(x) {
+        return useMontgomery
+            ? montgomeryMul(x, x, n, R, nInv) + c
+            : (x * x + c) % n;
+    }
 
     x = f(x);
     y = f(f(y));
 
-    // **nの桁数に応じてkを設定**
-    let digitCount = n.toString().length;
+    // **kの動的設定**
     let k = digitCount <= 10 ? 5n 
             : digitCount <= 20 ? 10n 
             : digitCount <= 30 ? 15n 
@@ -205,7 +225,9 @@ function pollardsRho(n) {
         let ys = y;
         for (let i = 0n; i < m; i++) {
             y = f(y);
-            q = (q * abs(x - y)) % n;
+            q = useMontgomery 
+                ? montgomeryMul(q, abs(x - y), n, R, nInv)
+                : (q * abs(x - y)) % n;
 
             // **k回に1回だけgcdを計算**
             if (i % k === 0n) {
