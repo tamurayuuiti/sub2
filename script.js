@@ -163,7 +163,6 @@ async function startFactorization() {
 
             let extraFactors;
             extraFactors = await pollardsRhoFactorization(remainder);
-            }
 
             factors = factors.concat(extraFactors);
         }
