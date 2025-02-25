@@ -335,6 +335,7 @@ async function ecmFactorization(n) {
 
     const maxCurves = n > 10n ** 20n ? 12 : 7;
     const B1 = 5000n, B2 = 15000n;
+    let factors = [];
 
     for (let i = 0; i < maxCurves; i++) {
         const a = BigInt(Math.floor(Math.random() * Number(n)));
@@ -344,6 +345,11 @@ async function ecmFactorization(n) {
         console.log(`  ECM曲線 ${i + 1}/${maxCurves}: a = ${a}, x = ${x}, y = ${y}`);
 
         let factor = gcd(2n * y, n);
+        if (factor === n || factor === 1n || !factor) {
+            console.log("無効な因数が検出されました。別の曲線を試行します。");
+            continue; // 次の曲線へ
+        }
+
         if (factor > 1n && factor < n) {
             return await processFactor(factor);
         }
@@ -354,6 +360,12 @@ async function ecmFactorization(n) {
             y = montgomery_ladder(y, k, a, n);
             k *= 2n;
             factor = gcd(x - y, n);
+
+            if (factor === n || factor === 1n) {
+                console.log("無効な因数が検出されました。別の曲線を試行します。");
+                continue;
+            }
+
             if (factor > 1n && factor < n) {
                 return await processFactor(factor);
             }
@@ -366,6 +378,12 @@ async function ecmFactorization(n) {
                 let xj = modmul(x, modInverse(j, n), n);
                 let yj = modmul(y, modInverse(j + 1n, n), n);
                 let factor = gcd(xj - yj, n);
+
+                if (factor === n || factor === 1n || !factor) {
+                    console.log("無効な因数が検出されました。別の曲線を試行します。");
+                    return null;
+                }
+
                 if (factor > 1n && factor < n) {
                     return processFactor(factor);
                 }
@@ -378,6 +396,12 @@ async function ecmFactorization(n) {
                 return result.value;
             }
         }
+    }
+
+    // **5. `factors` が空の場合、ECMを再試行**
+    if (factors.length === 0) {
+        console.log("ECMが因数を発見しましたが、リストが空です。再試行します。");
+        return await ecmFactorization(n);
     }
 
     console.log("Pollard's Rho 法による因数分解を試行...");
