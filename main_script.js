@@ -202,42 +202,52 @@ function pollardsRho(n) {
 
     // Montgomery 乗算
     function montgomeryMul(a, b, n, R, nInv) {
-        console.log(`Montgomery乗算開始: a = ${a}, b = ${b}, n = ${n}, R = ${R}, nInv = ${nInv}`);
-        if (R === 0n || nInv === 0n) {
-            console.error("エラー: RまたはnInvが0になっています");
-            return 0n;
-        }
-
-        let t = a * b;
-        let m = ((t % R) * nInv) % R;
-        let u = (t + m * n) / R;
-
-        let result = u < 0n ? (u + n) % n : (u >= n ? u - n : u);
-        console.log(`Montgomery乗算結果: result = ${result}`);
-        return result;
+    console.log(`Montgomery乗算開始: a = ${a}, b = ${b}, n = ${n}, R = ${R}, nInv = ${nInv}`);
+    if (R === 0n || nInv === 0n) {
+        console.error("エラー: RまたはnInvが0になっています");
+        return 0n;
     }
+
+    let t = a * b;
+    let m = ((t % R) * nInv) % R;
+    let u = (t + m * n) / R;
+
+    if (u % 1n !== 0n) {
+        console.error(`エラー: Montgomery乗算の結果 u が整数でない: u = ${u}`);
+        return 1n;
+    }
+
+    let result = (u >= n) ? u - n : u;
+    console.log(`Montgomery乗算結果: result = ${result}`);
+    return result;
+}
 
     // モジュラー逆数計算
     function modInverse(a, m) {
-        let m0 = m, y = 0n, x = 1n;
-        if (m === 1n) return 0n;
+    let m0 = m, y = 0n, x = 1n;
+    if (m === 1n) return 0n;
 
-        while (a > 1n) {
-            let q = a / m;
-            let t = m;
-
-            m = a % m;
-            a = t;
-            t = y;
-
-            y = x - q * y;
-            x = t;
-        }
-
-        let result = x < 0n ? x + m0 : x;
-        console.log(`modInverse計算完了: a = ${a}, m = ${m}, result = ${result}`);
-        return result;
+    if (gcd(a, m) !== 1n) {
+        console.warn(`modInverseエラー: gcd(${a}, ${m}) ≠ 1, 逆元なし`);
+        return 1n;
     }
+
+    while (a > 1n) {
+        let q = a / m;
+        let t = m;
+
+        m = a % m;
+        a = t;
+        t = y;
+
+        y = x - q * y;
+        x = t;
+    }
+
+    let result = x < 0n ? x + m0 : x;
+    console.log(`modInverse計算完了: a = ${a}, m = ${m}, result = ${result}`);
+    return result;
+}
 
     // `f(x)` を修正
     function f(x) { 
@@ -260,36 +270,33 @@ function pollardsRho(n) {
             : 25n;
 
     while (d === 1n) {
-        let ys = y;
-        for (let i = 0n; i < m; i++) {
-            y = f(y);
-            q = useMontgomery 
-                ? montgomeryMul(q, abs(x - y), n, R, nInv)
-                : (q * abs(x - y)) % n;
+    let ys = y;
+    for (let i = 0n; i < m; i++) {
+        y = f(y);
+        q = useMontgomery 
+            ? montgomeryMul(q, abs(x - y), n, R, nInv)
+            : (q * abs(x - y)) % n;
 
-            if (q < 0n) {
-                console.error(`エラー: q が負の値になっています: q = ${q}`);
-            }
-
-            // **k回に1回だけgcdを計算**
-            if (i % k === 0n) {
-                d = gcd(q, n);
-                console.log(`gcd計算: q = ${q}, d = ${d}`);
-                if (d > 1n) break;  // 因数が見つかったら即終了
-            }
+        if (q === 0n) {
+            console.error("エラー: q が 0 になりました。無限ループ防止のため q = 1 に設定");
+            q = 1n;
         }
 
-        x = ys;
-        if (d === 1n) m *= 2n;  // 探索範囲を増やす
-
-        // **q をリセットしてオーバーフローを防ぐ**
-        if (q > n) {
-            console.warn(`q のリセット: q = ${q}`);
-            q = 1n;
+        if (i % k === 0n) {
+            d = gcd(q, n);
+            console.log(`gcd計算: q = ${q}, d = ${d}`);
+            if (d > 1n) break;
         }
     }
 
-    return d === n ? null : d;
+    x = ys;
+    if (d === 1n) {
+        m *= 2n;
+        if (m > 10n ** 9n) {  // 無限ループ防止
+            console.error("エラー: m が大きすぎます。ループを強制終了");
+            return null;
+        }
+    }
 }
 
 // 最大公約数計算
