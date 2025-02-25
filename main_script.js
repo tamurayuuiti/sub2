@@ -194,22 +194,41 @@ function pollardsRho(n) {
     let useMontgomery = digitCount >= 30; // 30桁以上ならMontgomery乗算を使用
 
     let R = useMontgomery ? (1n << BigInt(n.toString(2).length + 1)) : 0n;
-    let nInv = useMontgomery ? (-n) % R : 0n;
+let nInv = useMontgomery ? modInverse(-n, R) : 0n;
 
-    // Montgomery 乗算
-    function montgomeryMul(a, b, n, R, nInv) {
-        let t = a * b;
-        let m = (t * nInv) % R;
-        let u = (t + m * n) / R;
-        return u >= n ? u - n : u;
+// Montgomery 乗算
+function montgomeryMul(a, b, n, R, nInv) {
+    let t = a * b;
+    let m = ((t % R) * nInv) % R;  // `t % R` を追加してオーバーフロー防止
+    let u = (t + m * n) / R;
+    
+    return u < 0n ? (u + n) % n : (u >= n ? u - n : u); // 負数を防ぐ処理を追加
+}
+
+// モジュラー逆数計算
+function modInverse(a, m) {
+    let m0 = m, y = 0n, x = 1n;
+    if (m === 1n) return 0n;
+
+    while (a > 1n) {
+        let q = a / m;
+        let t = m;
+
+        m = a % m;
+        a = t;
+        t = y;
+
+        y = x - q * y;
+        x = t;
     }
 
-    // **f(x) の切り替え**
-    function f(x) {
-        return useMontgomery
-            ? montgomeryMul(x, x, n, R, nInv) + c
-            : (x * x + c) % n;
-    }
+    return x < 0n ? x + m0 : x;
+}
+
+// `f(x)` を修正
+function f(x) { 
+    return (montgomeryMul(x, x, n, R, nInv) + c) % n;
+}
 
     x = f(x);
     y = f(f(y));
