@@ -292,8 +292,8 @@ async function ecmFactorization(n) {
         }
     }
 
-    console.log("Pollard's Rho 法による因数分解を試行...");
-    return await pollardsRhoFactorization(n);
+    console.log("なぜ？");
+    return null
 }
 
 // **新しく追加した関数: 因数の処理**
