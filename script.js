@@ -270,25 +270,25 @@ async function processFactor(factor, remainder) {
         factors.push(factor);
     } else if (factor >= 10n ** 17n) {
         console.log(`  factor ${factor} は大きい合成数のため ECM による分解を試みる`);
-        const ecmResult = await ecmFactorization(factor);
-        if (ecmResult) factors.push(...ecmResult);
+        let newFactors = await ecmFactorization(factor);
+        if (newFactors) factors.push(...newFactors);
     } else {
         console.log(`  factor ${factor} は小さい合成数のため Pollard's Rho による分解を試みる`);
-        const rhoResult = await pollardsRhoFactorization(factor);
-        if (rhoResult) factors.push(...rhoResult);
+        let newFactors = await pollardsRhoFactorization(factor);
+        if (newFactors) factors.push(...newFactors);
     }
-    
+
     if (isPrimeMillerRabin(remainder)) {
         console.log(`  remainder ${remainder} は素数として確定`);
         factors.push(remainder);
     } else if (remainder >= 10n ** 17n) {
         console.log(`  remainder ${remainder} は大きい合成数のため ECM による分解を試みる`);
-        const ecmResult = await ecmFactorization(remainder);
-        if (ecmResult) factors.push(...ecmResult);
+        let newFactors = await ecmFactorization(remainder);
+        if (newFactors) factors.push(...newFactors);
     } else {
         console.log(`  remainder ${remainder} は小さい合成数のため Pollard's Rho による分解を試みる`);
-        const rhoResult = await pollardsRhoFactorization(remainder);
-        if (rhoResult) factors.push(...rhoResult);
+        let newFactors = await pollardsRhoFactorization(remainder);
+        if (newFactors) factors.push(...newFactors);
     }
 }
 
@@ -310,72 +310,45 @@ async function ecmFactorization(n) {
         return a;
     }
 
-    function modInverse(a, m) {
-        let m0 = m, t, q;
-        let x0 = 0n, x1 = 1n;
-        if (m === 1n) return 0n;
-        while (a > 1n) {
-            q = a / m;
-            t = m;
-            m = a % m;
-            a = t;
-            t = x0;
-            x0 = x1 - q * x0;
-            x1 = t;
-        }
-        return x1 < 0n ? x1 + m0 : x1;
-    }
-
-    let maxCurves = n > 10n ** 20n ? 30 : 20;
-    let B1 = 10000n, B2 = 100000n;
-    
-    for (let i = 0; i < maxCurves; i++) {
-        let a = BigInt(Math.floor(Math.random() * Number(n))); 
-        let x = BigInt(Math.floor(Math.random() * Number(n))); 
+    let B1 = 50000n, B2 = 500000n;
+    for (let i = 0; i < 20; i++) {
+        let a = BigInt(Math.floor(Math.random() * Number(n)));
+        let x = BigInt(Math.floor(Math.random() * Number(n)));
         let y = (x ** 3n + a * x + 1n) % n;
 
-        console.log(`  ECM曲線 ${i + 1}/${maxCurves}: a = ${a}, x = ${x}, y = ${y}`);
-
-        let factor = gcd(y, n);
-        console.log(`  Stage 1 gcd 計算結果: factor = ${factor} (x = ${x}, y = ${y})`);
-        if (factor > 1n && factor < n) {
-            let remainder = n / factor;
-            return await processFactor(factor, remainder);
-        }
+        console.log(`  ECM曲線 ${i + 1}/20: a = ${a}, x = ${x}, y = ${y}`);
 
         let k = 2n;
         while (k < B1) {
-            x = (x * x + a) % n;
-            y = (y * y + a) % n;
+            x = (x ** 2n + a) % n;
+            y = (y ** 2n + a) % n;
             k *= 2n;
-            factor = gcd(x - y, n);
-            console.log(`  Stage 1 進行中: k = ${k}, gcd(x - y, n) = ${factor}`);
+            let factor = gcd(x - y, n);
             if (factor > 1n && factor < n) {
                 let remainder = n / factor;
                 return await processFactor(factor, remainder);
             }
         }
 
-        console.log(`  ECM Stage 2 開始: B1 = ${B1}, B2 = ${B2}`);
-
         for (let j = B1; j < B2; j *= 2n) {
             if (gcd(j, n) !== 1n) continue;
-            console.log(`    B2のループ内: j = ${j}, x = ${x}, y = ${y}`);
             let modInvJ = modInverse(j, n);
+            let modInvJ1 = modInverse(j + 1n, n);
+            if (modInvJ < 0n) modInvJ += n;
+            if (modInvJ1 < 0n) modInvJ1 += n;
             x = (x * modInvJ) % n;
-            y = (y * modInverse(j + 1n, n)) % n;
-            factor = gcd(x - y, n);
-            console.log(`    B2内 gcd 計算結果: factor = ${factor}`);
+            y = (y * modInvJ1) % n;
+            let factor = gcd(x - y, n);
             if (factor > 1n && factor < n) {
                 let remainder = n / factor;
                 return await processFactor(factor, remainder);
             }
         }
     }
-    
-    console.log("ECM因数分解失敗: 有効な因数が見つかりませんでした");
-    return null;
+
+    return [];
 }
+
 
 function pollardsRho(n) {
     if (n % 2n === 0n) return 2n;
