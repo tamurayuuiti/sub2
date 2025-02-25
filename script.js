@@ -359,9 +359,6 @@ async function ecmFactorization(n) {
                 return await processFactor(factor, remainder);
             }
         }
-        if (!foundFactor) {
-            console.log(  B2完了: 因数が見つかりませんでした);
-        }
     }
 
     console.log("ECM因数分解失敗: 有効な因数が見つかりませんでした");
