@@ -290,7 +290,7 @@ async function processFactor(factor, remainder) {
 
 async function ecmFactorization(n) {
     console.log(`ECM因数分解を開始: n = ${n}`);
-    
+
     if (isPrimeMillerRabin(n)) {
         console.log(`  初期チェック: ${n} は素数`);
         return [n];
@@ -303,6 +303,10 @@ async function ecmFactorization(n) {
         return a;
     }
 
+    function modmul(a, b, m) {
+        return (a * b) % m;
+    }
+
     function modInverse(a, m) {
         let [m0, x0, x1] = [m, 0n, 1n];
         while (a > 1n) {
@@ -313,29 +317,44 @@ async function ecmFactorization(n) {
         return x1 < 0n ? x1 + m0 : x1;
     }
 
-    const maxCurves = n > 10n ** 20n ? 10 : 5;
-    const B1 = 2000n, B2 = 10000n; // 探索範囲を拡張
+    function montgomery_ladder(x, k, a, n) {
+        let x0 = 1n, x1 = x;
+        for (let i = BigInt(k.toString(2).length - 1); i >= 0n; i--) {
+            if ((k >> i) & 1n) {
+                x0 = modmul(x0, x1, n);
+                x1 = (x1 ** 2n + a) % n;
+            } else {
+                x1 = modmul(x0, x1, n);
+                x0 = (x0 ** 2n + a) % n;
+            }
+        }
+        return x0;
+    }
+
+    const maxCurves = n > 10n ** 20n ? 12 : 7;
+    const B1 = 5000n, B2 = 15000n;
 
     for (let i = 0; i < maxCurves; i++) {
         const a = BigInt(Math.floor(Math.random() * Number(n)));
         let x = BigInt(Math.floor(Math.random() * Number(n)));
-        let y = (x ** 3n + a * x + 1n) % n;
+        let z = 1n;  
+        let y = montgomery_ladder(x, 2n, a, n);
 
         console.log(`  ECM曲線 ${i + 1}/${maxCurves}: a = ${a}, x = ${x}, y = ${y}`);
 
         let factor = gcd(2n * y, n);
         if (factor > 1n && factor < n) {
-            return await processFactor(factor, remainder);
+            return await processFactor(factor);
         }
 
         let k = 2n;
         while (k < B1) {
-            x = (x ** 2n + a) % n;
-            y = (y ** 2n + a) % n;
+            x = montgomery_ladder(x, k, a, n);
+            y = montgomery_ladder(y, k, a, n);
             k *= 2n;
             factor = gcd(x - y, n);
             if (factor > 1n && factor < n) {
-                return await processFactor(factor, remainder);
+                return await processFactor(factor);
             }
         }
 
@@ -343,11 +362,11 @@ async function ecmFactorization(n) {
         let tasks = [];
         for (let j = B1; j < B2; j *= 2n) {
             tasks.push((async () => {
-                let xj = (x * modInverse(j, n)) % n;
-                let yj = (y * modInverse(j + 1n, n)) % n;
+                let xj = modmul(x, modInverse(j, n), n);
+                let yj = modmul(y, modInverse(j + 1n, n), n);
                 let factor = gcd(xj - yj, n);
                 if (factor > 1n && factor < n) {
-                    return processFactor(factor, remainder);
+                    return processFactor(factor);
                 }
             })());
         }
