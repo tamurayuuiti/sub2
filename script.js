@@ -2,6 +2,7 @@ let currentInput = null;
 let startTime = null;
 let isCalculating = false;
 let progressInterval = null;
+let factors = [];
 let primes = [];
 
 document.getElementById("numberInput").addEventListener("keypress", function(event) {
