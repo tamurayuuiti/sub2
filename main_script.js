@@ -200,7 +200,7 @@ function pollardsRho(n) {
             q = (q * abs(x - y)) % n;
 
             // **5回に1回だけ gcd を計算**
-            if (i % 5n === 0n) {
+            if (i % 10n === 0n) {
                 d = gcd(q, n);
                 if (d > 1n) break;  // 因数が見つかったら即終了
             }
