@@ -327,6 +327,7 @@ async function ecmFactorization(n) {
         console.log(`  ECM曲線 ${i + 1}/${maxCurves}: a = ${a}, x = ${x}, y = ${y}`);
 
         let factor = gcd(2n * y, n);
+        console.log(`  Stage 1 gcd 計算結果: factor = ${factor}`);
         if (factor > 1n && factor < n) {
             let remainder = n / factor;
             return await processFactor(factor, remainder);
