@@ -187,7 +187,7 @@ function pollardsRho(n) {
     if (n % 2n === 0n) return 2n;
 
     let x = 2n, y = 2n, d = 1n, c = BigInt(Math.floor(Math.random() * 10) + 1);
-    let m = 128n, g = 1n, q = 1n;
+    let m = 128n, q = 1n;
     function f(x) { return (x * x + c) % n; }
 
     x = f(x);
@@ -198,10 +198,19 @@ function pollardsRho(n) {
         for (let i = 0n; i < m; i++) {
             y = f(y);
             q = (q * abs(x - y)) % n;
+
+            // **5回に1回だけ gcd を計算**
+            if (i % 5n === 0n) {
+                d = gcd(q, n);
+                if (d > 1n) break;  // 因数が見つかったら即終了
+            }
         }
-        d = gcd(q, n);
+
         x = ys;
-        if (d === 1n) m *= 2n; // サイクルの長さを2倍に拡張
+        if (d === 1n) m *= 2n;  // 探索範囲を増やす
+
+        // **q をリセットしてオーバーフローを防ぐ**
+        if (q > n) q = 1n;
     }
 
     return d === n ? null : d;
