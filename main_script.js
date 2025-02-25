@@ -193,42 +193,61 @@ function pollardsRho(n) {
     let digitCount = n.toString().length;
     let useMontgomery = digitCount >= 30; // 30桁以上ならMontgomery乗算を使用
 
+    console.log(`pollardsRho開始: n = ${n}, 桁数 = ${digitCount}, Montgomery使用: ${useMontgomery}`);
+
     let R = useMontgomery ? (1n << BigInt(Math.max(n.toString(2).length + 1, 1))) : 0n;
     let nInv = useMontgomery ? (R > 0n ? modInverse(-n, R) : 1n) : 0n;
 
-// Montgomery 乗算
-function montgomeryMul(a, b, n, R, nInv) {
-    let t = a * b;
-    let m = ((t % R) * nInv) % R;  // `t % R` を追加してオーバーフロー防止
-    let u = (t + m * n) / R;
-    
-    return u < 0n ? (u + n) % n : (u >= n ? u - n : u); // 負数を防ぐ処理を追加
-}
+    console.log(`Montgomeryパラメータ: R = ${R}, nInv = ${nInv}`);
 
-// モジュラー逆数計算
-function modInverse(a, m) {
-    let m0 = m, y = 0n, x = 1n;
-    if (m === 1n) return 0n;
+    // Montgomery 乗算
+    function montgomeryMul(a, b, n, R, nInv) {
+        console.log(`Montgomery乗算開始: a = ${a}, b = ${b}, n = ${n}, R = ${R}, nInv = ${nInv}`);
+        if (R === 0n || nInv === 0n) {
+            console.error("エラー: RまたはnInvが0になっています");
+            return 0n;
+        }
 
-    while (a > 1n) {
-        let q = a / m;
-        let t = m;
+        let t = a * b;
+        let m = ((t % R) * nInv) % R;
+        let u = (t + m * n) / R;
 
-        m = a % m;
-        a = t;
-        t = y;
-
-        y = x - q * y;
-        x = t;
+        let result = u < 0n ? (u + n) % n : (u >= n ? u - n : u);
+        console.log(`Montgomery乗算結果: result = ${result}`);
+        return result;
     }
 
-    return x < 0n ? x + m0 : x;
-}
+    // モジュラー逆数計算
+    function modInverse(a, m) {
+        let m0 = m, y = 0n, x = 1n;
+        if (m === 1n) return 0n;
 
-// `f(x)` を修正
-function f(x) { 
-    return (montgomeryMul(x, x, n, R, nInv) + c) % n;
-}
+        while (a > 1n) {
+            let q = a / m;
+            let t = m;
+
+            m = a % m;
+            a = t;
+            t = y;
+
+            y = x - q * y;
+            x = t;
+        }
+
+        let result = x < 0n ? x + m0 : x;
+        console.log(`modInverse計算完了: a = ${a}, m = ${m}, result = ${result}`);
+        return result;
+    }
+
+    // `f(x)` を修正
+    function f(x) { 
+        let result = useMontgomery
+            ? (montgomeryMul(x, x, n, R, nInv) + c) % n
+            : (x * x + c) % n;
+
+        console.log(`f(x)計算: x = ${x}, f(x) = ${result}`);
+        return result;
+    }
 
     x = f(x);
     y = f(f(y));
@@ -248,9 +267,14 @@ function f(x) {
                 ? montgomeryMul(q, abs(x - y), n, R, nInv)
                 : (q * abs(x - y)) % n;
 
+            if (q < 0n) {
+                console.error(`エラー: q が負の値になっています: q = ${q}`);
+            }
+
             // **k回に1回だけgcdを計算**
             if (i % k === 0n) {
                 d = gcd(q, n);
+                console.log(`gcd計算: q = ${q}, d = ${d}`);
                 if (d > 1n) break;  // 因数が見つかったら即終了
             }
         }
@@ -259,7 +283,10 @@ function f(x) {
         if (d === 1n) m *= 2n;  // 探索範囲を増やす
 
         // **q をリセットしてオーバーフローを防ぐ**
-        if (q > n) q = 1n;
+        if (q > n) {
+            console.warn(`q のリセット: q = ${q}`);
+            q = 1n;
+        }
     }
 
     return d === n ? null : d;
