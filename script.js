@@ -44,80 +44,50 @@ function updateProgress() {
 
 // ミラー・ラビン素数判定法
 function isPrimeMillerRabin(n) {
-    console.log(`ミラー・ラビン素数判定を実行: n = ${n}`);
+    console.log(`判定開始: n = ${n}`);
     if (n < 2n) return false;
     if (n === 2n || n === 3n) return true;
     if (n % 2n === 0n) return false;
 
-    let d = n - 1n;
-    let r = 0n;
+    let d = n - 1n, r = 0n;
     while (d % 2n === 0n) {
         d /= 2n;
         r++;
     }
-    console.log(`n - 1 を 2 で割り続けた結果: d = ${d}, r = ${r}`);
 
     function powerMod(base, exp, mod) {
         let result = 1n;
         base %= mod;
-        console.log(`  powerMod 計算開始: base = ${base}, exp = ${exp}, mod = ${mod}`);
         while (exp > 0n) {
-            if (exp & 1n) {
-                result = (result * base) % mod;
-                console.log(`    result 更新: ${result}`);
-            }
+            if (exp & 1n) result = (result * base) % mod;
             exp >>= 1n;
             base = (base * base) % mod;
         }
-        console.log(`  powerMod 計算完了: result = ${result}`);
         return result;
     }
 
     const witnesses = [2n, 3n, 5n, 7n, 11n, 13n, 17n, 19n, 23n, 29n, 31n, 37n];
 
-    let isCompositeConfirmed = false;
     for (let a of witnesses) {
         if (a >= n) continue;
-        console.log(`証人 a = ${a} によるテスト開始`);
         let x = powerMod(a, d, n);
-        console.log(`  x = ${x}`);
+        if (x === 1n || x === n - 1n) continue;
 
-        if (x === 1n || x === n - 1n) {
-            console.log(`  a = ${a} は合格 (x = ${x})`);
-            continue;
-        }
-
-        let dCopy = d;
         let isComposite = true;
         for (let i = 0n; i < r - 1n; i++) {
             x = (x * x) % n;
-            dCopy *= 2n;
-            console.log(`    2^${i + 1n} * d のステップ: x = ${x}, dCopy = ${dCopy}`);
-
-            if (x === 1n) {
-                console.log(`  証人 a = ${a} により合成数判定`);
-                isCompositeConfirmed = true;
-                break;
-            }
             if (x === n - 1n) {
-                console.log(`  x が n-1 に到達 (x = ${x})、a = ${a} は合格`);
                 isComposite = false;
                 break;
             }
         }
         if (isComposite) {
-            console.log(`  証人 a = ${a} により合成数確定`);
-            isCompositeConfirmed = true;
-            break;
+            console.log(`合成数: n = ${n} (証人 a = ${a})`);
+            return false;
         }
     }
-    
-    if (isCompositeConfirmed) {
-        console.log(`n = ${n} は合成数と確定。追加の因数分解が必要。`);
-        return false;
-    }
-    
-    console.log(`n = ${n} は素数と判定`);
+
+    console.log(`素数: n = ${n}`);
     return true;
 }
 
