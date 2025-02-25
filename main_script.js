@@ -162,13 +162,11 @@ async function pollardsRhoFactorization(number) {
         }
 
         let factor = null;
-        
-        while (!factor || factor === number) { // 成功するまで繰り返す
+        while (!factor || factor === number) {
             console.log(`Pollard's rho を再試行: ${number}`);
             factor = pollardsRho(number);
         }
 
-        // **因数が合成数の場合、再帰的に分解する**
         if (isPrimeMillerRabin(factor)) {
             factors.push(factor);
         } else {
@@ -186,9 +184,9 @@ async function pollardsRhoFactorization(number) {
 function pollardsRho(n) {
     if (n % 2n === 0n) return 2n;
 
-    let x = 2n, y = 2n, d = 1n, c = BigInt(Math.floor(Math.random() * 10) + 1);
-    let m = 128n, g = 1n, q = 1n;
-    function f(x) { return (x * x + c) % n; }
+    let x = 2n, y = 2n, d = 1n, c = 1n; // c を固定（安定化のため）
+    let m = 128n, q = 1n;
+    function f(x) { return montgomeryMultiply(x, x, n) + c; }
 
     x = f(x);
     y = f(f(y));
@@ -198,16 +196,42 @@ function pollardsRho(n) {
         for (let i = 0n; i < m; i++) {
             y = f(y);
             q = (q * abs(x - y)) % n;
+            if (i % 10n === 0n) { // gcd 計算の頻度を減らす
+                d = gcd(q, n);
+                if (d > 1n) break;
+            }
         }
         d = gcd(q, n);
         x = ys;
-        if (d === 1n) m *= 2n; // サイクルの長さを2倍に拡張
+        if (d === 1n) m = (m * 3n) / 2n; // m を 1.5 倍ずつ増やす
     }
 
     return d === n ? null : d;
 }
 
-// 最大公約数計算
+function montgomeryMultiply(a, b, n) {
+    let r = 1n << (BigInt(n.toString(2).length));
+    let nPrime = -modInverse(n, r) % r;
+    let t = a * b;
+    let m = (t * nPrime) % r;
+    let u = (t + m * n) >> BigInt(r.toString(2).length);
+    return u >= n ? u - n : u;
+}
+
+function modInverse(a, m) {
+    let m0 = m, y = 0n, x = 1n;
+    while (a > 1n) {
+        let q = a / m;
+        let t = m;
+        m = a % m;
+        a = t;
+        t = y;
+        y = x - q * y;
+        x = t;
+    }
+    return x < 0n ? x + m0 : x;
+}
+
 function gcd(a, b) {
     while (b) {
         let temp = b;
@@ -217,7 +241,6 @@ function gcd(a, b) {
     return a;
 }
 
-// 絶対値計算
 function abs(n) {
     return n < 0n ? -n : n;
 }
