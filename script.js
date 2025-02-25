@@ -262,8 +262,7 @@ async function pollardsRhoFactorization(number) {
     return factors;
 }
 
-async function processFactor(factor, remainder) {
-    let factors = [];
+async function processFactor(factor, remainder, factors) {
     console.log(`processFactor() 呼び出し: factor = ${factor}, remainder = ${remainder}`);
 
     if (isPrimeMillerRabin(factor)) {
@@ -271,21 +270,21 @@ async function processFactor(factor, remainder) {
         factors.push(factor);
     } else if (factor >= 10n ** 17n) {
         console.log(`  factor ${factor} は大きい合成数のため ECM による分解を試みる`);
-        factors.push(...(await ecmFactorization(factor))); 
+        factors.push(...(await ecmFactorization(factor, factors)));
     } else {
         console.log(`  factor ${factor} は小さい合成数のため Pollard's Rho による分解を試みる`);
-        factors.push(...(await pollardsRhoFactorization(factor)));
+        factors.push(...(await pollardsRhoFactorization(factor, factors)));
     }
-    
+
     if (isPrimeMillerRabin(remainder)) {
         console.log(`  remainder ${remainder} は素数として確定`);
         factors.push(remainder);
     } else if (remainder >= 10n ** 17n) {
         console.log(`  remainder ${remainder} は大きい合成数のため ECM による分解を試みる`);
-        factors.push(...(await ecmFactorization(remainder)));
+        factors.push(...(await ecmFactorization(remainder, factors)));
     } else {
         console.log(`  remainder ${remainder} は小さい合成数のため Pollard's Rho による分解を試みる`);
-        factors.push(...(await pollardsRhoFactorization(remainder)));
+        factors.push(...(await pollardsRhoFactorization(remainder, factors)));
     }
 }
 
