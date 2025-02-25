@@ -326,7 +326,7 @@ async function ecmFactorization(n) {
         return x1 < 0n ? x1 + m0 : x1;
     }
 
-    let maxCurves = n > 10n ** 20n ? 10 : 5;
+    let maxCurves = n > 10n ** 20n ? 30 : 20;
     let B1 = 10000n, B2 = 100000n;
     
     for (let i = 0; i < maxCurves; i++) {
