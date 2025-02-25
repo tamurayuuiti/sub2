@@ -271,11 +271,11 @@ async function processFactor(factor, remainder) {
     } else if (factor >= 10n ** 17n) {
         console.log(`  factor ${factor} は大きい合成数のため ECM による分解を試みる`);
         let newFactors = await ecmFactorization(factor);
-        if (Array.isArray(newFactors)) factors.push(...newFactors);
+        if (Array.isArray(newFactors) && newFactors.length > 0) factors.push(...newFactors);
     } else {
         console.log(`  factor ${factor} は小さい合成数のため Pollard's Rho による分解を試みる`);
         let newFactors = await pollardsRhoFactorization(factor);
-        if (Array.isArray(newFactors)) factors.push(...newFactors);
+        if (Array.isArray(newFactors) && newFactors.length > 0) factors.push(...newFactors);
     }
 
     if (isPrimeMillerRabin(remainder)) {
@@ -284,11 +284,11 @@ async function processFactor(factor, remainder) {
     } else if (remainder >= 10n ** 17n) {
         console.log(`  remainder ${remainder} は大きい合成数のため ECM による分解を試みる`);
         let newFactors = await ecmFactorization(remainder);
-        if (Array.isArray(newFactors)) factors.push(...newFactors);
+        if (Array.isArray(newFactors) && newFactors.length > 0) factors.push(...newFactors);
     } else {
         console.log(`  remainder ${remainder} は小さい合成数のため Pollard's Rho による分解を試みる`);
         let newFactors = await pollardsRhoFactorization(remainder);
-        if (Array.isArray(newFactors)) factors.push(...newFactors);
+        if (Array.isArray(newFactors) && newFactors.length > 0) factors.push(...newFactors);
     }
 }
 
@@ -310,35 +310,18 @@ async function ecmFactorization(n) {
         return a;
     }
 
-    function modInverse(a, m) {
-        if (gcd(a, m) !== 1n) return null; // 互いに素でない場合は無効
-        let m0 = m, t, q;
-        let x0 = 0n, x1 = 1n;
-        if (m === 1n) return 0n;
-        while (a > 1n) {
-            q = a / m;
-            t = m;
-            m = a % m;
-            a = t;
-            t = x0;
-            x0 = x1 - q * x0;
-            x1 = t;
-        }
-        return x1 < 0n ? x1 + m0 : x1;
-    }
-
     let B1 = 50000n, B2 = 500000n;
     for (let i = 0; i < 50; i++) {
         let a = BigInt(Math.floor(Math.random() * Number(n)));
         let x = BigInt(Math.floor(Math.random() * Number(n)));
-        let y = (x ** 3n + a * x + 1n) % n;
+        let y = (x ** 3n - a * x + 1n) % n;
 
         console.log(`  ECM曲線 ${i + 1}/50: a = ${a}, x = ${x}, y = ${y}`);
 
         let k = 2n;
         while (k < B1) {
-            x = (x * x + a) % n;
-            y = (y * y + a) % n;
+            x = (x ** 2n - a) % n;
+            y = (y ** 2n - a) % n;
             k *= 2n;
             let factor = gcd(x - y, n);
             if (factor > 1n && factor < n) {
@@ -352,7 +335,7 @@ async function ecmFactorization(n) {
             let modInvJ = modInverse(j, n);
             let modInvJ1 = modInverse(j + 1n, n);
             if (modInvJ === null || modInvJ1 === null) {
-                console.log(`  Warning: modInverse failed for j = ${j}`);
+                console.warn(`  Warning: modInverse failed for j = ${j}`);
                 continue;
             }
             x = (x * modInvJ) % n;
