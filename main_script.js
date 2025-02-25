@@ -270,8 +270,8 @@ function pollardsRho(n) {
             : 25n;
 
     while (d === 1n) {
-    let ys = y;
-    for (let i = 0n; i < m; i++) {
+        let ys = y;
+        for (let i = 0n; i < m; i++) {
         y = f(y);
         q = useMontgomery 
             ? montgomeryMul(q, abs(x - y), n, R, nInv)
