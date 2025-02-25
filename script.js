@@ -204,7 +204,7 @@ async function pollardsRhoFactorization(number) {
             factor = await ecmFactorization(number); // `await` を追加
         }
         if (!factor) {
-            console.error("試し割りエラー:", error);
+            console.log("素数リストの読み込みを開始します...");
             factor = pollardsRho(number);
         }
 
