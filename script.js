@@ -162,10 +162,7 @@ async function startFactorization() {
             console.log("因数分解を実行します...");
 
             let extraFactors;
-            if (remainder >= 10n ** 40n) {
-                extraFactors = await ecmFactorization(remainder);
-            } else {
-                extraFactors = await pollardsRhoFactorization(remainder);
+            extraFactors = await pollardsRhoFactorization(remainder);
             }
 
             factors = factors.concat(extraFactors);
