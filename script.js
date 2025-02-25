@@ -292,8 +292,8 @@ async function ecmFactorization(n) {
         }
     }
 
-    console.log("  ECM因数分解失敗: 有効な因数が見つかりませんでした");
-    return null;
+    console.log("Pollard's Rho 法による因数分解を試行...");
+    return await pollardsRhoFactorization(n);
 }
 
 // **新しく追加した関数: 因数の処理**
