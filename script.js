@@ -332,8 +332,8 @@ async function ecmFactorization(n, factors = []) {
         return x0;
     }
 
-    const maxCurves = n > 10n ** 20n ? 1000 : 500;
-    const B1 = 1000000n, B2 = 2000000n;
+    const maxCurves = n > 10n ** 20n ? 600 : 300;
+    const B1 = 300000n, B2 = 600000n;
 
     for (let i = 0; i < maxCurves; i++) {
         const a = BigInt(Math.floor(Math.random() * Number(n)));
@@ -359,17 +359,21 @@ async function ecmFactorization(n, factors = []) {
             }
         }
 
+        // Stage 2 で並列処理を導入
         console.log(`  ECM Stage 2 開始: B1 = ${B1}, B2 = ${B2}`);
+        let tasks = [];
         for (let j = B1; j < B2; j *= 2n) {
-            let xj = modmul(x, modInverse(j, n), n);
-            let yj = modmul(y, modInverse(j + 1n, n), n);
-            factor = gcd(xj - yj, n);
-            if (factor > 1n && factor < n) {
-                return await processFactor(factor, n / factor, factors);
-            }
+            tasks.push((async () => {
+                let xj = modmul(x, modInverse(j, n), n);
+                let yj = modmul(y, modInverse(j + 1n, n), n);
+                let factor = gcd(xj - yj, n);
+                if (factor > 1n && factor < n) {
+                    return processFactor(factor, n / factor, factors);
+                }
+            })());
         }
-    }
-
+    await Promise.all(tasks)
+        
     console.log("ECM 因数分解に失敗。Pollard's Rho 法による因数分解を試行...");
     return await pollardsRhoFactorization(n, factors);
 }
