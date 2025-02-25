@@ -263,28 +263,32 @@ async function pollardsRhoFactorization(number) {
 }
 
 async function processFactor(factor, remainder) {
-    console.log(processFactor() 呼び出し: factor = ${factor}, remainder = ${remainder});
+    console.log(`processFactor() 呼び出し: factor = ${factor}, remainder = ${remainder}`);
 
     if (isPrimeMillerRabin(factor)) {
-        console.log(  ECM因数分解成功: 素数 factor = ${factor});
+        console.log(`  ECM因数分解成功: 素数 factor = ${factor}`);
         factors.push(factor);
     } else if (factor >= 10n ** 17n) {
-        console.log(  factor ${factor} は大きい合成数のため ECM による分解を試みる);
-        factors.push(...(await ecmFactorization(factor))); 
+        console.log(`  factor ${factor} は大きい合成数のため ECM による分解を試みる`);
+        let newFactors = await ecmFactorization(factor);
+        if (Array.isArray(newFactors)) factors.push(...newFactors);
     } else {
-        console.log(  factor ${factor} は小さい合成数のため Pollard's Rho による分解を試みる);
-        factors.push(...(await pollardsRhoFactorization(factor)));
+        console.log(`  factor ${factor} は小さい合成数のため Pollard's Rho による分解を試みる`);
+        let newFactors = await pollardsRhoFactorization(factor);
+        if (Array.isArray(newFactors)) factors.push(...newFactors);
     }
-    
+
     if (isPrimeMillerRabin(remainder)) {
-        console.log(  remainder ${remainder} は素数として確定);
+        console.log(`  remainder ${remainder} は素数として確定`);
         factors.push(remainder);
     } else if (remainder >= 10n ** 17n) {
-        console.log(  remainder ${remainder} は大きい合成数のため ECM による分解を試みる);
-        factors.push(...(await ecmFactorization(remainder)));
+        console.log(`  remainder ${remainder} は大きい合成数のため ECM による分解を試みる`);
+        let newFactors = await ecmFactorization(remainder);
+        if (Array.isArray(newFactors)) factors.push(...newFactors);
     } else {
-        console.log(  remainder ${remainder} は小さい合成数のため Pollard's Rho による分解を試みる);
-        factors.push(...(await pollardsRhoFactorization(remainder)));
+        console.log(`  remainder ${remainder} は小さい合成数のため Pollard's Rho による分解を試みる`);
+        let newFactors = await pollardsRhoFactorization(remainder);
+        if (Array.isArray(newFactors)) factors.push(...newFactors);
     }
 }
 
