@@ -193,14 +193,22 @@ function pollardsRho(n) {
     x = f(x);
     y = f(f(y));
 
+    // **nの桁数に応じてkを設定**
+    let digitCount = n.toString().length;
+    let k = digitCount <= 10 ? 5n 
+            : digitCount <= 20 ? 10n 
+            : digitCount <= 30 ? 15n 
+            : digitCount <= 40 ? 20n 
+            : 25n;
+
     while (d === 1n) {
         let ys = y;
         for (let i = 0n; i < m; i++) {
             y = f(y);
             q = (q * abs(x - y)) % n;
 
-            // **5回に1回だけ gcd を計算**
-            if (i % 10n === 0n) {
+            // **k回に1回だけgcdを計算**
+            if (i % k === 0n) {
                 d = gcd(q, n);
                 if (d > 1n) break;  // 因数が見つかったら即終了
             }
