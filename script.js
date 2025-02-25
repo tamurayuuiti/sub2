@@ -324,12 +324,12 @@ async function ecmFactorization(n) {
     }
 
     let B1 = 50000n, B2 = 500000n;
-    for (let i = 0; i < 20; i++) {
+    for (let i = 0; i < 50; i++) {
         let a = BigInt(Math.floor(Math.random() * Number(n)));
         let x = BigInt(Math.floor(Math.random() * Number(n)));
         let y = (x ** 3n + a * x + 1n) % n;
 
-        console.log(`  ECM曲線 ${i + 1}/20: a = ${a}, x = ${x}, y = ${y}`);
+        console.log(`  ECM曲線 ${i + 1}/50: a = ${a}, x = ${x}, y = ${y}`);
 
         let k = 2n;
         while (k < B1) {
@@ -347,7 +347,10 @@ async function ecmFactorization(n) {
             if (gcd(j, n) !== 1n) continue;
             let modInvJ = modInverse(j, n);
             let modInvJ1 = modInverse(j + 1n, n);
-            if (modInvJ === null || modInvJ1 === null) continue;
+            if (modInvJ === null || modInvJ1 === null) {
+                console.log(`  Warning: modInverse failed for j = ${j}`);
+                continue;
+            }
             x = (x * modInvJ) % n;
             y = (y * modInvJ1) % n;
             let factor = gcd(x - y, n);
