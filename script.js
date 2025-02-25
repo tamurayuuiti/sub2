@@ -344,7 +344,7 @@ async function ecmFactorization(n) {
 
         let factor = gcd(2n * y, n);
         if (factor > 1n && factor < n) {
-            return await processFactor(factor);
+            return await processFactor(factor, remainder);
         }
 
         let k = 2n;
@@ -354,7 +354,7 @@ async function ecmFactorization(n) {
             k *= 2n;
             factor = gcd(x - y, n);
             if (factor > 1n && factor < n) {
-                return await processFactor(factor);
+                return await processFactor(factor, remainder);
             }
         }
 
@@ -366,7 +366,7 @@ async function ecmFactorization(n) {
                 let yj = modmul(y, modInverse(j + 1n, n), n);
                 let factor = gcd(xj - yj, n);
                 if (factor > 1n && factor < n) {
-                    return processFactor(factor);
+                    return processFactor(factor, remainder);
                 }
             })());
         }
