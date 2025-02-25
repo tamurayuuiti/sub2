@@ -27,14 +27,14 @@ async function loadPrimes() {
         console.log("素数リストの読み込みを開始します...");
         const response = await fetch("https://tamurayuuiti.github.io/sub2/data/primes.txt");
         if (!response.ok) {
-            throw new Error(素数リストの読み込みに失敗しました (HTTP ${response.status}));
+            throw new Error(`素数リストの読み込みに失敗しました (HTTP ${response.status})`);
         }
         const text = await response.text();
         primes = text.split(/\s+/).filter(n => n).map(n => BigInt(n)); // 空白・改行対応
         if (primes.length === 0) {
             throw new Error("素数リストが空です");
         }
-        console.log(素数リストの読み込みが完了しました。${primes.length} 個の素数を取得しました。);
+        console.log(`素数リストの読み込みが完了しました。${primes.length} 個の素数を取得しました。`);
     } catch (error) {
         console.error("素数リストの取得エラー:", error);
         alert("素数リストの読み込みに失敗しました。ページを更新して再試行してください。");
@@ -43,7 +43,7 @@ async function loadPrimes() {
 
 function updateProgress() {
     let elapsedTime = ((performance.now() - startTime) / 1000).toFixed(3);
-    document.getElementById("progress").textContent = 経過時間: ${elapsedTime} 秒;
+    document.getElementById("progress").textContent = `経過時間: ${elapsedTime} 秒`;
 }
 
 async function startFactorization() {
@@ -53,7 +53,7 @@ async function startFactorization() {
         if (!inputValue) return;
 
         let num = BigInt(inputValue);
-        console.log(因数分解を開始: ${num});
+        console.log(`因数分解を開始: ${num}`);
 
         if (num < 2n) {
             document.getElementById("result").textContent = "有効な整数を入力してください";
@@ -81,7 +81,7 @@ async function startFactorization() {
 
         console.log("試し割り法を実行します...");
         let { factors, remainder } = await trialDivisionFromFile(num);
-        console.log(試し割り法完了。残りの数: ${remainder});
+        console.log(`試し割り法完了。残りの数: ${remainder}`);
 
         if (remainder > 1n) {
             console.log("因数分解を実行します...");
@@ -93,9 +93,9 @@ async function startFactorization() {
         }
 
         let elapsedTime = ((performance.now() - startTime) / 1000).toFixed(3);
-        document.getElementById("result").textContent = 素因数:\n${factors.sort((a, b) => (a < b ? -1 : 1)).join(" × ")};
-        document.getElementById("time").textContent = 計算時間: ${elapsedTime} 秒;
-        console.log(因数分解完了: ${factors.join(" × ")}, 時間: ${elapsedTime} 秒);
+        document.getElementById("result").textContent = `素因数:\n${factors.sort((a, b) => (a < b ? -1 : 1)).join(" × ")}`;
+        document.getElementById("time").textContent = `計算時間: ${elapsedTime} 秒`;
+        console.log(`因数分解完了: ${factors.join(" × ")}, 時間: ${elapsedTime} 秒`);
     } catch (error) {
         console.error("計算エラー:", error);
         document.getElementById("result").textContent = "計算中にエラーが発生しました";
@@ -138,7 +138,7 @@ async function trialDivisionFromFile(number) {
             
             if (i % 5000 === 0 && prime !== lastLoggedPrime) {
                 console.clear();
-                console.log(試し割り中... 現在の素数: ${prime});
+                console.log(`試し割り中... 現在の素数: ${prime}`);
                 lastLoggedPrime = prime;
             }
             
@@ -164,7 +164,7 @@ async function pollardsRhoFactorization(number) {
         let factor = null;
         
         while (!factor || factor === number) { // 成功するまで繰り返す
-            console.log(Pollard's rho を再試行: ${number});
+            console.log(`Pollard's rho を再試行: ${number}`);
             factor = pollardsRho(number);
         }
 
@@ -172,7 +172,7 @@ async function pollardsRhoFactorization(number) {
         if (isPrimeMillerRabin(factor)) {
             factors.push(factor);
         } else {
-            console.log(合成数を発見: ${factor} → さらに分解);
+            console.log(`合成数を発見: ${factor} → さらに分解`);
             let subFactors = await pollardsRhoFactorization(factor);
             factors = factors.concat(subFactors);
         }
