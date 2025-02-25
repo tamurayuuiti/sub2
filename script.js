@@ -262,29 +262,54 @@ async function pollardsRhoFactorization(number) {
     return factors;
 }
 
-async function processFactor(factor, remainder) {
+async function processFactor(factor, remainder, factors) {
     console.log(`processFactor() 呼び出し: factor = ${factor}, remainder = ${remainder}`);
+
+    if (factor === remainder) {
+        console.log("因数と余りが同じため、処理をスキップします。");
+        return;
+    }
+
+    let factorPromise, remainderPromise;
 
     if (isPrimeMillerRabin(factor)) {
         console.log(`  ECM因数分解成功: 素数 factor = ${factor}`);
         factors.push(factor);
     } else if (factor >= 10n ** 17n) {
         console.log(`  factor ${factor} は大きい合成数のため ECM による分解を試みる`);
-        factors.push(...(await ecmFactorization(factor))); 
+        factorPromise = ecmFactorization(factor);
     } else {
         console.log(`  factor ${factor} は小さい合成数のため Pollard's Rho による分解を試みる`);
-        factors.push(...(await pollardsRhoFactorization(factor)));
+        factorPromise = pollardsRhoFactorization(factor);
     }
-    
+
     if (isPrimeMillerRabin(remainder)) {
         console.log(`  remainder ${remainder} は素数として確定`);
         factors.push(remainder);
     } else if (remainder >= 10n ** 17n) {
         console.log(`  remainder ${remainder} は大きい合成数のため ECM による分解を試みる`);
-        factors.push(...(await ecmFactorization(remainder)));
+        remainderPromise = ecmFactorization(remainder);
     } else {
         console.log(`  remainder ${remainder} は小さい合成数のため Pollard's Rho による分解を試みる`);
-        factors.push(...(await pollardsRhoFactorization(remainder)));
+        remainderPromise = pollardsRhoFactorization(remainder);
+    }
+
+    // 並列処理で効率化
+    const [factorResult, remainderResult] = await Promise.all([
+        factorPromise || Promise.resolve([]),
+        remainderPromise || Promise.resolve([])
+    ]);
+
+    if (factorResult.length > 0) {
+        factors.push(...factorResult);
+    } else {
+        console.log(`ECM/Pollard’s Rho が factor ${factor} の因数を見つけられませんでした。`);
+    }
+
+    if (remainderResult.length > 0) {
+        factors.push(...remainderResult);
+    } else {
+        console.log(`ECM/Pollard’s Rho が remainder ${remainder} の因数を見つけられませんでした。`);
     }
 }
 
