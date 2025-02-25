@@ -7,6 +7,7 @@ let isCalculating = false;
 let progressInterval = null;
 let primes = [];
 
+document.getElementById("calculateButton").addEventListener("click", startFactorization);
 document.getElementById("numberInput").addEventListener("keypress", function(event) {
     if (event.key === "Enter") {
         startFactorization();
