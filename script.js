@@ -332,7 +332,7 @@ async function ecmFactorization(n) {
     }
 
     const maxCurves = n > 10n ** 20n ? 1000 : 500;
-    const B1 = 5000000n, B2 = 15000000n;
+    const B1 = 1000000n, B2 = 2000000n;
 
     for (let i = 0; i < maxCurves; i++) {
         const a = BigInt(Math.floor(Math.random() * Number(n)));
