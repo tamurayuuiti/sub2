@@ -206,7 +206,7 @@ function pollardsRho(n) {
         }
         d = gcd(q, n);
         x = ys;
-        if (d === 1n) m = min((m * 3n) / 2n, n / 2n); // m を 1.5 倍ずつ増やす
+        if (d === 1n) m = (m * 3n) / 2n; // m を 1.5 倍ずつ増やす
     }
 
     console.log(`因数発見: d=${d}`);
