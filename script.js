@@ -359,21 +359,17 @@ async function ecmFactorization(n, factors = []) {
             }
         }
 
-        // Stage 2 で並列処理を導入
         console.log(`  ECM Stage 2 開始: B1 = ${B1}, B2 = ${B2}`);
-        let tasks = [];
         for (let j = B1; j < B2; j *= 2n) {
-            tasks.push((async () => {
-                let xj = modmul(x, modInverse(j, n), n);
-                let yj = modmul(y, modInverse(j + 1n, n), n);
-                let factor = gcd(xj - yj, n);
-                if (factor > 1n && factor < n) {
-                    return processFactor(factor, n / factor, factors);
-                }
-            })());
+            let xj = modmul(x, modInverse(j, n), n);
+            let yj = modmul(y, modInverse(j + 1n, n), n);
+            factor = gcd(xj - yj, n);
+            if (factor > 1n && factor < n) {
+                return await processFactor(factor, n / factor, factors);
+            }
         }
-    await Promise.all(tasks)
-        
+    }
+
     console.log("ECM 因数分解に失敗。Pollard's Rho 法による因数分解を試行...");
     return await pollardsRhoFactorization(n, factors);
 }
