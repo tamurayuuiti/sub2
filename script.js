@@ -162,7 +162,7 @@ async function startFactorization() {
             console.log("因数分解を実行します...");
 
             let extraFactors;
-            if (remainder >= 10n ** 17n) {
+            if (remainder >= 10n ** 1700n) {
                 extraFactors = await ecmFactorization(remainder);
             } else {
                 extraFactors = await pollardsRhoFactorization(remainder);
