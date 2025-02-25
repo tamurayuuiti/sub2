@@ -1,3 +1,6 @@
+// ミラー・ラビン素数判定法
+import { isPrimeMillerRabin } from './millerRabin.js';
+
 let currentInput = null;
 let startTime = null;
 let isCalculating = false;
@@ -41,9 +44,6 @@ function updateProgress() {
     let elapsedTime = ((performance.now() - startTime) / 1000).toFixed(3);
     document.getElementById("progress").textContent = `経過時間: ${elapsedTime} 秒`;
 }
-
-// ミラー・ラビン素数判定法
-import { isPrimeMillerRabin } from './millerRabin.js';
 
 async function startFactorization() {
     try {
