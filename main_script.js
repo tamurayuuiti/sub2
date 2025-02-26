@@ -137,11 +137,6 @@ async function trialDivisionFromFile(number) {
                 number /= prime;
             }
             
-            if (i % 3000 === 0 && prime !== lastLoggedPrime) {
-                console.log(`試し割り中... 現在の素数: ${prime}`);
-                lastLoggedPrime = prime;
-            }
-            
             if (i % 100 === 0) await new Promise(resolve => setTimeout(resolve, 0)); // 処理を分割
         }
         
