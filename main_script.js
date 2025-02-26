@@ -210,9 +210,14 @@ async function pollardsRho(n) {
     }
 
     let nInv = useMontgomery ? modInverse(n, R) : 0n;
+    let montgomeryStarted = false;
 
     function montgomeryMul(a, b, n, R, nInv) {
-        console.log(`Montgomery乗算開始`);
+        if (!montgomeryStarted) {
+            console.log(`Montgomery乗算開始: a = ${a}, b = ${b}, n = ${n}, R = ${R}, nInv = ${nInv}`);
+            montgomeryStarted = true;  // フラグを true にして以降のログを抑制
+        }
+        
         if (R === 0n || nInv === 0n) {
             throw new Error("エラー: Montgomery乗算の R または nInv が 0 です。計算を停止します。");
         }
