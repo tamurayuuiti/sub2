@@ -202,7 +202,7 @@ async function pollardsRho(n) {
     let m = 128n, q = 1n;
 
     let digitCount = n.toString().length;
-    let useMontgomery = digitCount >= 30;
+    let useMontgomery = digitCount >= 40;
 
     let R = useMontgomery ? (1n << BigInt(n.toString(2).length + 1)) : 0n;
     if (useMontgomery && gcd(n, R) !== 1n) {
