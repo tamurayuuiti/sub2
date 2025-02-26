@@ -268,35 +268,41 @@ function pollardsRho(n) {
             : 25n;
 
     while (d === 1n) {
-        await new Promise(resolve => setTimeout(resolve, 0));
-        let ys = y;
-        for (let i = 0n; i < m; i++) {
-            y = f(y);
-            q = useMontgomery && nInv !== 0n
-                ? montgomeryMul(q, abs(x - y), n, R, nInv)
-                : (q * abs(x - y)) % n;
+    let ys = y;
+    for (let i = 0n; i < m; i++) {
+        y = f(y);
+        q = useMontgomery && nInv !== 0n
+            ? montgomeryMul(q, abs(x - y), n, R, nInv)
+            : (q * abs(x - y)) % n;
 
-            if (q === 0n) {
-                throw new Error("エラー: q が 0 になりました。Montgomery乗算が破綻しています。計算を停止します。");
-            }
-
-            console.log(`ループ中: i = ${i}, q = ${q}, d = ${d}`);
-
-            if (i % k === 0n) {
-                d = gcd(q, n);
-                console.log(`gcd計算: q = ${q}, d = ${d}`);
-                if (d > 1n) break;
-            }
+        if (q === 0n) {
+            throw new Error("エラー: q が 0 になりました。Montgomery乗算が破綻しています。計算を停止します。");
         }
 
-        x = ys;
-        if (d === 1n) {
-            m *= 2n;
-            if (m > 10n ** 9n) {
-                throw new Error("エラー: m が異常に大きくなっています。無限ループを防ぐため計算を停止します。");
-            }
+        console.log(`ループ中: i = ${i}, q = ${q}, d = ${d}`);
+
+        if (i % k === 0n) {
+            d = gcd(q, n);
+            console.log(`gcd計算: q = ${q}, d = ${d}`);
+            if (d > 1n) break;
+        }
+
+        // **1000回ごとにイベントループを解放**
+        if (i % 1000n === 0n) {
+            await new Promise(resolve => setTimeout(resolve, 0));
         }
     }
+
+    x = ys;
+    if (d === 1n) {
+        m *= 2n;
+
+        // **m の上限を 10^6 に制限**
+        if (m > 10n ** 6n) {
+            throw new Error("エラー: m が異常に大きくなっています。計算を停止します。");
+        }
+    }
+}
     return d === n ? null : d;
 }
 
