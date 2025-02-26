@@ -283,7 +283,6 @@ async function pollardsRho(n) {
 
             if (i % k === 0n) {
                 d = gcd(q, n);
-                console.log(`gcd計算: q = ${q}, d = ${d}`);
                 if (d > 1n) break;
             }
 
