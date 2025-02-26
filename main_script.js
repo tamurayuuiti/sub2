@@ -85,7 +85,7 @@ async function startFactorization() {
         console.log(`試し割り法完了。残りの数: ${remainder}`);
 
         if (remainder > 1n) {
-            console.log("因数分解を実行します...");
+            console.log(`Pollard's rhoを開始: ${number}`);
 
             let extraFactors;
             extraFactors = await pollardsRhoFactorization(remainder);
@@ -155,8 +155,6 @@ async function pollardsRhoFactorization(number) {
 
     let factors = [];
     while (number > 1n) {
-        console.log(`Pollard's rhoを開始: ${number}`);
-
         if (isPrimeMillerRabin(number)) {
             console.log(`素数を発見: ${number}`);
             factors.push(number);
