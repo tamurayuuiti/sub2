@@ -171,7 +171,7 @@ async function pollardsRhoFactorization(number) {
         let factor = null;
         while (!factor || factor === number) {
             console.log(`Pollard's rho を再試行: ${number}`);
-            factor = pollardsRho(number);
+            factor = await pollardsRho(number);
 
             if (factor === null) {
                 console.error(`エラー: 因数を見つけられませんでした: ${number}`);
