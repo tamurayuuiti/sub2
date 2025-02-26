@@ -85,7 +85,7 @@ async function startFactorization() {
         console.log(`試し割り法完了。残りの数: ${remainder}`);
 
         if (remainder > 1n) {
-            console.log(`Pollard's rhoを開始: ${remainder}`);
+            console.log(`Pollard's rhoを開始: n = ${remainder}`);
 
             let extraFactors;
             extraFactors = await pollardsRhoFactorization(remainder);
