@@ -298,7 +298,6 @@ function modInverse(a, m) {
         throw new Error(`エラー: modInverse() の gcd(${a}, ${m}) ≠ 1 のため逆元なし。計算を停止します。`);
     }
 
-    // ✅ Stein’s Algorithm (バイナリ GCD) に置き換え可能（ただし影響は小さい）
     while (a > 1n) {
         let q = a / m;
         let t = m;
@@ -313,12 +312,24 @@ function modInverse(a, m) {
 }
 
 function gcd(a, b) {
-    while (b) {
-        let temp = b;
-        b = a % b;
-        a = temp;
+    if (a === 0n) return b;
+    if (b === 0n) return a;
+
+    let shift = 0n;
+    while (((a | b) & 1n) === 0n) {
+        a >>= 1n;
+        b >>= 1n;
+        shift++;
     }
-    return a;
+
+    while ((a & 1n) === 0n) a >>= 1n;
+    while (b !== 0n) {
+        while ((b & 1n) === 0n) b >>= 1n;
+        if (a > b) [a, b] = [b, a];
+        b -= a;
+    }
+
+    return a << shift;
 }
 
 function abs(n) {
