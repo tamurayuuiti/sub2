@@ -38,11 +38,11 @@ export function isPrimeMillerRabin(n) {
             }
         }
         if (isComposite) {
-            console.log(`n = ${n} :合成数 (証人 a = ${a})`);
+            console.log(合成数: n = ${n} (証人 a = ${a})`);
             return false;
         }
     }
 
-    console.log(`n = ${n} :素数`);
+    console.log(`素数: n = ${n}`);
     return true;
 }
