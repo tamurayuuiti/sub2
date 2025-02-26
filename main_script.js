@@ -202,26 +202,26 @@ function pollardsRho(n) {
     let useMontgomery = digitCount >= 30;
     
     let R = useMontgomery ? (1n << BigInt(Math.max(n.toString(2).length + 1, 1))) : 0n;
-    let nInv = useMontgomery && gcd(-n, R) === 1n ? modInverse(-n, R) : 0n;
 
-    console.log(`pollardsRho開始: n = ${n}, 桁数 = ${digitCount}, Montgomery使用: ${useMontgomery}`);
-    console.log(`Montgomeryパラメータ: R = ${R}, nInv = ${nInv}`);
+    if (useMontgomery && gcd(-n, R) !== 1n) {
+        throw new Error(`エラー: Montgomery乗算に使用する逆元が存在しません。gcd(${n}, ${R}) ≠ 1`);
+    }
+
+    let nInv = useMontgomery ? modInverse(-n, R) : 0n;
 
     function montgomeryMul(a, b, n, R, nInv) {
         console.log(`Montgomery乗算開始: a = ${a}, b = ${b}, n = ${n}, R = ${R}, nInv = ${nInv}`);
         
         if (R === 0n || nInv === 0n) {
-            console.error("エラー: RまたはnInvが0になっています");
-            return 0n;
+            throw new Error("エラー: Montgomery乗算の R または nInv が 0 です。計算を停止します。");
         }
 
         let t = a * b;
         let m = ((t % R) * nInv) % R;
-        let u = BigInt((t + m * n) / R);
+        let u = (t + m * n) / R;
 
         if (u % 1n !== 0n) {
-            console.error(`エラー: Montgomery乗算の結果 u が整数でない: u = ${u}`);
-            return 1n;
+            throw new Error(`エラー: Montgomery乗算の結果 u が整数でない: u = ${u}`);
         }
 
         let result = (u >= n) ? u - n : u;
@@ -233,8 +233,7 @@ function pollardsRho(n) {
         let m0 = m, y = 0n, x = 1n;
         if (m === 1n) return 0n;
         if (gcd(a, m) !== 1n) {
-            console.warn(`modInverseエラー: gcd(${a}, ${m}) ≠ 1, 逆元なし`);
-            return 0n;
+            throw new Error(`エラー: modInverse() の gcd(${a}, ${m}) ≠ 1 のため逆元なし。計算を停止します。`);
         }
 
         while (a > 1n) {
@@ -277,8 +276,7 @@ function pollardsRho(n) {
                 : (q * abs(x - y)) % n;
 
             if (q === 0n) {
-                console.error("エラー: q が 0 になりました。無限ループ防止のため q を修正");
-                q = (abs(x - y) % n) + 1n;
+                throw new Error("エラー: q が 0 になりました。Montgomery乗算が破綻しています。計算を停止します。");
             }
 
             console.log(`ループ中: i = ${i}, q = ${q}, d = ${d}`);
@@ -294,8 +292,7 @@ function pollardsRho(n) {
         if (d === 1n) {
             m *= 2n;
             if (m > 10n ** 9n) {
-                console.error("エラー: m が大きすぎます。ループを強制終了");
-                return null;
+                throw new Error("エラー: m が異常に大きくなっています。無限ループを防ぐため計算を停止します。");
             }
         }
     }
