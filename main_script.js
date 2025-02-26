@@ -214,7 +214,7 @@ async function pollardsRho(n) {
 
     function montgomeryMul(a, b, n, R, nInv) {
         if (!montgomeryStarted) {
-            console.log(`Montgomery乗算開始: a = ${a}, b = ${b}, n = ${n}, R = ${R}, nInv = ${nInv}`);
+            console.log(`Montgomery乗算開始`);
             montgomeryStarted = true;  // フラグを true にして以降のログを抑制
         }
         
