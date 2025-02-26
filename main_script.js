@@ -203,7 +203,7 @@ async function pollardsRho(n) {
 
     // Montgomery乗算を使うかどうかの判定
     let digitCount = n.toString().length;
-    let useMontgomery = digitCount >= 25;
+    let useMontgomery = digitCount >= 30;
 
     // 通常の処理
     if (!useMontgomery) {
