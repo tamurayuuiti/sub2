@@ -270,7 +270,7 @@ async function pollardsRho(n) {
 
 // Montgomery乗算
 function montgomeryMul(a, b, n, R, nInv) {
-    let static montgomeryStarted = false;  // ✅ 関数スコープに変更
+    let montgomeryStarted = false;  // ✅ 関数スコープに変更
     if (!montgomeryStarted) {
         console.log("Montgomery乗算開始");
         montgomeryStarted = true;
