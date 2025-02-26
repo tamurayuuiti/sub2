@@ -201,58 +201,23 @@ async function pollardsRho(n) {
     let x = 2n, y = 2n, d = 1n, c = BigInt(Math.floor(Math.random() * 10) + 1);
     let m = 128n, q = 1n;
 
+    // Montgomery乗算を使うかどうかの判定
     let digitCount = n.toString().length;
     let useMontgomery = digitCount >= 30;
 
+    // 通常の処理
+    if (!useMontgomery) {
+        console.log("通常の Pollard's rho 法を使用");
+    }
+
+    // Montgomery乗算の準備
     let R = useMontgomery ? (1n << BigInt(n.toString(2).length + 1)) : 0n;
     if (useMontgomery && gcd(n, R) !== 1n) {
         throw new Error(`エラー: Montgomery乗算に使用する逆元が存在しません。gcd(${n}, ${R}) ≠ 1`);
     }
-
     let nInv = useMontgomery ? modInverse(n, R) : 0n;
-    let montgomeryStarted = false;
 
-    function montgomeryMul(a, b, n, R, nInv) {
-        if (!montgomeryStarted) {
-            console.log(`Montgomery乗算開始`);
-            montgomeryStarted = true;  // フラグを true にして以降のログを抑制
-        }
-        
-        if (R === 0n || nInv === 0n) {
-            throw new Error("エラー: Montgomery乗算の R または nInv が 0 です。計算を停止します。");
-        }
-
-        let t = a * b;
-        let m = ((t % R) * nInv) % R;
-        let u = (t + m * n) / R;
-
-        if (u % 1n !== 0n) {
-            throw new Error(`エラー: Montgomery乗算の結果 u が整数でない: u = ${u}`);
-        }
-
-        return u >= n ? u - n : u;
-    }
-
-    function modInverse(a, m) {
-        let m0 = m, y = 0n, x = 1n;
-        if (m === 1n) return 0n;
-        if (gcd(a, m) !== 1n) {
-            throw new Error(`エラー: modInverse() の gcd(${a}, ${m}) ≠ 1 のため逆元なし。計算を停止します。`);
-        }
-
-        while (a > 1n) {
-            let q = a / m;
-            let t = m;
-            m = a % m;
-            a = t;
-            t = y;
-            y = x - q * y;
-            x = t;
-        }
-
-        return x < 0n ? x + m0 : x;
-    }
-
+    // 関数定義
     function f(x) { 
         return useMontgomery && nInv !== 0n
             ? (montgomeryMul(x, x, n, R, nInv) + c) % n
@@ -272,9 +237,11 @@ async function pollardsRho(n) {
         let ys = y;
         for (let i = 0n; i < m; i++) {
             y = f(y);
-            q = useMontgomery && nInv !== 0n
-                ? montgomeryMul(q, abs(x - y), n, R, nInv)
-                : (q * abs(x - y)) % n;
+            if (useMontgomery && nInv !== 0n) {
+                q = montgomeryMul(q, abs(x - y), n, R, nInv);
+            } else {
+                q = (q * abs(x - y)) % n;
+            }
 
             if (q === 0n) {
                 throw new Error("エラー: q が 0 になりました。Montgomery乗算が破綻しています。計算を停止します。");
@@ -299,6 +266,49 @@ async function pollardsRho(n) {
         }
     }
     return d === n ? null : d;
+}
+
+// Montgomery乗算
+function montgomeryMul(a, b, n, R, nInv) {
+    static let montgomeryStarted = false;
+    if (!montgomeryStarted) {
+        console.log("Montgomery乗算開始");
+        montgomeryStarted = true;
+    }
+
+    if (R === 0n || nInv === 0n) {
+        throw new Error("エラー: Montgomery乗算の R または nInv が 0 です。計算を停止します。");
+    }
+
+    let t = a * b;
+    let m = ((t % R) * nInv) % R;
+    let u = (t + m * n) / R;
+
+    if (u % 1n !== 0n) {
+        throw new Error(`エラー: Montgomery乗算の結果 u が整数でない: u = ${u}`);
+    }
+
+    return u >= n ? u - n : u;
+}
+
+function modInverse(a, m) {
+    let m0 = m, y = 0n, x = 1n;
+    if (m === 1n) return 0n;
+    if (gcd(a, m) !== 1n) {
+        throw new Error(`エラー: modInverse() の gcd(${a}, ${m}) ≠ 1 のため逆元なし。計算を停止します。`);
+    }
+
+    while (a > 1n) {
+        let q = a / m;
+        let t = m;
+        m = a % m;
+        a = t;
+        t = y;
+        y = x - q * y;
+        x = t;
+    }
+
+    return x < 0n ? x + m0 : x;
 }
 
 function gcd(a, b) {
