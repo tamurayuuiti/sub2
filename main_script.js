@@ -254,7 +254,6 @@ async function pollardsRho(n) {
             ? (montgomeryMul(x, x, n, R, nInv) + c) % n
             : (x * x + c) % n;
 
-        console.log(`f(x)計算: x = ${x}, f(x) = ${result}`);
         return result;
     }
 
