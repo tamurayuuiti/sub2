@@ -1,6 +1,6 @@
 // ミラー・ラビン素数判定法
 export function isPrimeMillerRabin(n) {
-    console.log(`判定開始: n = ${n}`);
+    console.log(`素数判定開始: n = ${n}`);
     if (n < 2n) return false;
     if (n === 2n || n === 3n) return true;
     if (n % 2n === 0n) return false;
@@ -38,11 +38,11 @@ export function isPrimeMillerRabin(n) {
             }
         }
         if (isComposite) {
-            console.log(`合成数: n = ${n} (証人 a = ${a})`);
+            console.log(`n(${n}) = 合成数 (証人 a = ${a})`);
             return false;
         }
     }
 
-    console.log(`素数: n = ${n}`);
+    console.log(`n(${n}) = 素数`);
     return true;
 }
