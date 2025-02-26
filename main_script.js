@@ -16,8 +16,8 @@ document.getElementById("numberInput").addEventListener("keypress", function(eve
 
 // 入力の桁数制限（30桁まで）
 document.getElementById("numberInput").addEventListener("input", function(event) {
-    if (event.target.value.length > 50) {
-        event.target.value = event.target.value.slice(0, 50);
+    if (event.target.value.length > 30) {
+        event.target.value = event.target.value.slice(0, 30);
     }
 });
 
@@ -137,7 +137,7 @@ async function trialDivisionFromFile(number) {
                 number /= prime;
             }
             
-            if (i % 5000 === 0 && prime !== lastLoggedPrime) {
+            if (i % 3000 === 0 && prime !== lastLoggedPrime) {
                 console.log(`試し割り中... 現在の素数: ${prime}`);
                 lastLoggedPrime = prime;
             }
