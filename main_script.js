@@ -279,8 +279,6 @@ async function pollardsRho(n) {
                 throw new Error("エラー: q が 0 になりました。Montgomery乗算が破綻しています。計算を停止します。");
             }
 
-            console.log(`ループ中: i = ${i}, q = ${q}, d = ${d}`);
-
             if (i % k === 0n) {
                 d = gcd(q, n);
                 console.log(`gcd計算: q = ${q}, d = ${d}`);
