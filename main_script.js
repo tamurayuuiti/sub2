@@ -269,8 +269,8 @@ async function pollardsRho(n) {
 }
 
 // Montgomery乗算
-let montgomeryStarted = false;
 function montgomeryMul(a, b, n, R, nInv) {
+    let static montgomeryStarted = false;  // ✅ 関数スコープに変更
     if (!montgomeryStarted) {
         console.log("Montgomery乗算開始");
         montgomeryStarted = true;
@@ -281,8 +281,8 @@ function montgomeryMul(a, b, n, R, nInv) {
     }
 
     let t = a * b;
-    let m = ((t % R) * nInv) % R;
-    let u = (t + m * n) / R;
+    let m = ((t & (R - 1n)) * nInv) & (R - 1n);  // ✅ `% R` を `& (R-1)` に置き換え
+    let u = (t + m * n) >> BigInt(R.toString(2).length - 1);  // ✅ `/ R` を `>>` に最適化
 
     if (u % 1n !== 0n) {
         throw new Error(`エラー: Montgomery乗算の結果 u が整数でない: u = ${u}`);
@@ -298,6 +298,7 @@ function modInverse(a, m) {
         throw new Error(`エラー: modInverse() の gcd(${a}, ${m}) ≠ 1 のため逆元なし。計算を停止します。`);
     }
 
+    // ✅ Stein’s Algorithm (バイナリ GCD) に置き換え可能（ただし影響は小さい）
     while (a > 1n) {
         let q = a / m;
         let t = m;
