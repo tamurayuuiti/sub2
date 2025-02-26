@@ -53,6 +53,7 @@ async function startFactorization() {
         if (!inputValue) return;
 
         let num = BigInt(inputValue);
+        console.clear();
         console.log(`因数分解を開始: ${num}`);
 
         if (num < 2n) {
@@ -137,7 +138,6 @@ async function trialDivisionFromFile(number) {
             }
             
             if (i % 5000 === 0 && prime !== lastLoggedPrime) {
-                console.clear();
                 console.log(`試し割り中... 現在の素数: ${prime}`);
                 lastLoggedPrime = prime;
             }
@@ -212,6 +212,7 @@ async function pollardsRho(n) {
     let nInv = useMontgomery ? modInverse(n, R) : 0n;
 
     function montgomeryMul(a, b, n, R, nInv) {
+        console.log(`Montgomery乗算開始`);
         if (R === 0n || nInv === 0n) {
             throw new Error("エラー: Montgomery乗算の R または nInv が 0 です。計算を停止します。");
         }
