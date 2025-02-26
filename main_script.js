@@ -280,8 +280,8 @@ function pollardsRho(n) {
             }
 
             if (i % 1000n === 0n) {  // 1000回ごとにイベントループを回す
-            await new Promise(resolve => setTimeout(resolve, 0));
-        }
+            await new Promise(resolve => setTimeout(resolve, 0)); 
+            }
             
             console.log(`ループ中: i = ${i}, q = ${q}, d = ${d}`);
 
