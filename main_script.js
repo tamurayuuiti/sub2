@@ -173,7 +173,7 @@ async function pollardsRhoFactorization(number) {
             console.log(`Pollard's rho を再試行: ${number}`);
             factor = await pollardsRho(number);
 
-            if (factor === null) {
+            if (factor === null || factor === 1n) {
                 console.error(`エラー: 因数を見つけられませんでした: ${number}`);
                 return factors;
             }
@@ -190,7 +190,7 @@ async function pollardsRhoFactorization(number) {
         }
 
         number /= factor;
-        await new Promise(resolve => setTimeout(resolve, 0));
+        await new Promise(resolve => setTimeout(resolve, 0)); // 過負荷防止
     }
     return factors;
 }
@@ -203,18 +203,15 @@ async function pollardsRho(n) {
 
     let digitCount = n.toString().length;
     let useMontgomery = digitCount >= 30;
-    
-    let R = useMontgomery ? (1n << BigInt(Math.max(n.toString(2).length + 1, 1))) : 0n;
 
-    if (useMontgomery && gcd(-n, R) !== 1n) {
+    let R = useMontgomery ? (1n << BigInt(n.toString(2).length + 1)) : 0n;
+    if (useMontgomery && gcd(n, R) !== 1n) {
         throw new Error(`エラー: Montgomery乗算に使用する逆元が存在しません。gcd(${n}, ${R}) ≠ 1`);
     }
 
-    let nInv = useMontgomery ? modInverse(-n, R) : 0n;
+    let nInv = useMontgomery ? modInverse(n, R) : 0n;
 
     function montgomeryMul(a, b, n, R, nInv) {
-        console.log(`Montgomery乗算開始: a = ${a}, b = ${b}, n = ${n}, R = ${R}, nInv = ${nInv}`);
-        
         if (R === 0n || nInv === 0n) {
             throw new Error("エラー: Montgomery乗算の R または nInv が 0 です。計算を停止します。");
         }
@@ -227,9 +224,7 @@ async function pollardsRho(n) {
             throw new Error(`エラー: Montgomery乗算の結果 u が整数でない: u = ${u}`);
         }
 
-        let result = (u >= n) ? u - n : u;
-        console.log(`Montgomery乗算結果: result = ${result}`);
-        return result;
+        return u >= n ? u - n : u;
     }
 
     function modInverse(a, m) {
@@ -253,11 +248,9 @@ async function pollardsRho(n) {
     }
 
     function f(x) { 
-        let result = useMontgomery && nInv !== 0n
+        return useMontgomery && nInv !== 0n
             ? (montgomeryMul(x, x, n, R, nInv) + c) % n
             : (x * x + c) % n;
-
-        return result;
     }
 
     x = f(x);
@@ -286,17 +279,14 @@ async function pollardsRho(n) {
                 if (d > 1n) break;
             }
 
-            // **1000回ごとにイベントループを解放**
             if (i % 1000n === 0n) {
-                await new Promise(resolve => setTimeout(resolve, 0));  // ✅ OK
+                await new Promise(resolve => setTimeout(resolve, 0));  
             }
         }
 
         x = ys;
         if (d === 1n) {
             m *= 2n;
-
-            // **m の上限を 10^6 に制限**
             if (m > 10n ** 6n) {
                 throw new Error("エラー: m が異常に大きくなっています。計算を停止します。");
             }
