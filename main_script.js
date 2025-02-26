@@ -268,6 +268,7 @@ function pollardsRho(n) {
             : 25n;
 
     while (d === 1n) {
+        await new Promise(resolve => setTimeout(resolve, 0));
         let ys = y;
         for (let i = 0n; i < m; i++) {
             y = f(y);
@@ -279,8 +280,6 @@ function pollardsRho(n) {
                 throw new Error("エラー: q が 0 になりました。Montgomery乗算が破綻しています。計算を停止します。");
             }
 
-            await new Promise(resolve => setTimeout(resolve, 0));
-            
             console.log(`ループ中: i = ${i}, q = ${q}, d = ${d}`);
 
             if (i % k === 0n) {
