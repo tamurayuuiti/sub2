@@ -160,7 +160,7 @@ async function pollardsRhoFactorization(number) {
 
     let factors = [];
     while (number > 1n) {
-        console.log(`因数分解中: ${number}`);
+        console.log(`Pollard's rhoを開始: ${number}`);
 
         if (isPrimeMillerRabin(number)) {
             console.log(`素数を発見: ${number}`);
