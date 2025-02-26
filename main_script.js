@@ -269,8 +269,8 @@ async function pollardsRho(n) {
 }
 
 // Montgomery乗算
+let montgomeryStarted = false;
 function montgomeryMul(a, b, n, R, nInv) {
-    let montgomeryStarted = false;
     if (!montgomeryStarted) {
         console.log("Montgomery乗算開始");
         montgomeryStarted = true;
