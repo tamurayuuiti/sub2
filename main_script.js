@@ -154,10 +154,14 @@ async function trialDivisionFromFile(number) {
 
 // 改良版 Pollard’s rho 法
 async function pollardsRhoFactorization(number) {
+    if (typeof number !== "bigint") {
+        throw new TypeError(`エラー: pollardsRhoFactorization() に渡された number (${number}) が BigInt ではありません。`);
+    }
+
     let factors = [];
     while (number > 1n) {
         console.log(`因数分解中: ${number}`);
-        
+
         if (isPrimeMillerRabin(number)) {
             console.log(`素数を発見: ${number}`);
             factors.push(number);
@@ -165,11 +169,10 @@ async function pollardsRhoFactorization(number) {
         }
 
         let factor = null;
-        
         while (!factor || factor === number) {
             console.log(`Pollard's rho を再試行: ${number}`);
             factor = pollardsRho(number);
-            
+
             if (factor === null) {
                 console.error(`エラー: 因数を見つけられませんでした: ${number}`);
                 return factors;
