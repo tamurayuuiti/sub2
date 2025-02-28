@@ -182,7 +182,12 @@ async function pollardsRhoFactorization(number) {
             factors = factors.concat(subFactors);
         }
 
-        number /= factor;
+        let power = 1n;
+        while (number % factor === 0n) {
+            factors.push(factor);
+            power *= factor;
+        }
+        number /= power;  // **ここで 1 回だけ除算！**
         await new Promise(resolve => setTimeout(resolve, 0)); // 過負荷防止
     }
     return factors;
@@ -209,8 +214,8 @@ async function pollardsRho(n) {
             : digitCount <= 40 ? 20n 
             : 25n;
 
-    let gcdSkipCounter = 0n;  // `gcd()` のスキップ回数を管理
-    const gcdSkipLimit = 5n;  // 5回連続でスキップしたら `gcd()` を実行
+    let gcdSkipCounter = 0n;
+    const gcdSkipLimit = 5n;
 
     while (d === 1n) {
         let ys = y;
@@ -218,13 +223,12 @@ async function pollardsRho(n) {
             y = f(y);
             q = (q * abs(x - y)) % n;
 
-            // **`q` の変化が大きいときのみ `gcd()` を実行**
             if ((q & 0b1111n) === 0n || gcdSkipCounter >= gcdSkipLimit) {
-                d = gcd(q, n);
-                gcdSkipCounter = 0n;  // スキップ回数をリセット
+                d = fastGCD(q, n);
+                gcdSkipCounter = 0n;
                 if (d > 1n) break;
             } else {
-                gcdSkipCounter++;  // `gcd()` をスキップ
+                gcdSkipCounter++;
             }
 
             if (i % 1000n === 0n) {
@@ -255,13 +259,13 @@ function generateC(n) {
     }
 }
 
-function gcd(a, b) {
+function fastGCD(a, b) {
     if (a === 0n) return b;
     if (b === 0n) return a;
 
     let shift = 0n;
     while (((a | b) & 1n) === 0n) {  
-        a >>= 1n;
+        a >>= 1n;  
         b >>= 1n;
         shift++;
     }
@@ -271,9 +275,7 @@ function gcd(a, b) {
         while ((b & 1n) === 0n) b >>= 1n;
         if (a > b) [a, b] = [b, a];  
         b -= a;
-        if (b === 0n) break;
     }
-
     return a << shift;  
 }
 
