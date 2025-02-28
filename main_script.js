@@ -233,7 +233,7 @@ async function pollardsRho(n) {
 
         x = ys;
         if (d === 1n) {
-            m *= 2n;
+            m = (m * 3n) / 2n;
             if (m > 10n ** 6n) {
                 throw new Error("エラー: m が異常に大きくなっています。計算を停止します。");
             }
