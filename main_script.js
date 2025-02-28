@@ -154,7 +154,6 @@ async function pollardsRhoFactorization(number) {
     }
 
     let factors = [];
-    let subFactors = [];
     
     while (number > 1n) {
         if (isPrimeMillerRabin(number)) {
@@ -176,12 +175,10 @@ async function pollardsRhoFactorization(number) {
 
         console.log(`見つかった因数: ${factor}`);
 
+        let subFactors = []; // ✅ 事前に宣言
         if (!isPrimeMillerRabin(factor)) {
-            subFactors = await pollardsRhoFactorization(factor);
-        } else {
             console.log(`合成数を発見: ${factor} → さらに分解`);
-            let subFactors = await pollardsRhoFactorization(factor);
-            factors = factors.concat(subFactors);
+            subFactors = await pollardsRhoFactorization(factor);
         }
 
         let count = 0n;
