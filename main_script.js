@@ -192,7 +192,7 @@ async function pollardsRho(n) {
     if (n % 2n === 0n) return 2n;
 
     let x = 2n, y = 2n, d = 1n;
-    let c = BigInt(Math.floor(Math.random() * 100) + 1);
+    let c = BigInt(Math.floor(Math.random() * 100) * 2 + 1);
     let m = 128n, q = 1n;
 
     function f(x) { 
@@ -232,7 +232,7 @@ async function pollardsRho(n) {
 
         x = ys;
         if (d === 1n) {
-             m = (m * 2n)
+             m = (m * 3n) >> 1n;
             if (m > 10n ** 6n) {
                 throw new Error("エラー: m が異常に大きくなっています。計算を停止します。");
             }
