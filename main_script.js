@@ -154,6 +154,8 @@ async function pollardsRhoFactorization(number) {
     }
 
     let factors = [];
+    let subFactors = [];
+    
     while (number > 1n) {
         if (isPrimeMillerRabin(number)) {
             console.log(`素数を発見: ${number}`);
@@ -174,8 +176,8 @@ async function pollardsRhoFactorization(number) {
 
         console.log(`見つかった因数: ${factor}`);
 
-        if (isPrimeMillerRabin(factor)) {
-            factors.push(factor);
+        if (!isPrimeMillerRabin(factor)) {
+            subFactors = await pollardsRhoFactorization(factor);
         } else {
             console.log(`合成数を発見: ${factor} → さらに分解`);
             let subFactors = await pollardsRhoFactorization(factor);
@@ -187,7 +189,7 @@ async function pollardsRhoFactorization(number) {
             count++;
             number /= factor;
         }
-        factors.push(...Array(Number(count)).fill(factor)); // ✅ 一括追加で効率化
+        factors.push(...Array(Number(count)).fill(factor), ...subFactors);
         console.log(`因数 ${factor} を ${count} 回見つけました`);
 
         await new Promise(resolve => setTimeout(resolve, 0)); // 過負荷防止
