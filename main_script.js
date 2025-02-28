@@ -191,11 +191,12 @@ async function pollardsRhoFactorization(number) {
 async function pollardsRho(n) {
     if (n % 2n === 0n) return 2n;
 
-    let x = 2n, y = 2n, d = 1n, c = BigInt(Math.floor(Math.random() * 10) + 1);
+    let x = 2n, y = 2n, d = 1n
+    let c = BigInt(Math.floor(Math.random() * 500) + 1);
     let m = 128n, q = 1n;
 
     function f(x) { 
-        return (x * x + c) % n;
+        return (x * x * x + 2n * x + c) % n;
     }
 
     x = f(x);
@@ -230,7 +231,7 @@ async function pollardsRho(n) {
 
         x = ys;
         if (d === 1n) {
-            m *= 2n;
+             m = (m * 3n) >> 1n;
             if (m > 10n ** 6n) {
                 throw new Error("エラー: m が異常に大きくなっています。計算を停止します。");
             }
