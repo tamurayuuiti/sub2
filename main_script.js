@@ -182,12 +182,14 @@ async function pollardsRhoFactorization(number) {
             factors = factors.concat(subFactors);
         }
 
-        let power = 1n;
+        let count = 0n;
         while (number % factor === 0n) {
             factors.push(factor);
-            power *= factor;
+            number /= factor;  // ✅ 1 回ごとに除算するが、カウントを取る
+            count++;
         }
-        number /= power;  // **ここで 1 回だけ除算！**
+        console.log(`因数 ${factor} を ${count} 回見つけました`);
+
         await new Promise(resolve => setTimeout(resolve, 0)); // 過負荷防止
     }
     return factors;
