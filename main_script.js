@@ -208,19 +208,22 @@ async function pollardsRho(n) {
             : digitCount <= 40 ? 20n 
             : 25n;
 
+    let gcdSkipCounter = 0n;  // `gcd()` のスキップ回数を管理
+    const gcdSkipLimit = 5n;  // 5回連続でスキップしたら `gcd()` を実行
+
     while (d === 1n) {
         let ys = y;
         for (let i = 0n; i < m; i++) {
             y = f(y);
             q = (q * abs(x - y)) % n;
 
-            if (q === 0n) {
-                throw new Error("エラー: q が 0 になりました。計算を停止します。");
-            }
-
-            if (i % k === 0n) {
+            // **`q` の変化が大きいときのみ `gcd()` を実行**
+            if ((q & 0b1111n) === 0n || gcdSkipCounter >= gcdSkipLimit) {
                 d = gcd(q, n);
+                gcdSkipCounter = 0n;  // スキップ回数をリセット
                 if (d > 1n) break;
+            } else {
+                gcdSkipCounter++;  // `gcd()` をスキップ
             }
 
             if (i % 1000n === 0n) {
