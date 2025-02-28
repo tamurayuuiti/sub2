@@ -184,10 +184,10 @@ async function pollardsRhoFactorization(number) {
 
         let count = 0n;
         while (number % factor === 0n) {
-            factors.push(factor);
-            number /= factor;  // ✅ 1 回ごとに除算するが、カウントを取る
             count++;
+            number /= factor;
         }
+        factors.push(...Array(Number(count)).fill(factor)); // ✅ 一括追加で効率化
         console.log(`因数 ${factor} を ${count} 回見つけました`);
 
         await new Promise(resolve => setTimeout(resolve, 0)); // 過負荷防止
@@ -251,14 +251,8 @@ async function pollardsRho(n) {
 
 function generateC(n) {
     let digitCount = n.toString().length;
-    
-    if (digitCount <= 10) {
-        return BigInt(Math.floor(Math.random() * 100) + 1);
-    } else if (digitCount <= 20) {
-        return BigInt(Math.floor(Math.random() * 100000) + 10);
-    } else {
-        return BigInt(Math.floor(Math.random() * 100000000) + 1000);
-    }
+    let base = BigInt(10 ** Math.min(digitCount, 8));  // ✅ 8桁までの範囲で制限
+    return base + BigInt(Math.floor(Math.random() * 1000));
 }
 
 function fastGCD(a, b) {
@@ -276,7 +270,7 @@ function fastGCD(a, b) {
     while (b !== 0n) {
         while ((b & 1n) === 0n) b >>= 1n;
         if (a > b) [a, b] = [b, a];  
-        b -= a;
+        b %= a;
     }
     return a << shift;  
 }
