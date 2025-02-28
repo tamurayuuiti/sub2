@@ -191,7 +191,7 @@ async function pollardsRhoFactorization(number) {
 async function pollardsRho(n) {
     if (n % 2n === 0n) return 2n;
 
-    let x = 2n, y = 2n, d = 1n
+    let x = 2n, y = 2n, d = 1n;
     let c = BigInt(Math.floor(Math.random() * 100) + 1);
     let m = 128n, q = 1n;
 
@@ -215,8 +215,9 @@ async function pollardsRho(n) {
             y = f(y);
             q = (q * abs(x - y)) % n;
 
-            if (q === 0n) q = 1n;
-            console.log(`エラー: q が 0 になりました。計算を停止します。`);
+            if (q === 0n) {
+                console.log(`エラー: q が 0 になりました。`);
+                q = 1n;
             }
             
             if (i % k === 0n) {
