@@ -195,7 +195,7 @@ async function pollardsRho(n) {
     let m = 128n, q = 1n;
 
     function f(x) { 
-        return (x * x + c) % n;
+        return (x * x * x + 2n * x + c) % n;
     }
 
     x = f(x);
@@ -218,12 +218,13 @@ async function pollardsRho(n) {
             q = (q * abs(x - y)) % n;
 
             // **`q` の変化が大きいときのみ `gcd()` を実行**
-            if ((q & 0b1111n) === 0n || gcdSkipCounter >= gcdSkipLimit) {
+            const gcdSkipThreshold = digitCount > 20 ? 10n : 5n;
+            if ((q & 0b1111n) === 0n || gcdSkipCounter >= gcdSkipThreshold) {
                 d = gcd(q, n);
-                gcdSkipCounter = 0n;  // スキップ回数をリセット
+                gcdSkipCounter = 0n;
                 if (d > 1n) break;
             } else {
-                gcdSkipCounter++;  // `gcd()` をスキップ
+                gcdSkipCounter++;
             }
 
             if (i % 1000n === 0n) {
@@ -233,7 +234,14 @@ async function pollardsRho(n) {
 
         x = ys;
         if (d === 1n) {
-            m = (m * 3n) / 2n;
+            if (digitCount <= 10) {
+                m *= 2n;
+            } else if (digitCount <= 20) {
+                m = (m * 3n) / 2n;
+            } else {
+                m = (m * 5n) / 4n;
+            }
+
             if (m > 10n ** 6n) {
                 throw new Error("エラー: m が異常に大きくなっています。計算を停止します。");
             }
