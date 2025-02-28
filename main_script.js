@@ -191,11 +191,12 @@ async function pollardsRhoFactorization(number) {
 async function pollardsRho(n) {
     if (n % 2n === 0n) return 2n;
 
-    let x = 2n, y = 2n, d = 1n, c = BigInt(Math.floor(Math.random() * 10) + 1);
+    let x = 2n, y = 2n, d = 1n
+    let c = generateC(n);
     let m = 128n, q = 1n;
 
     function f(x) { 
-        return (x * x + c) % n;
+        return (x * x * x + 2n * x + c) % n;
     }
 
     x = f(x);
@@ -208,19 +209,21 @@ async function pollardsRho(n) {
             : digitCount <= 40 ? 20n 
             : 25n;
 
+    let gcdSkipCounter = 0n;
+    const gcdSkipLimit = 5n;
+
     while (d === 1n) {
         let ys = y;
         for (let i = 0n; i < m; i++) {
             y = f(y);
             q = (q * abs(x - y)) % n;
 
-            if (q === 0n) {
-                throw new Error("エラー: q が 0 になりました。計算を停止します。");
-            }
-
-            if (i % k === 0n) {
-                d = gcd(q, n);
+            if ((q & 0b1111n) === 0n || gcdSkipCounter >= gcdSkipLimit) {
+                d = fastGCD(q, n);
+                gcdSkipCounter = 0n;
                 if (d > 1n) break;
+            } else {
+                gcdSkipCounter++;
             }
 
             if (i % 1000n === 0n) {
@@ -230,7 +233,7 @@ async function pollardsRho(n) {
 
         x = ys;
         if (d === 1n) {
-            m *= 2n;
+            m = (m * 3n) >> 1n;
             if (m > 10n ** 6n) {
                 throw new Error("エラー: m が異常に大きくなっています。計算を停止します。");
             }
@@ -239,13 +242,19 @@ async function pollardsRho(n) {
     return d === n ? null : d;
 }
 
-function gcd(a, b) {
+function generateC(n) {
+    let digitCount = n.toString().length;
+    let base = BigInt(10 ** Math.min(digitCount, 8));  // ✅ 8桁までの範囲で制限
+    return base + BigInt(Math.floor(Math.random() * 1000));
+}
+
+function fastGCD(a, b) {
     if (a === 0n) return b;
     if (b === 0n) return a;
 
     let shift = 0n;
     while (((a | b) & 1n) === 0n) {  
-        a >>= 1n;
+        a >>= 1n;  
         b >>= 1n;
         shift++;
     }
@@ -254,10 +263,8 @@ function gcd(a, b) {
     while (b !== 0n) {
         while ((b & 1n) === 0n) b >>= 1n;
         if (a > b) [a, b] = [b, a];  
-        b -= a;
-        if (b === 0n) break;
+        b %= a;
     }
-
     return a << shift;  
 }
 
