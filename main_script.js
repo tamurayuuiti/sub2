@@ -192,7 +192,7 @@ async function pollardsRho(n) {
     if (n % 2n === 0n) return 2n;
 
     let x = 2n, y = 2n, d = 1n;
-    let c = BigInt(Math.floor(Math.random() * 50) * 2 + 1);
+    let c = BigInt(Math.floor(Math.random() * 30) * 2 + 1);
     let m = 128n, q = 1n;
 
     function f(x) { 
