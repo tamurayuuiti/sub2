@@ -247,11 +247,11 @@ function generateC(n) {
     let digitCount = n.toString().length;
     
     if (digitCount <= 10) {
-        return BigInt(Math.floor(Math.random() * 100) + 1);  // 1 ~ 100
+        return BigInt(Math.floor(Math.random() * 100) + 1);
     } else if (digitCount <= 20) {
-        return BigInt(Math.floor(Math.random() * 100000) + 10);  // 10 ~ 100000
+        return BigInt(Math.floor(Math.random() * 100000) + 10);
     } else {
-        return BigInt(Math.floor(Math.random() * 100000000) + 1000);  // 1000 ~ 10⁸
+        return BigInt(Math.floor(Math.random() * 100000000) + 1000);
     }
 }
 
