@@ -192,7 +192,7 @@ async function pollardsRho(n) {
     if (n % 2n === 0n) return 2n;
 
     let x = 2n, y = 2n, d = 1n
-    let c = BigInt(Math.floor(Math.random() * 500) + 1);
+    let c = generateC(n);
     let m = 128n, q = 1n;
 
     function f(x) { 
@@ -241,6 +241,18 @@ async function pollardsRho(n) {
         }
     }
     return d === n ? null : d;
+}
+
+function generateC(n) {
+    let digitCount = n.toString().length;
+    
+    if (digitCount <= 10) {
+        return BigInt(Math.floor(Math.random() * 100) + 1);  // 1 ~ 100
+    } else if (digitCount <= 20) {
+        return BigInt(Math.floor(Math.random() * 100000) + 10);  // 10 ~ 100000
+    } else {
+        return BigInt(Math.floor(Math.random() * 100000000) + 1000);  // 1000 ~ 10⁸
+    }
 }
 
 function gcd(a, b) {
