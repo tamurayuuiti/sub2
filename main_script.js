@@ -196,7 +196,7 @@ async function pollardsRho(n) {
     let m = 128n, q = 1n;
 
     function f(x) { 
-        return (x * x * x + 2n * x + c) % n;
+        return ((x + c) * (x + c) + c) % n;
     }
 
     x = f(x);
@@ -215,10 +215,10 @@ async function pollardsRho(n) {
             y = f(y);
             q = (q * abs(x - y)) % n;
 
-            if (q === 0n) {
-                throw new Error("エラー: q が 0 になりました。計算を停止します。");
+            if (q === 0n) q = 1n;
+            console.log(`エラー: q が 0 になりました。計算を停止します。`);
             }
-
+            
             if (i % k === 0n) {
                 d = gcd(q, n);
                 if (d > 1n) break;
