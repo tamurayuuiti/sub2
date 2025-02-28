@@ -191,6 +191,7 @@ async function pollardsRhoFactorization(number) {
         
         // ✅ `factor` そのものを追加せず、分解された `subFactors` のみを加える
         factors.push(...subFactors.flatMap(f => Array(Number(count)).fill(f)));
+        console.log(`因数 ${factor} を ${count} 回見つけました`);
 
         // ✅ まとめて `number` から除算
         number /= factor ** count;
