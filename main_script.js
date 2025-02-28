@@ -196,7 +196,7 @@ async function pollardsRho(n) {
     let m = 128n, q = 1n;
 
     function f(x) { 
-        return (x * x * x + 2n * x + c) % n; // ✅ f(x) の改良
+        return (x * x * x + 2n * x + c) % n;
     }
 
     x = f(x);
