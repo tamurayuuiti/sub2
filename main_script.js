@@ -188,52 +188,57 @@ async function pollardsRhoFactorization(number) {
     return factors;
 }
 
-async function pollardsRho(n, maxTries = 5) {
+async function pollardsRho(n) {
+    if (n % 2n === 0n) return 2n;
 
-    function f(x, c, n) {
-        return (x * x + c) % n;
+    let x = 2n, y = 2n, d = 1n;
+    let c = BigInt(Math.floor(Math.random() * 10) * 2 + 1);
+    let m = 128n, q = 1n;
+
+    function f(x) { 
+        return ((x + c) * (x + c) + c) % n;
     }
 
-    function sqrt(n) { 
-        let x = n, y = (x + 1n) / 2n;
-        while (y < x) [x, y] = [y, (y + n / y) / 2n];
-        return x;
-    }
+    x = f(x);
+    y = f(f(y));
 
-    for (let attempt = 0; attempt < maxTries; attempt++) {
-        let x = 2n, y = 2n, d = 1n;
-        let c = BigInt(Math.floor(Math.random() * 10) * 2 + 1); // 乱数 (奇数)
-        let m = 16n, l = 1n;
-        let maxIter = 100000n; // 無限ループ防止
-        let sqrtN = sqrt(n); // √n を事前計算
+    let digitCount = n.toString().length;
+    let k = digitCount <= 10 ? 5n 
+            : digitCount <= 20 ? 10n 
+            : digitCount <= 30 ? 15n 
+            : digitCount <= 40 ? 20n 
+            : 25n;
 
-        while (d === 1n && maxIter-- > 0n) {
-            x = y;
-            for (let i = 0n; i < l; i++) {
-                y = f(y, c, n);
-                if (i % 10000n === 0n) await new Promise(resolve => setTimeout(resolve, 0)); // UI 応答性維持
+    while (d === 1n) {
+        let ys = y;
+        for (let i = 0n; i < m; i++) {
+            y = f(y);
+            q = (q * abs(x - y)) % n;
+
+            if (q === 0n) {
+                console.log(`エラー: q が 0 になりました。`);
+                q = 1n;
+            }
+            
+            if (i % k === 0n) {
+                d = gcd(q, n);
+                if (d > 1n) break;
             }
 
-            let k = 0n;
-            while (k < l && d === 1n) {
-                let ys = y;
-                for (let i = 0n; i < m && i < (l - k); i++) {
-                    y = f(y, c, n);
-                    d = gcd(abs(x - y), n);
-                    if (i % 3000n === 0n) await new Promise(resolve => setTimeout(resolve, 0)); // CPU 負荷軽減
-                    if (d > 1n) break; // 因数を見つけたら終了
-                }
-                k += m;
+            if (i % 3000n === 0n) {
+                await new Promise(resolve => setTimeout(resolve, 0));  
             }
-
-            l = (l * 3n) / 2n; // 探索範囲の増加を緩やかに
-            if (l > sqrtN) l = sqrtN; // 事前計算した sqrtN を使用
         }
 
-        if (d > 1n && d < n) return d; // 有効な因数が見つかったら返す
+        x = ys;
+        if (d === 1n) {
+             m = (m * 3n) >> 1n;
+            if (m > 10n ** 6n) {
+                throw new Error("エラー: m が異常に大きくなっています。計算を停止します。");
+            }
+        }
     }
-
-    return null; // 最大試行回数を超えても見つからなかった場合
+    return d === n ? null : d;
 }
 
 function gcd(a, b) {
