@@ -183,6 +183,7 @@ async function pollardsRhoFactorization(number) {
         }
 
         number /= factor;
+        if (i % 5000 === 0) await new Promise(resolve => setTimeout(resolve, 0));
     }
     return factors;
 }
