@@ -191,11 +191,12 @@ async function pollardsRhoFactorization(number) {
 let triedCs = new Set();
 
 async function pollardsRho(n) {
-    const MAX_TRIALS = 200000n; // 一回の処理での最大試行回数
+
     const MAX_ATTEMPTS = 10; // 最大試行回数超過後の c 変更回数
     let attempt = 0; // c の変更回数
 
     while (attempt < MAX_ATTEMPTS) {
+        let MAX_TRIALS = getMaxTrials(n); // n の桁数に応じた試行回数を取得
         let x = 2n, y = 2n, d = 1n;
         let m = 128n, q = 1n;
         let c = getRandomC(); // 新しい c を取得
@@ -249,6 +250,7 @@ async function pollardsRho(n) {
         }
 
         if (d > 1n && d !== n) {
+            console.log(`因数を発見: ${d} (試行回数: ${trialCount})`);
             return d; // 因数が見つかった場合
         }
 
@@ -259,6 +261,8 @@ async function pollardsRho(n) {
     console.log(`最大試行回数を超えました。因数を見つけられませんでした: ${n}`);
     return null; // 最後まで因数が見つからなかった場合
 }
+
+let triedCs = new Set();
 
 function getRandomC() {
     if (triedCs.size >= 10) triedCs.clear();
@@ -274,6 +278,14 @@ function getRandomC() {
 
     return c;
 }
+
+function getMaxTrials(n) {
+        let digitCount = n.toString().length;
+        return digitCount <= 10 ? 10n ** 4n  // 10桁以下 → 10⁴
+             : digitCount <= 20 ? 10n ** 5n  // 10～20桁 → 10⁵
+             : digitCount <= 30 ? 10n ** 6n  // 20～30桁 → 10⁶
+             : 10n ** 7n;                   // 30桁以上 → 10⁷
+    }
 
 function gcd(a, b) {
     if (a === 0n) return b;
