@@ -187,7 +187,7 @@ async function pollardsRhoFactorization(number) {
         number /= factor;
         iteration++; // ✅ ループ回数を増加
 
-        if (iteration % 5000 === 0) {  // ✅ 5000回ごとにイベントループを解放
+        if (iteration % 10000 === 0) {  // ✅ 5000回ごとにイベントループを解放
             await new Promise(resolve => setTimeout(resolve, 0));
         }
     }
