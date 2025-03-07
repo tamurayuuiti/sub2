@@ -212,14 +212,18 @@ async function pollardsRho(n, maxTries = 5) {
 
         while (d === 1n && maxIter-- > 0n) {
             x = y;
-            for (let i = 0n; i < l; i++) y = f(y, c, n); // l ステップ進める
-            
+            for (let i = 0n; i < l; i++) {
+                y = f(y, c, n);
+                if (i % 3000n === 0n) await new Promise(resolve => setTimeout(resolve, 0)); // UI 応答性維持
+            }
+
             let k = 0n;
             while (k < l && d === 1n) {
                 let ys = y;
                 for (let i = 0n; i < m && i < (l - k); i++) {
                     y = f(y, c, n);
                     d = gcd(abs(x - y), n);
+                    if (i % 3000n === 0n) await new Promise(resolve => setTimeout(resolve, 0)); // CPU 負荷軽減
                     if (d > 1n) break; // 因数を見つけたら終了
                 }
                 k += m;
