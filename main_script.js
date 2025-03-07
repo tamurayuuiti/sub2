@@ -192,56 +192,76 @@ let triedCs = new Set();
 
 async function pollardsRho(n) {
     if (n % 2n === 0n) return 2n;
-    let x = 2n, y = 2n, d = 1n;
-    let m = 128n, q = 1n;
-    let c = getRandomC();
 
-    function f(x) { 
-        return ((x + c) * (x + c) + c) % n;
-    }
+    const MAX_TRIALS = 100000n; // 一回の処理での最大試行回数
+    const MAX_ATTEMPTS = 5; // 最大試行回数超過後の c 変更回数
+    let attempt = 0; // c の変更回数
 
-    x = f(x);
-    y = f(f(y));
+    while (attempt < MAX_ATTEMPTS) {
+        let x = 2n, y = 2n, d = 1n;
+        let m = 128n, q = 1n;
+        let c = getRandomC(); // 新しい c を取得
+        let trialCount = 0n; // 試行回数カウント
 
-    let digitCount = n.toString().length;
-    let k = digitCount <= 10 ? 5n 
-            : digitCount <= 20 ? 10n 
-            : digitCount <= 30 ? 15n 
-            : digitCount <= 40 ? 20n 
-            : 25n;
+        function f(x) { 
+            return ((x + c) * (x + c) + c) % n;
+        }
 
-    while (d === 1n) {
-        let ys = y;
-        for (let i = 0n; i < m; i++) {
-            y = f(y);
-            q *= abs(x - y);
-            if (q >= n) q %= n; // mod を必要なときだけ適用
+        x = f(x);
+        y = f(f(y));
 
-            if (q === 0n) {
-                console.log(`エラー: q が 0 になりました。`);
-                q = 1n;
+        let digitCount = n.toString().length;
+        let k = digitCount <= 10 ? 5n 
+                : digitCount <= 20 ? 10n 
+                : digitCount <= 30 ? 15n 
+                : digitCount <= 40 ? 20n 
+                : 25n;
+
+        while (d === 1n && trialCount < MAX_TRIALS) {
+            let ys = y;
+            for (let i = 0n; i < m && trialCount < MAX_TRIALS; i++) {
+                y = f(y);
+                q *= abs(x - y);
+                if (q >= n) q %= n; // mod を必要なときだけ適用
+                trialCount++;
+
+                if (q === 0n) {
+                    console.log(`エラー: q が 0 になりました。`);
+                    q = 1n;
+                }
+
+                if (i % (k + (m / 16n)) === 0n) {
+                    d = gcd(q, n);
+                    if (d > 1n) break;
+                }
+
+                if (i % 3000n === 0n) {
+                    await new Promise(resolve => setTimeout(resolve, 0));  
+                }
             }
-            
-            if (i % (k + (m / 16n)) === 0n) {
-                d = gcd(q, n);
-                if (d > 1n) break;
-            }
 
-            if (i % 3000n === 0n) {
-                await new Promise(resolve => setTimeout(resolve, 0));  
+            x = ys;
+            if (d === 1n) {
+                m = (m * 3n) >> 1n;
+                if (m > 10n ** 6n) {
+                    console.log("エラー: m が異常に大きくなっています。計算を中断します。");
+                    return null;
+                }
             }
         }
 
-        x = ys;
-        if (d === 1n) {
-             m = (m * 3n) >> 1n;
-            if (m > 10n ** 6n) {
-                throw new Error("エラー: m が異常に大きくなっています。計算を停止します。");
-            }
+        if (d > 1n && d !== n) {
+            return d; // 因数が見つかった場合
         }
+
+        console.log(`試行回数 ${MAX_TRIALS} 回を超過。c を変更して再試行 (${attempt + 1}/${MAX_ATTEMPTS})`);
+        attempt++; // c の変更回数をカウント
     }
-    return d === n ? null : d;
+
+    console.log(`最大試行回数を超えました。因数を見つけられませんでした: ${n}`);
+    return null; // 最後まで因数が見つからなかった場合
 }
+
 
 function getRandomC() {
     if (triedCs.size >= 10) triedCs.clear();
