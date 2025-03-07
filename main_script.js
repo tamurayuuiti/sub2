@@ -197,14 +197,14 @@ async function pollardsRho(n) {
     let x = 2n, y = 2n, d = 1n;
     let c = BigInt(Math.floor(Math.random() * 10) * 2 + 1);
     let l = 1n;
-    let iterationLimit = 10n ** 6n; // ✅ 無限ループ防止
+    let iterationLimit = 500000n; // ✅ ループ回数を制限
     let iterationCount = 0n;
 
     function f(x) { return ((x * x + c) % n); }
 
     while (d === 1n) {
         if (iterationCount++ > iterationLimit) {
-            console.error("エラー: ループ回数が制限を超えました。異常終了します。");
+            console.error("エラー: ループ回数が制限を超えました。処理を終了します。");
             return null;
         }
 
@@ -214,18 +214,19 @@ async function pollardsRho(n) {
         let k = 0n;
         let q = 1n;
         let ys = y;
-        let m = min(l / 4n, 4096n);
+        let m = min(l / 4n, 2048n);  // ✅ `m` の上限を 2048n に変更し、過剰な増加を防ぐ
 
         while (k < l && d === 1n) {
             for (let i = 0n; i < m && i < (l - k); i++) {
                 y = f(y);
-                if (q !== 0n) q = (q * abs(x - y)) % n;
-                else {
-                    console.warn("警告: q が 0 になりました。リセットします。");
-                    q = 1n;
+                if (q !== 0n) {
+                    q = (q * abs(x - y)) % n;
+                } else {
+                    console.error("エラー: q が 0 になりました。処理を終了します。");
+                    return null; // ✅ q = 1n にリセットするのではなく、処理を停止
                 }
 
-                if (i % 100n === 0n) {
+                if (i % 3000n === 0n) {
                     await new Promise(resolve => setTimeout(resolve, 0));
                 }
             }
@@ -233,19 +234,20 @@ async function pollardsRho(n) {
             d = gcd(q, n);
             if (d > 1n && d < n) return d; // ✅ 見つけた因数を即返す
             if (d === n) {
-                console.error("エラー: GCD が n になりました。失敗と判断します。");
+                console.error("エラー: GCD が n になりました。処理を終了します。");
                 return null;
             }
 
             k += m;
         }
 
-        l = min(l * 3n / 2n, n / 4n);
-        if (l > n / 4n) {
-            console.error("エラー: l の値が異常に大きくなりました。停止します。");
+        l = min(l * 4n / 3n, n / 8n);  // ✅ `l` の増加ペースを緩やかに変更
+        if (l > n / 8n) {
+            console.error("エラー: l の値が異常に大きくなりました。処理を終了します。");
             return null;
         }
     }
+    console.error("エラー: 因数が見つかりませんでした。");
     return null;
 }
 
