@@ -262,8 +262,6 @@ async function pollardsRho(n) {
     return null; // 最後まで因数が見つからなかった場合
 }
 
-let triedCs = new Set();
-
 function getRandomC() {
     if (triedCs.size >= 10) triedCs.clear();
     let c;
