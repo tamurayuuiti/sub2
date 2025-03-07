@@ -189,38 +189,64 @@ async function pollardsRhoFactorization(number) {
 }
 
 async function pollardsRho(n) {
+    if (n < 2n) {
+        console.error("エラー: n は 2 以上である必要があります。");
+        return null;
+    }
+
     let x = 2n, y = 2n, d = 1n;
     let c = BigInt(Math.floor(Math.random() * 10) * 2 + 1);
     let l = 1n;
-    
+    let iterationLimit = 10n ** 6n; // ✅ 無限ループ防止
+    let iterationCount = 0n;
+
     function f(x) { return ((x * x + c) % n); }
 
     while (d === 1n) {
+        if (iterationCount++ > iterationLimit) {
+            console.error("エラー: ループ回数が制限を超えました。異常終了します。");
+            return null;
+        }
+
         x = y;
         for (let i = 0n; i < l; i++) y = f(y);
 
         let k = 0n;
         let q = 1n;
         let ys = y;
-        let m = min(l / 4n, 4096n);  // ✅ `m` を適応的に増やす
+        let m = min(l / 4n, 4096n);
 
         while (k < l && d === 1n) {
             for (let i = 0n; i < m && i < (l - k); i++) {
                 y = f(y);
-                if (q !== 0n) q = (q * abs(x - y)) % n;  // ✅ 0 の場合は計算しない
+                if (q !== 0n) q = (q * abs(x - y)) % n;
+                else {
+                    console.warn("警告: q が 0 になりました。リセットします。");
+                    q = 1n;
+                }
 
-                if (i % 3000n === 0n) {  // ✅ `setTimeout(0)` の頻度を最適化
-                    await new Promise(resolve => setTimeout(resolve, 0));  
+                if (i % 3000n === 0n) {
+                    await new Promise(resolve => setTimeout(resolve, 0));
                 }
             }
 
-            d = gcd(q, n);  // ✅ GCD を m のループ終了後に 1回だけ計算
+            d = gcd(q, n);
+            if (d > 1n && d < n) return d; // ✅ 見つけた因数を即返す
+            if (d === n) {
+                console.error("エラー: GCD が n になりました。失敗と判断します。");
+                return null;
+            }
+
             k += m;
         }
 
-        l = min(l * 3n / 2n, n / 4n);  // ✅ `l` の増加ペースを制限
+        l = min(l * 3n / 2n, n / 4n);
+        if (l > n / 4n) {
+            console.error("エラー: l の値が異常に大きくなりました。停止します。");
+            return null;
+        }
     }
-    return d === n ? null : d;
+    return null;
 }
 
 function gcd(a, b) {
