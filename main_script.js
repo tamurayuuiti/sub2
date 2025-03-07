@@ -209,7 +209,7 @@ async function pollardsRho(n) {
                 y = f(y);
                 if (q !== 0n) q = (q * abs(x - y)) % n;  // ✅ 0 の場合は計算しない
 
-                if (i % 10000n === 0n) {  // ✅ `setTimeout(0)` の頻度を最適化
+                if (i % 3000n === 0n) {  // ✅ `setTimeout(0)` の頻度を最適化
                     await new Promise(resolve => setTimeout(resolve, 0));  
                 }
             }
