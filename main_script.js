@@ -226,7 +226,7 @@ async function pollardsRho(n, maxTries = 5) {
                 k += m;
             }
 
-            l *= 2n; // ステップ幅を指数的に増やす
+            l = (l * 3n) / 2n; // 探索範囲の増加を緩やかに
             if (l > sqrtN) l = sqrtN; // 事前計算した sqrtN を使用
         }
 
