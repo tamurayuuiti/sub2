@@ -137,7 +137,7 @@ async function trialDivisionFromFile(number) {
                 number /= prime;
             }
             
-            if (i % 100 === 0) await new Promise(resolve => setTimeout(resolve, 0)); // 100はとりあえず固定
+            if (i % 10000 === 0) await new Promise(resolve => setTimeout(resolve, 0)); // 100はとりあえず固定
         }
         
     } catch (error) {
