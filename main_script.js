@@ -202,7 +202,7 @@ async function pollardsRho(n) {
         let k = 0n;
         let q = 1n;
         let ys = y;
-        let m = min(l / 8n, 2048n);  // ✅ `m` を適応的に増やす
+        let m = min(l / 4n, 4096n);  // ✅ `m` を適応的に増やす
 
         while (k < l && d === 1n) {
             for (let i = 0n; i < m && i < (l - k); i++) {
@@ -218,7 +218,7 @@ async function pollardsRho(n) {
             k += m;
         }
 
-        l = min(l * 2n, n / 4n);  // ✅ `l` の増加ペースを制限
+        l = min(l * 3n / 2n, n / 4n);  // ✅ `l` の増加ペースを制限
     }
     return d === n ? null : d;
 }
