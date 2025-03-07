@@ -190,10 +190,17 @@ async function pollardsRhoFactorization(number) {
 
 async function pollardsRho(n) {
     if (n % 2n === 0n) return 2n;
-
     let x = 2n, y = 2n, d = 1n;
-    let triedCs = new Set()
     let m = 128n, q = 1n;
+    let triedCs = new Set();
+    function getRandomC(n) {
+        let c;
+        do {
+            c = BigInt(Math.floor(Math.random() * Number(n))) % n;
+        } while (triedCs.has(c) || c === 0n);
+        triedCs.add(c);
+        return c;
+    }
 
     function f(x) { 
         return ((x + c) * (x + c) + c) % n;
@@ -240,16 +247,6 @@ async function pollardsRho(n) {
         }
     }
     return d === n ? null : d;
-}
-
-function getRandomC() {
-    let c;
-    do {
-        c = BigInt(Math.floor(Math.random() * 10) * 2 + 1); // 1, 3, 5, ..., 19 のどれか
-    } while (triedCs.has(c));
-    
-    triedCs.add(c);
-    return c;
 }
 
 function gcd(a, b) {
