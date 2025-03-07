@@ -208,6 +208,7 @@ async function pollardsRho(n, maxTries = 5) {
         let sqrtN = sqrt(n); // √n を事前計算
 
         while (d === 1n && maxIter-- > 0n) {
+            console.error(`エラー: 因数を見つけられませんでした: ${number}`);
             x = y;
             for (let i = 0n; i < l; i++) {
                 y = f(y, c, n);
