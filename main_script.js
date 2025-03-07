@@ -189,10 +189,6 @@ async function pollardsRhoFactorization(number) {
 }
 
 async function pollardsRho(n, maxTries = 5) {
-    function gcd(a, b) {
-        while (b !== 0n) [a, b] = [b, a % b];
-        return a;
-    }
 
     function f(x, c, n) {
         return (x * x + c) % n;
@@ -209,6 +205,7 @@ async function pollardsRho(n, maxTries = 5) {
         let c = BigInt(Math.floor(Math.random() * 10) * 2 + 1); // 乱数 (奇数)
         let m = 16n, l = 1n;
         let maxIter = 100000n; // 無限ループ防止
+        let sqrtN = sqrt(n); // √n を事前計算
 
         while (d === 1n && maxIter-- > 0n) {
             x = y;
@@ -230,7 +227,7 @@ async function pollardsRho(n, maxTries = 5) {
             }
 
             l *= 2n; // ステップ幅を指数的に増やす
-            if (l > sqrt(n)) l = sqrt(n); // l を sqrt(n) に制限
+            if (l > sqrtN) l = sqrtN; // 事前計算した sqrtN を使用
         }
 
         if (d > 1n && d < n) return d; // 有効な因数が見つかったら返す
