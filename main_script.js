@@ -213,7 +213,8 @@ async function pollardsRho(n) {
         let ys = y;
         for (let i = 0n; i < m; i++) {
             y = f(y);
-            q = (q * abs(x - y)) % n;
+            q *= abs(x - y);
+            if (q >= n) q %= n; // mod を必要なときだけ適用
 
             if (q === 0n) {
                 console.log(`エラー: q が 0 になりました。`);
