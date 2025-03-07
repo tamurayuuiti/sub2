@@ -137,7 +137,7 @@ async function trialDivisionFromFile(number) {
                 number /= prime;
             }
             
-            if (i % 10000 === 0) await new Promise(resolve => setTimeout(resolve, 0));
+            if (i % 100 === 0) await new Promise(resolve => setTimeout(resolve, 0)); // 100はとりあえず固定
         }
         
     } catch (error) {
@@ -154,8 +154,6 @@ async function pollardsRhoFactorization(number) {
     }
 
     let factors = [];
-    let iteration = 0; // ✅ ループ回数カウント
-
     while (number > 1n) {
         if (isPrimeMillerRabin(number)) {
             console.log(`素数を発見: ${number}`);
@@ -185,11 +183,7 @@ async function pollardsRhoFactorization(number) {
         }
 
         number /= factor;
-        iteration++; // ✅ ループ回数を増加
-
-        if (iteration % 10000 === 0) {  // ✅ 5000回ごとにイベントループを解放
-            await new Promise(resolve => setTimeout(resolve, 0));
-        }
+        await new Promise(resolve => setTimeout(resolve, 0)); // 過負荷防止
     }
     return factors;
 }
