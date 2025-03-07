@@ -221,7 +221,7 @@ async function pollardsRho(n) {
                 q = 1n;
             }
             
-            if (i % k === 0n) {
+            if (i % (k + (m / 16n)) === 0n) {
                 d = gcd(q, n);
                 if (d > 1n) break;
             }
