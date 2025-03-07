@@ -195,7 +195,7 @@ async function pollardsRho(n) {
     let iterationLimit = 500000n;
     let iterationCount = 0n;
 
-    function f(x) { return ((x * x + c) % n); }
+    function f(x) { return ((x * x + c) % n + c) % n; }
 
     while (d === 1n) {
         if (iterationCount++ > iterationLimit) {
@@ -230,13 +230,13 @@ async function pollardsRho(n) {
             if (d > 1n && d < n) return d;
             if (d === n) {
                 console.error("エラー: GCD が n になりました。再試行します。");
-                return pollardsRho(n);  // ✅ `c` を変更して再試行
+                return pollardsRho(n, c + 2n);  // ✅ `c` を変更して再試行
             }
 
             k += m;
         }
 
-        l = min(l * 3n / 2n, n / 8n);
+        l = min(l * 4n / 3n, n / 16n);
         if (l > n / 8n) {
             console.error("エラー: l の値が異常に大きくなりました。処理を終了します。");
             return null;
