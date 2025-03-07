@@ -188,62 +188,51 @@ async function pollardsRhoFactorization(number) {
     return factors;
 }
 
-async function pollardsRho(n) {
-    let x = 2n, y = 2n, d = 1n;
-    let c = BigInt(Math.floor(Math.random() * 100) * 2 + 1);  // ✅ `c` のランダム化範囲を拡大
-    let l = 1n;
-    let iterationLimit = 500000n;
-    let iterationCount = 0n;
-
-    function f(x) { return ((x * x + c) % n + c) % n; }
-
-    while (d === 1n) {
-        if (iterationCount++ > iterationLimit) {
-            console.error("エラー: ループ回数が制限を超えました。処理を終了します。");
-            return null;
-        }
-
-        x = y;
-        for (let i = 0n; i < l; i++) y = f(y);
-
-        let k = 0n;
-        let q = 1n;
-        let ys = y;
-        let m = min(l / 4n, 2048n);
-
-        while (k < l && d === 1n) {
-            for (let i = 0n; i < m && i < (l - k); i++) {
-                y = f(y);
-                if (q !== 0n) {
-                    q = (q * abs(x - y)) % n;
-                } else {
-                    console.error("エラー: q が 0 になりました。処理を終了します。");
-                    return null;
-                }
-
-                if (i % 3000n === 0n) {
-                    await new Promise(resolve => setTimeout(resolve, 0));
-                }
-            }
-
-            d = gcd(q, n);
-            if (d > 1n && d < n) return d;
-            if (d === n) {
-                console.error("エラー: GCD が n になりました。再試行します。");
-                return pollardsRho(n, c + 2n);  // ✅ `c` を変更して再試行
-            }
-
-            k += m;
-        }
-
-        l = min(l * 4n / 3n, n / 16n);
-        if (l > n / 8n) {
-            console.error("エラー: l の値が異常に大きくなりました。処理を終了します。");
-            return null;
-        }
+async function pollardsRho(n, maxTries = 5) {
+    function gcd(a, b) {
+        while (b !== 0n) [a, b] = [b, a % b];
+        return a;
     }
-    console.error("エラー: 因数が見つかりませんでした。");
-    return null;
+
+    function f(x, c, n) {
+        return (x * x + c) % n;
+    }
+
+    function sqrt(n) { 
+        let x = n, y = (x + 1n) / 2n;
+        while (y < x) [x, y] = [y, (y + n / y) / 2n];
+        return x;
+    }
+
+    for (let attempt = 0; attempt < maxTries; attempt++) {
+        let x = 2n, y = 2n, d = 1n;
+        let c = BigInt(Math.floor(Math.random() * 10) * 2 + 1); // 乱数 (奇数)
+        let m = 16n, l = 1n;
+        let maxIter = 100000n; // 無限ループ防止
+
+        while (d === 1n && maxIter-- > 0n) {
+            x = y;
+            for (let i = 0n; i < l; i++) y = f(y, c, n); // l ステップ進める
+            
+            let k = 0n;
+            while (k < l && d === 1n) {
+                let ys = y;
+                for (let i = 0n; i < m && i < (l - k); i++) {
+                    y = f(y, c, n);
+                    d = gcd(abs(x - y), n);
+                    if (d > 1n) break; // 因数を見つけたら終了
+                }
+                k += m;
+            }
+
+            l *= 2n; // ステップ幅を指数的に増やす
+            if (l > sqrt(n)) l = sqrt(n); // l を sqrt(n) に制限
+        }
+
+        if (d > 1n && d < n) return d; // 有効な因数が見つかったら返す
+    }
+
+    return null; // 最大試行回数を超えても見つからなかった場合
 }
 
 function gcd(a, b) {
@@ -270,10 +259,6 @@ function gcd(a, b) {
 
 function abs(n) {
     return n < 0n ? -n : n;
-}
-
-function min(a, b) {
-    return a < b ? a : b;
 }
 
 // 初回ロード時に素数データをプリロード
