@@ -191,8 +191,8 @@ async function pollardsRhoFactorization(number) {
 let triedCs = new Set();
 
 async function pollardsRho(n) {
-    const MAX_TRIALS = 100000n; // 一回の処理での最大試行回数
-    const MAX_ATTEMPTS = 5; // 最大試行回数超過後の c 変更回数
+    const MAX_TRIALS = 200000n; // 一回の処理での最大試行回数
+    const MAX_ATTEMPTS = 10; // 最大試行回数超過後の c 変更回数
     let attempt = 0; // c の変更回数
 
     while (attempt < MAX_ATTEMPTS) {
