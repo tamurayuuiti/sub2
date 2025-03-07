@@ -191,8 +191,6 @@ async function pollardsRhoFactorization(number) {
 let triedCs = new Set();
 
 async function pollardsRho(n) {
-    if (n % 2n === 0n) return 2n;
-
     const MAX_TRIALS = 100000n; // 一回の処理での最大試行回数
     const MAX_ATTEMPTS = 5; // 最大試行回数超過後の c 変更回数
     let attempt = 0; // c の変更回数
@@ -261,7 +259,6 @@ async function pollardsRho(n) {
     console.log(`最大試行回数を超えました。因数を見つけられませんでした: ${n}`);
     return null; // 最後まで因数が見つからなかった場合
 }
-
 
 function getRandomC() {
     if (triedCs.size >= 10) triedCs.clear();
