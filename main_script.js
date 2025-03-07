@@ -192,30 +192,33 @@ async function pollardsRho(n) {
     let x = 2n, y = 2n, d = 1n;
     let c = BigInt(Math.floor(Math.random() * 10) * 2 + 1);
     let m = 16n, l = 1n;
-    let q = 1n;
 
     function f(x) { return ((x * x + c) % n); }
 
     while (d === 1n) {
-        x = y;
-        for (let i = 0n; i < l; i++) y = f(y);
+        x = y;  // x を y に更新
+        for (let i = 0n; i < l; i++) y = f(y);  // l ステップ分進める
 
         let k = 0n;
+        let q = 1n;  // q を初期化
+        let ys = y;  // ys を適切に設定
+
         while (k < l && d === 1n) {
-            let ys = y;
             for (let i = 0n; i < m && i < (l - k); i++) {
                 y = f(y);
                 q = (q * abs(x - y)) % n;
-                d = gcd(q, n);
-                if (d > 1n) break;
 
+                // 他の処理の応答性を確保するために非同期待機を残す
                 if (i % 3000n === 0n) {
                     await new Promise(resolve => setTimeout(resolve, 0));  
                 }
             }
+
+            d = gcd(q, n);  // GCD を m の最後で 1回だけ計算
             k += m;
         }
-        l *= 2n;
+
+        l *= 2n;  // l の更新タイミングを修正
     }
     return d === n ? null : d;
 }
