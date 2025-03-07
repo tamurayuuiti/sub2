@@ -245,13 +245,16 @@ async function pollardsRho(n) {
 
 function getRandomC() {
     if (triedCs.size >= 10) triedCs.clear();
-
     let c;
     do {
         c = BigInt((Math.floor(Math.random() * 10) * 2) + 1);
     } while (triedCs.has(c));
 
     triedCs.add(c);
+
+    console.log(`新しい c: ${c}`);
+    console.log(`試した c のリスト:`, [...triedCs].join(", "));
+
     return c;
 }
 
