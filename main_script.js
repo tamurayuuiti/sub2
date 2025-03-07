@@ -191,34 +191,35 @@ async function pollardsRhoFactorization(number) {
 async function pollardsRho(n) {
     let x = 2n, y = 2n, d = 1n;
     let c = BigInt(Math.floor(Math.random() * 10) * 2 + 1);
-    let m = 16n, l = 1n;
+    let m = 64n, l = 1n;  // m を適応的に設定
+    let q = 1n;
 
     function f(x) { return ((x * x + c) % n); }
 
     while (d === 1n) {
-        x = y;  // x を y に更新
-        for (let i = 0n; i < l; i++) y = f(y);  // l ステップ分進める
+        x = y;
+        for (let i = 0n; i < l; i++) y = f(y);
 
         let k = 0n;
-        let q = 1n;  // q を初期化
-        let ys = y;  // ys を適切に設定
+        let ys = y;
+        q = 1n;  // q をリセット
 
         while (k < l && d === 1n) {
             for (let i = 0n; i < m && i < (l - k); i++) {
                 y = f(y);
-                q = (q * abs(x - y)) % n;
+                if (q !== 0n) q = (q * abs(x - y)) % n;  // 0 の場合は計算しない
 
-                // 他の処理の応答性を確保するために非同期待機を残す
-                if (i % 3000n === 0n) {
+                if (i % 10000n === 0n) {  // 非同期割り込みの頻度を減らす
                     await new Promise(resolve => setTimeout(resolve, 0));  
                 }
             }
 
-            d = gcd(q, n);  // GCD を m の最後で 1回だけ計算
+            d = gcd(q, n);  // m ステップの範囲で 1回だけ GCD を計算
             k += m;
         }
 
-        l *= 2n;  // l の更新タイミングを修正
+        l = min(l * 2n, n / 2n);  // l の増加ペースを制御
+        m = min(l / 4n, 1024n);  // m を適応的に設定
     }
     return d === n ? null : d;
 }
@@ -247,6 +248,10 @@ function gcd(a, b) {
 
 function abs(n) {
     return n < 0n ? -n : n;
+}
+
+function min(a, b) {
+    return a < b ? a : b;
 }
 
 // 初回ロード時に素数データをプリロード
