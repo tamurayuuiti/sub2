@@ -191,35 +191,31 @@ async function pollardsRhoFactorization(number) {
 async function pollardsRho(n) {
     let x = 2n, y = 2n, d = 1n;
     let c = BigInt(Math.floor(Math.random() * 10) * 2 + 1);
-    let m = 16n, l = 1n;  // m は16から開始し、l は指数的に増やす
+    let m = 16n, l = 1n;
     let q = 1n;
 
-    function f(x) { 
-        return ((x * x + c) % n);
-    }
+    function f(x) { return ((x * x + c) % n); }
 
     while (d === 1n) {
-        x = y;  // x を y に更新
-        for (let i = 0n; i < l; i++) y = f(y);  // l ステップ進める
+        x = y;
+        for (let i = 0n; i < l; i++) y = f(y);
 
         let k = 0n;
         while (k < l && d === 1n) {
             let ys = y;
-            for (let i = 0n; i < m && i < (l - k); i++) {  // m ステップの範囲内で処理
+            for (let i = 0n; i < m && i < (l - k); i++) {
                 y = f(y);
                 q = (q * abs(x - y)) % n;
-
-                if (q === 0n) {
-                    console.log(`エラー: q が 0 になりました。`);
-                    q = 1n;
-                }
-
-                d = gcd(q, n);  // `m` ごとに GCD を計算
+                d = gcd(q, n);
                 if (d > 1n) break;
+
+                if (i % 3000n === 0n) {
+                    await new Promise(resolve => setTimeout(resolve, 0));  
+                }
             }
-            k += m; // 次の探索範囲に進む
+            k += m;
         }
-        l *= 2n;  // Brent 法の特徴：探索範囲を指数的に拡大
+        l *= 2n;
     }
     return d === n ? null : d;
 }
