@@ -154,6 +154,8 @@ async function pollardsRhoFactorization(number) {
     }
 
     let factors = [];
+    let iteration = 0; // ✅ ループ回数カウント
+
     while (number > 1n) {
         if (isPrimeMillerRabin(number)) {
             console.log(`素数を発見: ${number}`);
@@ -183,7 +185,11 @@ async function pollardsRhoFactorization(number) {
         }
 
         number /= factor;
-        if (i % 5000 === 0) await new Promise(resolve => setTimeout(resolve, 0));
+        iteration++; // ✅ ループ回数を増加
+
+        if (iteration % 5000 === 0) {  // ✅ 5000回ごとにイベントループを解放
+            await new Promise(resolve => setTimeout(resolve, 0));
+        }
     }
     return factors;
 }
