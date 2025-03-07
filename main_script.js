@@ -189,54 +189,37 @@ async function pollardsRhoFactorization(number) {
 }
 
 async function pollardsRho(n) {
-    if (n % 2n === 0n) return 2n;
-
     let x = 2n, y = 2n, d = 1n;
     let c = BigInt(Math.floor(Math.random() * 10) * 2 + 1);
-    let m = 128n, q = 1n;
+    let m = 16n, l = 1n;  // m は16から開始し、l は指数的に増やす
+    let q = 1n;
 
     function f(x) { 
-        return ((x + c) * (x + c) + c) % n;
+        return ((x * x + c) % n);
     }
 
-    x = f(x);
-    y = f(f(y));
-
-    let digitCount = n.toString().length;
-    let k = digitCount <= 10 ? 5n 
-            : digitCount <= 20 ? 10n 
-            : digitCount <= 30 ? 15n 
-            : digitCount <= 40 ? 20n 
-            : 25n;
-
     while (d === 1n) {
-        let ys = y;
-        for (let i = 0n; i < m; i++) {
-            y = f(y);
-            q = (q * abs(x - y)) % n;
+        x = y;  // x を y に更新
+        for (let i = 0n; i < l; i++) y = f(y);  // l ステップ進める
 
-            if (q === 0n) {
-                console.log(`エラー: q が 0 になりました。`);
-                q = 1n;
-            }
-            
-            if (i % k === 0n) {
-                d = gcd(q, n);
+        let k = 0n;
+        while (k < l && d === 1n) {
+            let ys = y;
+            for (let i = 0n; i < m && i < (l - k); i++) {  // m ステップの範囲内で処理
+                y = f(y);
+                q = (q * abs(x - y)) % n;
+
+                if (q === 0n) {
+                    console.log(`エラー: q が 0 になりました。`);
+                    q = 1n;
+                }
+
+                d = gcd(q, n);  // `m` ごとに GCD を計算
                 if (d > 1n) break;
             }
-
-            if (i % 3000n === 0n) {
-                await new Promise(resolve => setTimeout(resolve, 0));  
-            }
+            k += m; // 次の探索範囲に進む
         }
-
-        x = ys;
-        if (d === 1n) {
-             m = (m * 3n) >> 1n;
-            if (m > 10n ** 6n) {
-                throw new Error("エラー: m が異常に大きくなっています。計算を停止します。");
-            }
-        }
+        l *= 2n;  // Brent 法の特徴：探索範囲を指数的に拡大
     }
     return d === n ? null : d;
 }
