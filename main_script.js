@@ -189,15 +189,10 @@ async function pollardsRhoFactorization(number) {
 }
 
 async function pollardsRho(n) {
-    if (n < 2n) {
-        console.error("エラー: n は 2 以上である必要があります。");
-        return null;
-    }
-
     let x = 2n, y = 2n, d = 1n;
-    let c = BigInt(Math.floor(Math.random() * 10) * 2 + 1);
+    let c = BigInt(Math.floor(Math.random() * 100) * 2 + 1);  // ✅ `c` のランダム化範囲を拡大
     let l = 1n;
-    let iterationLimit = 500000n; // ✅ ループ回数を制限
+    let iterationLimit = 500000n;
     let iterationCount = 0n;
 
     function f(x) { return ((x * x + c) % n); }
@@ -214,7 +209,7 @@ async function pollardsRho(n) {
         let k = 0n;
         let q = 1n;
         let ys = y;
-        let m = min(l / 4n, 2048n);  // ✅ `m` の上限を 2048n に変更し、過剰な増加を防ぐ
+        let m = min(l / 4n, 2048n);
 
         while (k < l && d === 1n) {
             for (let i = 0n; i < m && i < (l - k); i++) {
@@ -223,7 +218,7 @@ async function pollardsRho(n) {
                     q = (q * abs(x - y)) % n;
                 } else {
                     console.error("エラー: q が 0 になりました。処理を終了します。");
-                    return null; // ✅ q = 1n にリセットするのではなく、処理を停止
+                    return null;
                 }
 
                 if (i % 3000n === 0n) {
@@ -232,16 +227,16 @@ async function pollardsRho(n) {
             }
 
             d = gcd(q, n);
-            if (d > 1n && d < n) return d; // ✅ 見つけた因数を即返す
+            if (d > 1n && d < n) return d;
             if (d === n) {
-                console.error("エラー: GCD が n になりました。処理を終了します。");
-                return null;
+                console.error("エラー: GCD が n になりました。再試行します。");
+                return pollardsRho(n);  // ✅ `c` を変更して再試行
             }
 
             k += m;
         }
 
-        l = min(l * 4n / 3n, n / 8n);  // ✅ `l` の増加ペースを緩やかに変更
+        l = min(l * 3n / 2n, n / 8n);
         if (l > n / 8n) {
             console.error("エラー: l の値が異常に大きくなりました。処理を終了します。");
             return null;
