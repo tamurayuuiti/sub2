@@ -5,6 +5,7 @@ let currentInput = null;
 let startTime = null;
 let isCalculating = false;
 let progressInterval = null;
+let triedCs = new Set();
 let primes = [];
 
 document.getElementById("calculateButton").addEventListener("click", startFactorization);
@@ -187,8 +188,6 @@ async function pollardsRhoFactorization(number) {
     }
     return factors;
 }
-
-let triedCs = new Set();
 
 async function pollardsRho(n) {
 
