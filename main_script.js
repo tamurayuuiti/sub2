@@ -211,7 +211,7 @@ async function pollardsRho(n, maxTries = 5) {
             x = y;
             for (let i = 0n; i < l; i++) {
                 y = f(y, c, n);
-                if (i % 3000n === 0n) await new Promise(resolve => setTimeout(resolve, 0)); // UI 応答性維持
+                if (i % 10000n === 0n) await new Promise(resolve => setTimeout(resolve, 0)); // UI 応答性維持
             }
 
             let k = 0n;
