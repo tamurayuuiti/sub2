@@ -15,7 +15,7 @@ document.getElementById("numberInput").addEventListener("keypress", function(eve
 
 // 入力の桁数制限（30桁まで）
 document.getElementById("numberInput").addEventListener("keydown", function(event) {
-    if (this.value.length >= 30 && event.key !== "Backspace") {
+    if (this.value.length >= 30 && /^[0-9]$/.test(event.key)) {
         event.preventDefault();
     }
 });
