@@ -188,11 +188,9 @@ async function pollardsRhoFactorization(number) {
 }
 
 async function pollardsRho(n) {
+    let attempt = 0; // `c` の変更回数
 
-    const MAX_ATTEMPTS = 5; // 最大試行回数超過後の c 変更回数
-    let attempt = 0; // c の変更回数
-
-    while (attempt < MAX_ATTEMPTS) {
+    while (true) { // `MAX_ATTEMPTS` の制限を撤廃
         let MAX_TRIALS = 3000000;
         let x = 2n, y = 2n, d = 1n;
         let m = 128n, q = 1n;
@@ -242,12 +240,9 @@ async function pollardsRho(n) {
             return d;
         }
 
-        console.log(`試行回数 ${MAX_TRIALS} 回を超過。c を変更して再試行 (${attempt + 1}/${MAX_ATTEMPTS})`);
-        attempt++;
+        console.log(`試行回数 ${MAX_TRIALS} 回を超過。c を変更して再試行 (${attempt + 1}回目)`);
+        attempt++; // `attempt` はデバッグ用にカウントのみ残す
     }
-
-    console.log(`最大試行回数を超えました。因数を見つけられませんでした: ${n}`);
-    return null;
 }
 
 function getDigitBasedParams(n) {
