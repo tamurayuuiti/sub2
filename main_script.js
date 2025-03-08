@@ -155,7 +155,7 @@ async function pollardsRhoFactorization(number) {
     let factors = [];
     while (number > 1n) {
         if (isPrimeMillerRabin(number)) {
-            console.log(`素数を発見: ${number}`);
+            console.log(`素因数を発見: ${number}`);
             factors.push(number);
             break;
         }
