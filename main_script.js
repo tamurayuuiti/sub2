@@ -195,7 +195,7 @@ async function pollardsRho(n) {
     let attempt = 0; // c の変更回数
 
     while (attempt < MAX_ATTEMPTS) {
-        let MAX_TRIALS = getMaxTrials(n); // n の桁数に応じた試行回数を取得
+        let MAX_TRIALS = 1000000 // 最大試行回数100万回
         let x = 2n, y = 2n, d = 1n;
         let m = 128n, q = 1n;
         let c = getRandomC(n); // 新しい c を取得
@@ -288,14 +288,6 @@ function f(x, n, c) {
         return ((x * x * x + c) % n);  
     }
 }
-
-function getMaxTrials(n) {
-        let digitCount = n.toString().length;
-        return digitCount <= 10 ? 50n ** 4n
-             : digitCount <= 20 ? 50n ** 5n
-             : digitCount <= 30 ? 50n ** 6n
-             : 50n ** 7n;
-    }
 
 function gcd(a, b) {
     if (a === 0n) return b;
