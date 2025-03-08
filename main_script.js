@@ -201,12 +201,8 @@ async function pollardsRho(n) {
         let c = getRandomC(n); // 新しい c を取得
         let trialCount = 0n; // 試行回数カウント
 
-        function f(x) { 
-            return ((x + c) * (x + c) + c) % n;
-        }
-
-        x = f(x);
-        y = f(f(y));
+        x = f(x, n, c);
+        y = f(f(y, n, c), n, c);
 
         let digitCount = n.toString().length;
         let k = digitCount <= 10 ? 5n 
@@ -280,6 +276,18 @@ function getRandomC(n) {
     console.log(`試した c のリスト:`, [...triedCs].join(", "));
 
     return c;
+}
+
+function f(x, n, c) { 
+    let digitCount = n.toString().length;
+
+    if (digitCount <= 10) {
+        return (x * x + c) % n;  // 10桁以下: 単純な2次関数
+    } else if (digitCount <= 20) {
+        return ((x + c) * (x + c) + c) % n;  // 10～20桁: 変化を加えた2次関数
+    } else {
+        return ((x * x * x + c) % n);  // 20～30桁: 3次関数で探索範囲を広げる
+    }
 }
 
 function getMaxTrials(n) {
