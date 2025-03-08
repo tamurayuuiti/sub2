@@ -5,7 +5,6 @@ let currentInput = null;
 let startTime = null;
 let isCalculating = false;
 let progressInterval = null;
-let triedCs = new Set();
 let primes = [];
 
 document.getElementById("calculateButton").addEventListener("click", startFactorization);
@@ -281,17 +280,9 @@ function getDigitBasedParams(n) {
 
 function getRandomC(n) {
     let { maxC } = getDigitBasedParams(n);
-
-    if (triedCs.size >= 10) triedCs.clear();
-    let c;
-    do {
-        c = BigInt((Math.floor(Math.random() * maxC) * 2) + 1);
-    } while (triedCs.has(c));
-
-    triedCs.add(c);
+    let c = BigInt((Math.floor(Math.random() * maxC) * 2) + 1);
 
     console.log(`新しい c: ${c} (範囲: 1 ～ ${maxC * 2 - 1})`);
-    console.log(`試した c のリスト:`, [...triedCs].join(", "));
 
     return c;
 }
