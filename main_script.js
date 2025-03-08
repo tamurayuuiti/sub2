@@ -135,7 +135,9 @@ async function trialDivisionFromFile(number) {
                 factors.push(prime);
                 number /= prime;
             }
-        } 
+            
+            if (i % 10000 === 0) await new Promise(resolve => setTimeout(resolve, 0)); // 100はとりあえず固定
+        }
         
     } catch (error) {
         console.error("試し割りエラー:", error);
