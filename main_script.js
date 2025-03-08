@@ -20,7 +20,7 @@ document.getElementById("numberInput").addEventListener("input", function(event)
     }
 });
 
-// 外部の素数リストを読み込む
+// 外部の素数リスト読み込み
 async function loadPrimes() {
     try {
         console.log("素数リストの読み込みを開始します...");
@@ -29,7 +29,7 @@ async function loadPrimes() {
             throw new Error(`素数リストの読み込みに失敗しました (HTTP ${response.status})`);
         }
         const text = await response.text();
-        primes = text.split(/\s+/).filter(n => n).map(n => BigInt(n)); // 空白・改行対応
+        primes = text.split(/\s+/).filter(n => n).map(n => BigInt(n));
         if (primes.length === 0) {
             throw new Error("素数リストが空です");
         }
@@ -53,7 +53,7 @@ async function startFactorization() {
 
         let num = BigInt(inputValue);
         console.clear();
-        console.log(`因数分解を開始: ${num}`);
+        console.log(`素因数分解を開始: ${num}`);
 
         if (num < 2n) {
             document.getElementById("result").textContent = "有効な整数を入力してください";
@@ -95,7 +95,7 @@ async function startFactorization() {
         let elapsedTime = ((performance.now() - startTime) / 1000).toFixed(3);
         document.getElementById("result").textContent = `素因数:\n${factors.sort((a, b) => (a < b ? -1 : 1)).join(" × ")}`;
         document.getElementById("time").textContent = `計算時間: ${elapsedTime} 秒`;
-        console.log(`因数分解完了: ${factors.join(" × ")}, 時間: ${elapsedTime} 秒`);
+        console.log(`素因数分解完了: ${factors.join(" × ")}, 計算時間: ${elapsedTime} 秒`);
     } catch (error) {
         console.error("計算エラー:", error);
         document.getElementById("result").textContent = "計算中にエラーが発生しました";
