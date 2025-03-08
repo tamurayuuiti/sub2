@@ -185,7 +185,7 @@ async function pollardsRho(n) {
     let attempt = 0; // `c` の変更回数
 
     while (true) {
-        let MAX_TRIALS = 1000000;
+        let MAX_TRIALS = 3000000;
         let x = 2n, y = 2n, d = 1n;
         let m = 128n, q = 1n;
         let c = getRandomC(n);
