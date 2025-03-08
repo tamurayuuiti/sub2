@@ -255,8 +255,8 @@ function getDigitBasedParams(n) {
 
     // `maxC` の範囲（`c` の最大値）
     let maxC = digitCount <= 10 ? 10
-             : digitCount <= 20 ? 20
-             : 50;
+             : digitCount <= 20 ? 50
+             : 100;
 
     // `f(x)` の式
     let fxFunction;
