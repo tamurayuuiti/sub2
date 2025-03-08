@@ -198,7 +198,7 @@ async function pollardsRho(n) {
         let MAX_TRIALS = getMaxTrials(n); // n の桁数に応じた試行回数を取得
         let x = 2n, y = 2n, d = 1n;
         let m = 128n, q = 1n;
-        let c = getRandomC(); // 新しい c を取得
+        let c = getRandomC(n); // 新しい c を取得
         let trialCount = 0n; // 試行回数カウント
 
         function f(x) { 
