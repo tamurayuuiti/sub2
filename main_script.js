@@ -214,7 +214,7 @@ async function pollardsRho(n) {
         while (d === 1n && trialCount < MAX_TRIALS) {
             let ys = y;
             for (let i = 0n; i < m && trialCount < MAX_TRIALS; i++) {
-                y = f(y);
+                y = f(f(y, n, c), n, c);
                 q *= abs(x - y);
                 if (q >= n) q %= n; // mod を必要なときだけ適用
                 trialCount++;
@@ -279,12 +279,7 @@ function getRandomC(n) {
 }
 
 function f(x, n, c) { 
-    if (typeof n === 'undefined') {
-        throw new Error("f(x, n, c) に渡された n が undefined です。");
-    }
-
     let digitCount = n.toString().length;
-
     if (digitCount <= 10) {
         return (x * x + c) % n;  
     } else if (digitCount <= 20) {
