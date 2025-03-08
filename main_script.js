@@ -219,7 +219,7 @@ async function pollardsRho(n) {
                     if (d > 1n) break;
                 }
 
-                if (i % 8000n === 0n) {
+                if (i % 100000n === 0n) {
                     await new Promise(resolve => setTimeout(resolve, 0));
                 }
             }
