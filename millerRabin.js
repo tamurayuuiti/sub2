@@ -11,17 +11,6 @@ export function isPrimeMillerRabin(n) {
         r++;
     }
 
-    function powerMod(base, exp, mod) {
-        let result = 1n;
-        base %= mod;
-        while (exp > 0n) {
-            if (exp & 1n) result = (result * base) % mod;
-            exp >>= 1n;
-            base = (base * base) % mod;
-        }
-        return result;
-    }
-
     const witnesses = [2n, 3n, 5n, 7n, 11n, 13n, 17n, 19n, 23n, 29n, 31n, 37n];
 
     for (let a of witnesses) {
@@ -45,4 +34,16 @@ export function isPrimeMillerRabin(n) {
 
     console.log(`nは素数: n = ${n}`);
     return true;
+}
+
+export function powerMod(base, exp, mod) {
+        let result = 1n;
+        base %= mod;
+        while (exp > 0n) {
+            if (exp & 1n) result = (result * base) % mod;
+            exp >>= 1n;
+            base = (base * base) % mod;
+        }
+        return result;
+    }
 }
