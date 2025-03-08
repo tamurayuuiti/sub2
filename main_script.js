@@ -291,10 +291,10 @@ function f(x, n, c) {
 
 function getMaxTrials(n) {
         let digitCount = n.toString().length;
-        return digitCount <= 10 ? 5n ** 4n
-             : digitCount <= 20 ? 5n ** 5n
-             : digitCount <= 30 ? 5n ** 6n
-             : 5n ** 7n;
+        return digitCount <= 10 ? 50n ** 4n
+             : digitCount <= 20 ? 50n ** 5n
+             : digitCount <= 30 ? 50n ** 6n
+             : 50n ** 7n;
     }
 
 function gcd(a, b) {
