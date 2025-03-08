@@ -213,10 +213,6 @@ async function pollardsRho(n) {
                     d = gcd(q, n);
                     if (d > 1n) break;
                 }
-
-                if (i % 1000000n === 0n) {
-                    await new Promise(resolve => setTimeout(resolve, 0));
-                }
             }
 
             x = ys;
