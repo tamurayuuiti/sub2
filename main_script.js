@@ -182,7 +182,6 @@ async function pollardsRhoFactorization(number) {
         }
 
         number /= factor;
-        await new Promise(resolve => setTimeout(resolve, 0)); // 過負荷防止
     }
     return factors;
 }
