@@ -284,10 +284,10 @@ function getRandomC(n) {
 
 function getMaxTrials(n) {
         let digitCount = n.toString().length;
-        return digitCount <= 10 ? 10n ** 4n  // 10桁以下 → 10⁴
-             : digitCount <= 20 ? 10n ** 5n  // 10～20桁 → 10⁵
-             : digitCount <= 30 ? 10n ** 6n  // 20～30桁 → 10⁶
-             : 10n ** 7n;                   // 30桁以上 → 10⁷
+        return digitCount <= 10 ? 10n ** 3n  // 10桁以下 → 10⁴
+             : digitCount <= 20 ? 10n ** 4n  // 10～20桁 → 10⁵
+             : digitCount <= 30 ? 10n ** 5n  // 20～30桁 → 10⁶
+             : 10n ** 6n;                   // 30桁以上 → 10⁷
     }
 
 function gcd(a, b) {
