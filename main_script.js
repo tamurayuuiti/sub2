@@ -136,7 +136,7 @@ async function trialDivisionFromFile(number) {
                 number /= prime;
             }
             
-            if (i % 100000 === 0) await new Promise(resolve => setTimeout(resolve, 0)); // 100はとりあえず固定
+            if (i % 1000000 === 0) await new Promise(resolve => setTimeout(resolve, 0)); // 100はとりあえず固定
         }
         
     } catch (error) {
@@ -219,7 +219,7 @@ async function pollardsRho(n) {
                     if (d > 1n) break;
                 }
 
-                if (i % 10000n === 0n) {
+                if (i % 20000n === 0n) {
                     await new Promise(resolve => setTimeout(resolve, 0));
                 }
             }
