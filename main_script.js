@@ -261,16 +261,22 @@ async function pollardsRho(n) {
     return null; // 最後まで因数が見つからなかった場合
 }
 
-function getRandomC() {
+function getRandomC(n) {
+    let digitCount = n.toString().length;
+    let maxC = digitCount <= 10 ? 10
+             : digitCount <= 20 ? 20
+             : digitCount <= 30 ? 50
+             : 100; // 30桁以上なら最大 100
+
     if (triedCs.size >= 10) triedCs.clear();
     let c;
     do {
-        c = BigInt((Math.floor(Math.random() * 10) * 2) + 1);
+        c = BigInt((Math.floor(Math.random() * maxC) * 2) + 1);
     } while (triedCs.has(c));
 
     triedCs.add(c);
 
-    console.log(`新しい c: ${c}`);
+    console.log(`新しい c: ${c} (範囲: 1 ～ ${maxC * 2 - 1})`);
     console.log(`試した c のリスト:`, [...triedCs].join(", "));
 
     return c;
