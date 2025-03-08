@@ -64,7 +64,6 @@ async function startFactorization() {
         document.getElementById("time").textContent = "";
         document.getElementById("spinner").style.display = "block";
         document.getElementById("loading").style.display = "flex";
-        document.getElementById("progress").style.display = "block";
         await new Promise(resolve => setTimeout(resolve, 10));
 
         isCalculating = true;
