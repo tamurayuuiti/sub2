@@ -1,7 +1,6 @@
 // ミラー・ラビン素数判定法
 import { isPrimeMillerRabin } from './millerRabin.js';
 
-let currentInput = null;
 let startTime = null;
 let isCalculating = false;
 let progressInterval = null;
