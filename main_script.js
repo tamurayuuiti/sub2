@@ -267,7 +267,7 @@ function getRandomC(n) {
     if (triedCs.size >= 10) triedCs.clear();
     let c;
     do {
-        c = BigInt((Math.floor(Math.random() * maxC) * 2) + 1);
+        c = BigInt(Math.random() * maxC * 2) | 1n;
     } while (triedCs.has(c));
 
     triedCs.add(c);
