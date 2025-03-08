@@ -62,7 +62,6 @@ async function startFactorization() {
 
         document.getElementById("result").textContent = "";
         document.getElementById("time").textContent = "";
-        document.getElementById("progress").textContent = "経過時間: 0.000 秒";
         document.getElementById("spinner").style.display = "block";
         document.getElementById("loading").style.display = "flex";
         document.getElementById("progress").style.display = "block";
@@ -70,7 +69,6 @@ async function startFactorization() {
 
         isCalculating = true;
         startTime = performance.now();
-        progressInterval = setInterval(updateProgress, 1);
 
         if (primes.length === 0) {
             await loadPrimes();
@@ -101,10 +99,8 @@ async function startFactorization() {
         document.getElementById("result").textContent = "計算中にエラーが発生しました";
     } finally {
         isCalculating = false;
-        clearInterval(progressInterval);
         document.getElementById("spinner").style.display = "none";
         document.getElementById("loading").style.display = "none";
-        document.getElementById("progress").style.display = "none";
     }
 }
 
