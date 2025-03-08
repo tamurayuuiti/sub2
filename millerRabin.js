@@ -46,4 +46,3 @@ export function powerMod(base, exp, mod) {
         }
         return result;
     }
-}
