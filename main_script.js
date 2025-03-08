@@ -250,7 +250,7 @@ async function pollardsRho(n) {
 
         if (d > 1n && d !== n) {
             console.log(`因数を発見: ${d} (試行回数: ${trialCount})`);
-            return d; // 因数が見つかった場合
+            return d;
         }
 
         console.log(`試行回数 ${MAX_TRIALS} 回を超過。c を変更して再試行 (${attempt + 1}/${MAX_ATTEMPTS})`);
@@ -258,7 +258,7 @@ async function pollardsRho(n) {
     }
 
     console.log(`最大試行回数を超えました。因数を見つけられませんでした: ${n}`);
-    return null; // 最後まで因数が見つからなかった場合
+    return null;
 }
 
 function getRandomC(n) {
@@ -266,7 +266,7 @@ function getRandomC(n) {
     let maxC = digitCount <= 10 ? 10
              : digitCount <= 20 ? 20
              : digitCount <= 30 ? 50
-             : 100; // 30桁以上なら最大 100
+             : 100;
 
     if (triedCs.size >= 10) triedCs.clear();
     let c;
@@ -284,10 +284,10 @@ function getRandomC(n) {
 
 function getMaxTrials(n) {
         let digitCount = n.toString().length;
-        return digitCount <= 10 ? 50n ** 3n  // 10桁以下 → 10⁴
-             : digitCount <= 20 ? 50n ** 4n  // 10～20桁 → 10⁵
-             : digitCount <= 30 ? 50n ** 5n  // 20～30桁 → 10⁶
-             : 50n ** 6n;                   // 30桁以上 → 10⁷
+        return digitCount <= 10 ? 50n ** 3n
+             : digitCount <= 20 ? 50n ** 4n
+             : digitCount <= 30 ? 50n ** 5n
+             : 50n ** 6n;
     }
 
 function gcd(a, b) {
@@ -316,5 +316,4 @@ function abs(n) {
     return n < 0n ? -n : n;
 }
 
-// 初回ロード時に素数データをプリロード
 loadPrimes();
