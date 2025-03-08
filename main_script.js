@@ -245,7 +245,7 @@ async function pollardsRho(n) {
 }
 
 function getDigitBasedParams(n) {
-    let digitCount = n.toString().length;
+    let digitCount = Math.floor(Math.log10(Number(n))) + 1;
 
     // `k` の値（GCD 計算頻度）
     let k = digitCount <= 10 ? 5n 
