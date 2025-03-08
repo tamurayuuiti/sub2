@@ -191,7 +191,7 @@ async function pollardsRho(n) {
     let attempt = 0; // `c` の変更回数
 
     while (true) { // `MAX_ATTEMPTS` の制限を撤廃
-        let MAX_TRIALS = 3000;
+        let MAX_TRIALS = 3000000;
         let x = 2n, y = 2n, d = 1n;
         let m = 128n, q = 1n;
         let c = getRandomC(n);
@@ -220,7 +220,7 @@ async function pollardsRho(n) {
                     if (d > 1n) break;
                 }
 
-                if (i % 3000n === 0n) {
+                if (i % 10000n === 0n) {
                     await new Promise(resolve => setTimeout(resolve, 0));
                 }
             }
