@@ -279,14 +279,18 @@ function getRandomC(n) {
 }
 
 function f(x, n, c) { 
+    if (typeof n === 'undefined') {
+        throw new Error("f(x, n, c) に渡された n が undefined です。");
+    }
+
     let digitCount = n.toString().length;
 
     if (digitCount <= 10) {
-        return (x * x + c) % n;  // 10桁以下: 単純な2次関数
+        return (x * x + c) % n;  
     } else if (digitCount <= 20) {
-        return ((x + c) * (x + c) + c) % n;  // 10～20桁: 変化を加えた2次関数
+        return ((x + c) * (x + c) + c) % n;  
     } else {
-        return ((x * x * x + c) % n);  // 20～30桁: 3次関数で探索範囲を広げる
+        return ((x * x * x + c) % n);  
     }
 }
 
