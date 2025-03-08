@@ -195,28 +195,23 @@ async function pollardsRho(n) {
     let attempt = 0; // c の変更回数
 
     while (attempt < MAX_ATTEMPTS) {
-        let MAX_TRIALS = 3000000 // 最大試行回数300万回
+        let MAX_TRIALS = 3000000;
         let x = 2n, y = 2n, d = 1n;
         let m = 128n, q = 1n;
-        let c = getRandomC(n); // 新しい c を取得
-        let trialCount = 0n; // 試行回数カウント
+        let c = getRandomC(n);
+        let trialCount = 0n;
 
-        x = f(x, n, c);
-        y = f(f(y, n, c), n, c);
+        let { k, fxFunction } = getDigitBasedParams(n);
 
-        let digitCount = n.toString().length;
-        let k = digitCount <= 10 ? 5n 
-                : digitCount <= 20 ? 10n 
-                : digitCount <= 30 ? 15n 
-                : digitCount <= 40 ? 20n 
-                : 25n;
+        x = fxFunction(x, c, n);
+        y = fxFunction(fxFunction(y, c, n), c, n);
 
         while (d === 1n && trialCount < MAX_TRIALS) {
             let ys = y;
             for (let i = 0n; i < m && trialCount < MAX_TRIALS; i++) {
-                y = f(f(y, n, c), n, c);
+                y = fxFunction(fxFunction(y, c, n), c, n);
                 q *= abs(x - y);
-                if (q >= n) q %= n; // mod を必要なときだけ適用
+                if (q >= n) q %= n;
                 trialCount++;
 
                 if (q === 0n) {
@@ -230,7 +225,7 @@ async function pollardsRho(n) {
                 }
 
                 if (i % 3000n === 0n) {
-                    await new Promise(resolve => setTimeout(resolve, 0));  
+                    await new Promise(resolve => setTimeout(resolve, 0));
                 }
             }
 
@@ -250,19 +245,42 @@ async function pollardsRho(n) {
         }
 
         console.log(`試行回数 ${MAX_TRIALS} 回を超過。c を変更して再試行 (${attempt + 1}/${MAX_ATTEMPTS})`);
-        attempt++; // c の変更回数をカウント
+        attempt++;
     }
 
     console.log(`最大試行回数を超えました。因数を見つけられませんでした: ${n}`);
     return null;
 }
 
-function getRandomC(n) {
+function getDigitBasedParams(n) {
     let digitCount = n.toString().length;
+
+    // `k` の値（GCD 計算頻度）
+    let k = digitCount <= 10 ? 5n 
+          : digitCount <= 20 ? 10n 
+          : digitCount <= 30 ? 15n 
+          : 25n;
+
+    // `maxC` の範囲（`c` の最大値）
     let maxC = digitCount <= 10 ? 10
              : digitCount <= 20 ? 20
-             : digitCount <= 30 ? 50
-             : 100;
+             : 50;
+
+    // `f(x)` の式
+    let fxFunction;
+    if (digitCount <= 10) {
+        fxFunction = (x, c, n) => (x * x + c) % n;
+    } else if (digitCount <= 20) {
+        fxFunction = (x, c, n) => ((x + c) * (x + c) + c) % n;
+    } else {
+        fxFunction = (x, c, n) => ((x * x * x + c) % n);
+    }
+
+    return { digitCount, k, maxC, fxFunction };
+}
+
+function getRandomC(n) {
+    let { maxC } = getDigitBasedParams(n);
 
     if (triedCs.size >= 10) triedCs.clear();
     let c;
@@ -278,15 +296,9 @@ function getRandomC(n) {
     return c;
 }
 
-function f(x, n, c) { 
-    let digitCount = n.toString().length;
-    if (digitCount <= 10) {
-        return (x * x + c) % n;  
-    } else if (digitCount <= 20) {
-        return ((x + c) * (x + c) + c) % n;  
-    } else {
-        return ((x * x * x + c) % n);  
-    }
+function f(x, n, c) {
+    let { fxFunction } = getDigitBasedParams(n);
+    return fxFunction(x, c, n);
 }
 
 function gcd(a, b) {
