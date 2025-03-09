@@ -157,7 +157,7 @@ async function pollardsRhoFactorization(number) {
 
         let factor = null;
         while (!factor || factor === number) {
-            console.log(`Pollard's rho を再試行: ${number}`);
+            console.log(`Pollard's rho を試行: ${number}`);
             factor = await pollardsRho(number);
 
             if (factor === null) {
