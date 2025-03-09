@@ -193,7 +193,7 @@ async function pollardsRho(n) {
 
         let { k, fxFunction, fxFunctionString, digitCount } = getDigitBasedParams(n, attempt);
 
-        console.log(`試行 ${attempt + 1} 回目: 使用中の f(x) = ${fxFunctionString}`);
+        console.log(`使用中の f(x) = ${fxFunctionString}`);
 
         // **21桁以上 & attempt >= 4 の場合、別の因数分解アルゴリズムへ移行**
         if (digitCount >= 21 && attempt >= 4) {
@@ -301,7 +301,7 @@ function getRandomC(n, attempt = 0) {
     let { maxC, fxFunctionString } = getDigitBasedParams(n, attempt);
     let c = BigInt((Math.floor(Math.random() * maxC) * 2) + 1);
 
-    console.log(`新しい c: ${c} (範囲: 1 ～ ${maxC * 2 - 1})`);
+    console.log(`試行 ${attempt + 1} 回目 c = ${c} (範囲: 1 ～ ${maxC * 2 - 1})`);
 
     return c;
 }
