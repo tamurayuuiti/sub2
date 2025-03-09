@@ -191,7 +191,8 @@ async function pollardsRho(n) {
         let c = getRandomC(n);
         let trialCount = 0n;
 
-        let { k, fxFunction } = getDigitBasedParams(n);
+        // `attempt` に応じた `fxFunction` を取得
+        let { k, fxFunction } = getDigitBasedParams(n, attempt);
 
         x = fxFunction(x, c, n);
         y = fxFunction(fxFunction(y, c, n), c, n);
@@ -235,11 +236,16 @@ async function pollardsRho(n) {
         }
 
         console.log(`試行回数 ${MAX_TRIALS} 回を超過。c を変更して再試行 (${attempt + 1}回目)`);
-        attempt++; // `attempt` はデバッグ用にカウントのみ残す
+        attempt++;
+
+        if (attempt > 4) {
+            console.log("試行回数が限界に達しました。");
+            return null;
+        }
     }
 }
 
-function getDigitBasedParams(n) {
+function getDigitBasedParams(n, attempt = 0) {
     let digitCount = Math.floor(Math.log10(Number(n))) + 1;
 
     // `k` の値（GCD 計算頻度）
@@ -253,14 +259,26 @@ function getDigitBasedParams(n) {
              : digitCount <= 20 ? 30
              : 50;
 
-    // `f(x)` の式
+    // `f(x)` の式（試行回数 `attempt` に応じて切り替え）
     let fxFunction;
+    
     if (digitCount <= 10) {
-        fxFunction = (x, c, n) => (x * x + c) % n;
+        fxFunction = (x, c, n) => (x * x + c) % n; // 標準 Pollard's Rho
     } else if (digitCount <= 20) {
         fxFunction = (x, c, n) => ((x + c) * (x + c) + c) % n;
     } else {
-        fxFunction = (x, c, n) => ((x * x * x + c) % n);
+        // **21桁以上の場合、`attempt` に応じて `fxFunction` を変更**
+        if (attempt === 0) {
+            fxFunction = (x, c, n) => ((x * x * x + c) % n); // 初回は x³ + c
+        } else if (attempt === 1) {
+            fxFunction = (x, c, n) => ((x * x + c * x) % n); // 失敗1回目 → x² + cx
+        } else if (attempt === 2) {
+            fxFunction = (x, c, n) => ((x * x * x + c * x) % n); // 失敗2回目 → x³ + cx
+        } else if (attempt === 3) {
+            fxFunction = (x, c, n) => ((x * x * x * x + c * x * x) % n); // 失敗3回目 → x⁴ + cx²
+        } else {
+            fxFunction = (x, c, n) => ((x * x * x * x * x + c * x * x * x) % n); // 失敗4回目 → x⁵ + cx³
+        }
     }
 
     return { digitCount, k, maxC, fxFunction };
