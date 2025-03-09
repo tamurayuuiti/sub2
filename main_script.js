@@ -258,32 +258,36 @@ function getDigitBasedParams(n, attempt = 0) {
              : digitCount <= 20 ? 30
              : 50;
 
-    // `f(x)` の式（試行回数 `attempt` に応じて切り替え）
+    // `MAX_TRIALS` の設定（各関数ごとに異なる試行回数を設定）
+    let MAX_TRIALS;
     let fxFunction;
     let fxFunctionString;
 
     if (digitCount <= 10) {
         fxFunction = (x, c, n) => (x * x + c) % n;
         fxFunctionString = "(x² + c) % n";
+        MAX_TRIALS = 1000000;
     } else if (digitCount <= 20) {
         fxFunction = (x, c, n) => ((x + c) * (x + c) + c) % n;
         fxFunctionString = "((x + c)² + c) % n";
+        MAX_TRIALS = 1000000;
     } else {
-        // **21桁以上の場合、`attempt = 2` まで fxFunction を変更**
         if (attempt === 0) {
             fxFunction = (x, c, n) => ((x * x * x + c) % n);
             fxFunctionString = "(x³ + c) % n";
+            MAX_TRIALS = 500000;
         } else if (attempt === 1) {
             fxFunction = (x, c, n) => ((x * x + c * x) % n);
             fxFunctionString = "(x² + c x) % n";
+            MAX_TRIALS = 3000000;
         } else {
-            // **attempt >= 2 の場合は別の因数分解アルゴリズムへ移行**
             fxFunction = null;
             fxFunctionString = "別の因数分解関数に移行";
+            MAX_TRIALS = 0;
         }
     }
 
-    return { digitCount, k, maxC, fxFunction, fxFunctionString };
+    return { digitCount, k, maxC, fxFunction, fxFunctionString, MAX_TRIALS };
 }
 
 function getRandomC(n, attempt = 0) {
