@@ -272,18 +272,15 @@ function getDigitBasedParams(n, attempt = 0) {
         fxFunction = (x, c, n) => ((x + c) * (x + c) + c) % n;
         fxFunctionString = "((x + c)² + c) % n";
     } else {
-        // **21桁以上の場合、`attempt = 3` まで fxFunction を変更**
+        // **21桁以上の場合、`attempt = 2` まで fxFunction を変更**
         if (attempt === 0) {
             fxFunction = (x, c, n) => ((x * x * x + c) % n);
             fxFunctionString = "(x³ + c) % n";
         } else if (attempt === 1) {
             fxFunction = (x, c, n) => ((x * x + c * x) % n);
             fxFunctionString = "(x² + c x) % n";
-        } else if (attempt === 2) {
-            fxFunction = (x, c, n) => ((x * x * x + c * x) % n);
-            fxFunctionString = "(x³ + c x) % n";
         } else {
-            // **attempt >= 3 の場合は別の因数分解アルゴリズムへ移行**
+            // **attempt >= 2 の場合は別の因数分解アルゴリズムへ移行**
             fxFunction = null;
             fxFunctionString = "別の因数分解関数に移行";
         }
