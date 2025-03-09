@@ -238,7 +238,7 @@ async function pollardsRho(n) {
         console.log(`試行回数 ${MAX_TRIALS} 回を超過。c を変更して再試行 (${attempt + 1}回目)`);
         attempt++;
 
-        if (attempt > 4) {
+        if (attempt > 10) {
             console.log("試行回数が限界に達しました。");
             return null;
         }
