@@ -296,7 +296,7 @@ function getRandomC(n, attempt = 0) {
     let { maxC, fxFunctionString } = getDigitBasedParams(n, attempt);
     let c = BigInt((Math.floor(Math.random() * maxC) * 2) + 1);
 
-    console.log(`新しい c: ${c} (範囲: 1 ～ ${maxC * 2 - 1}), 使用中の f(x) = ${fxFunctionString}`);
+    console.log(`新しい c: ${c} (範囲: 1 ～ ${maxC * 2 - 1}`);
 
     return c;
 }
