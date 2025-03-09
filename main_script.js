@@ -160,9 +160,9 @@ async function pollardsRhoFactorization(number) {
             console.log(`Pollard's rho を再試行: ${number}`);
             factor = await pollardsRho(number);
 
-            if (factor === null || factor === 1n) {
-                console.error(`エラー: 因数を見つけられませんでした: ${number}`);
-                return factors;
+            if (factor === null) {
+                console.error(`Pollard's Rho では因数を見つけられませんでした。新しい処理に移行`);
+                return await alternativeFactorization(number);  // **新しい処理（仮）へ移行**
             }
         }
 
