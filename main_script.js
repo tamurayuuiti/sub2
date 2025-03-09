@@ -261,34 +261,42 @@ function getDigitBasedParams(n, attempt = 0) {
 
     // `f(x)` の式（試行回数 `attempt` に応じて切り替え）
     let fxFunction;
-    
+    let fxFunctionString;
+
     if (digitCount <= 10) {
-        fxFunction = (x, c, n) => (x * x + c) % n; // 標準 Pollard's Rho
+        fxFunction = (x, c, n) => (x * x + c) % n;
+        fxFunctionString = "(x² + c) % n";
     } else if (digitCount <= 20) {
         fxFunction = (x, c, n) => ((x + c) * (x + c) + c) % n;
+        fxFunctionString = "((x + c)² + c) % n";
     } else {
         // **21桁以上の場合、`attempt` に応じて `fxFunction` を変更**
         if (attempt === 0) {
-            fxFunction = (x, c, n) => ((x * x * x + c) % n); // 初回は x³ + c
+            fxFunction = (x, c, n) => ((x * x * x + c) % n);
+            fxFunctionString = "(x³ + c) % n";
         } else if (attempt === 1) {
-            fxFunction = (x, c, n) => ((x * x + c * x) % n); // 失敗1回目 → x² + cx
+            fxFunction = (x, c, n) => ((x * x + c * x) % n);
+            fxFunctionString = "(x² + c x) % n";
         } else if (attempt === 2) {
-            fxFunction = (x, c, n) => ((x * x * x + c * x) % n); // 失敗2回目 → x³ + cx
+            fxFunction = (x, c, n) => ((x * x * x + c * x) % n);
+            fxFunctionString = "(x³ + c x) % n";
         } else if (attempt === 3) {
-            fxFunction = (x, c, n) => ((x * x * x * x + c * x * x) % n); // 失敗3回目 → x⁴ + cx²
+            fxFunction = (x, c, n) => ((x * x * x * x + c * x * x) % n);
+            fxFunctionString = "(x⁴ + c x²) % n";
         } else {
-            fxFunction = (x, c, n) => ((x * x * x * x * x + c * x * x * x) % n); // 失敗4回目 → x⁵ + cx³
+            fxFunction = (x, c, n) => ((x * x * x * x * x + c * x * x * x) % n);
+            fxFunctionString = "(x⁵ + c x³) % n";
         }
     }
 
-    return { digitCount, k, maxC, fxFunction };
+    return { digitCount, k, maxC, fxFunction, fxFunctionString };
 }
 
-function getRandomC(n) {
-    let { maxC } = getDigitBasedParams(n);
+function getRandomC(n, attempt = 0) {
+    let { maxC, fxFunctionString } = getDigitBasedParams(n, attempt);
     let c = BigInt((Math.floor(Math.random() * maxC) * 2) + 1);
 
-    console.log(`新しい c: ${c} (範囲: 1 ～ ${maxC * 2 - 1})`);
+    console.log(`新しい c: ${c} (範囲: 1 ～ ${maxC * 2 - 1}), 使用中の f(x) = ${fxFunctionString}`);
 
     return c;
 }
