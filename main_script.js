@@ -195,9 +195,9 @@ async function pollardsRho(n) {
 
         console.log(`使用中の f(x) = ${fxFunctionString}`);
 
-        // **21桁以上 & attempt >= 4 の場合、別の因数分解アルゴリズムへ移行**
-        if (digitCount >= 21 && attempt >= 4) {
-            console.log(`試行 ${attempt + 1} 回目: Pollard’s Rho では因数を発見できず。別のアルゴリズムに移行`);
+        // **21桁以上 & attempt >= 3 の場合、新しい処理（仮）へ移行**
+        if (digitCount >= 21 && attempt >= 3) {
+            console.log(`試行 ${attempt + 1} 回目: Pollard’s Rho では因数を発見できず。新しい処理に移行`);
             return alternativeFactorization(n);
         }
 
@@ -244,11 +244,6 @@ async function pollardsRho(n) {
 
         console.log(`試行回数 ${MAX_TRIALS} 回を超過。c を変更して再試行 (${attempt + 1}回目)`);
         attempt++;
-
-        if (attempt > 10) {
-            console.log("試行回数が限界に達しました。");
-            return null;
-        }
     }
 }
 
