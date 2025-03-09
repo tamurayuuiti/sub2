@@ -185,7 +185,7 @@ async function pollardsRho(n) {
     let attempt = 0;
 
     while (true) {
-        let MAX_TRIALS = 1000000;
+        let MAX_TRIALS = 500000;
         let trialCount = 0n;
         let x = 2n, y = 2n, d = 1n;
         let m = 128n, q = 1n;
