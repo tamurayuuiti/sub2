@@ -186,13 +186,13 @@ async function pollardsRho(n) {
 
     while (true) {
         let MAX_TRIALS = 3000000;
+        let trialCount = 0n;
         let x = 2n, y = 2n, d = 1n;
         let m = 128n, q = 1n;
-        let c = getRandomC(n);
-        let trialCount = 0n;
-
-        // `attempt` に応じた `fxFunction` を取得
+        let c = getRandomC(n, attempt);
         let { k, fxFunction } = getDigitBasedParams(n, attempt);
+
+        console.log(`試行 ${attempt + 1} 回目: 使用中の f(x) = ${fxFunction}`);
 
         x = fxFunction(x, c, n);
         y = fxFunction(fxFunction(y, c, n), c, n);
