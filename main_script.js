@@ -283,9 +283,12 @@ function getDigitBasedParams(n, attempt = 0) {
         } else if (attempt === 3) {
             fxFunction = (x, c, n) => ((x * x * x + c * x * x + c) % n);
             fxFunctionString = "(x³ + c x² + c) % n"; 
-        } else {
+        } else if (attempt === 4) {
             fxFunction = (x, c, n) => ((x * x * x * x + c * x * x + c) % n);
             fxFunctionString = "(x⁴ + c x² + c) % n"; 
+        } else {
+            fxFunction = (x, c, n) => ((x * x * x * x + c * x * x + x + c) % n);
+            fxFunctionString = "(x⁴ + c x² + x + c) % n"; 
         }
     }
 
