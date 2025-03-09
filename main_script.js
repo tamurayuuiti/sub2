@@ -182,7 +182,7 @@ async function pollardsRhoFactorization(number) {
 }
 
 async function pollardsRho(n) {
-    let attempt = 0; // `c` の変更回数
+    let attempt = 0;
 
     while (true) {
         let MAX_TRIALS = 3000000;
@@ -190,9 +190,16 @@ async function pollardsRho(n) {
         let x = 2n, y = 2n, d = 1n;
         let m = 128n, q = 1n;
         let c = getRandomC(n, attempt);
-        let { k, fxFunction } = getDigitBasedParams(n, attempt);
 
-        console.log(`試行 ${attempt + 1} 回目: 使用中の f(x) = ${fxFunction}`);
+        let { k, fxFunction, fxFunctionString, digitCount } = getDigitBasedParams(n, attempt);
+
+        console.log(`試行 ${attempt + 1} 回目: 使用中の f(x) = ${fxFunctionString}`);
+
+        // **21桁以上 & attempt >= 4 の場合、別の因数分解アルゴリズムへ移行**
+        if (digitCount >= 21 && attempt >= 4) {
+            console.log(`試行 ${attempt + 1} 回目: Pollard’s Rho では因数を発見できず。別のアルゴリズムに移行`);
+            return alternativeFactorization(n);
+        }
 
         x = fxFunction(x, c, n);
         y = fxFunction(fxFunction(y, c, n), c, n);
