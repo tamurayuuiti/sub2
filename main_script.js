@@ -185,18 +185,15 @@ async function pollardsRho(n) {
     let attempt = 0;
 
     while (true) {
-        let MAX_TRIALS = 1000000;
+        let { k, fxFunction, fxFunctionString, digitCount, MAX_TRIALS } = getDigitBasedParams(n, attempt);
         let trialCount = 0n;
         let x = 2n, y = 2n, d = 1n;
         let m = 128n, q = 1n;
         let c = getRandomC(n, attempt);
 
-        let { k, fxFunction, fxFunctionString, digitCount } = getDigitBasedParams(n, attempt);
+        console.log(`試行 ${attempt + 1} 回目: 使用中の f(x) = ${fxFunctionString}, MAX_TRIALS = ${MAX_TRIALS}`);
 
-        console.log(`使用中の f(x) = ${fxFunctionString}`);
-
-        // **21桁以上 & attempt >= 3 の場合、新しい処理（仮）へ移行**
-        if (digitCount >= 21 && attempt >= 3) {
+        if (digitCount >= 21 && attempt >= 2) {
             console.log(`試行 ${attempt + 1} 回目: Pollard’s Rho では因数を発見できず。新しい処理に移行`);
             return alternativeFactorization(n);
         }
@@ -204,9 +201,9 @@ async function pollardsRho(n) {
         x = fxFunction(x, c, n);
         y = fxFunction(fxFunction(y, c, n), c, n);
 
-        while (d === 1n && trialCount < MAX_TRIALS) {
+        while (d === 1n && trialCount < BigInt(MAX_TRIALS)) {
             let ys = y;
-            for (let i = 0n; i < m && trialCount < MAX_TRIALS; i++) {
+            for (let i = 0n; i < m && trialCount < BigInt(MAX_TRIALS); i++) {
                 y = fxFunction(fxFunction(y, c, n), c, n);
                 q *= abs(x - y);
                 if (q >= n) q %= n;
@@ -223,7 +220,7 @@ async function pollardsRho(n) {
                 }
 
                 if (i % 1000000n === 0n) {
-                     await new Promise(resolve => setTimeout(resolve, 0));
+                    await new Promise(resolve => setTimeout(resolve, 0));
                 }
             }
 
@@ -293,7 +290,7 @@ function getRandomC(n, attempt = 0) {
     let { maxC, fxFunctionString } = getDigitBasedParams(n, attempt);
     let c = BigInt((Math.floor(Math.random() * maxC) * 2) + 1);
 
-    console.log(`試行 ${attempt + 1} 回目 c = ${c} (範囲: 1 ～ ${maxC * 2 - 1})`);
+    console.log(`試行 ${attempt + 1} 回目: 使用中の c = ${c} (範囲: 1 ～ ${maxC * 2 - 1})`);
 
     return c;
 }
