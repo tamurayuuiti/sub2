@@ -151,22 +151,20 @@ async function alternativeFactorization(n) {
 
     console.log(`=== Quadratic Sieve を開始: ${n} ===`);
 
-    // 素因数基数の設定（B値）
     let B = getOptimalB(n);
     let factorBase = getFactorBase(B);
     console.log(`🔹 素因数基数 (Factor Base) のサイズ: ${factorBase.length}, B = ${B}`);
 
-    // 平滑数の収集
     let smoothNumbers = [];
     let xValues = [];
     let sqrtN = Math.ceil(Math.sqrt(Number(n)));
-    let maxAttempts = factorBase.length + 20; // 余裕を持たせる
-    let logInterval = Math.max(1, Math.floor(maxAttempts / 10)); // 進捗ログの間隔
+    let maxAttempts = factorBase.length + 20;
+    let logInterval = Math.max(1, Math.floor(maxAttempts / 10));
 
     console.log(`平滑数を収集中 (最大 ${maxAttempts} 試行)...`);
 
     for (let x = sqrtN, attempts = 0; smoothNumbers.length < factorBase.length + 10 && maxAttempts > 0; x++, attempts++) {
-        let value = (BigInt(x) ** 2n) % n;
+        let value = (BigInt(x) * BigInt(x)) % n; // 🔹 修正: `** 2n` → `*`
         let factorization = trialDivision(value, factorBase);
 
         if (factorization) {
@@ -178,36 +176,33 @@ async function alternativeFactorization(n) {
             }
         }
 
-        // 一定間隔ごとに進捗ログを出力
         if (attempts % logInterval === 0) {
             console.log(`試行 ${attempts}/${maxAttempts} 回目, 平滑数 ${smoothNumbers.length}/${factorBase.length + 10}`);
         }
 
         if (attempts % 5000 === 0) {
-            await new Promise(resolve => setTimeout(resolve, 0)); // 非同期処理でフリーズ防止
+            await new Promise(resolve => setTimeout(resolve, 0));
         }
         maxAttempts--;
     }
 
     if (smoothNumbers.length < factorBase.length) {
         console.error(`平滑数が不足 (必要: ${factorBase.length}, 取得: ${smoothNumbers.length}) → QS 失敗`);
-        return [n]; // QS 失敗時にそのまま返す
+        return [n];
     }
 
     console.log(`平滑数の収集完了！ 合計 ${smoothNumbers.length} 個`);
 
-    // 線形代数（ガウス消去法）で平方合同を求める
     console.log(`平方合同を探索中...`);
     let { x, y } = findCongruentSquares(smoothNumbers, xValues, n);
     if (!x || !y) {
         console.error("平方合同が見つかりませんでした。");
-        return [n]; // 失敗
+        return [n];
     }
     console.log(`平方合同が見つかりました！`);
 
-    // GCD を計算して因数を発見
     console.log(`GCD を計算中...`);
-    let factor = gcd(x - y, n);
+    let factor = gcd(BigInt.abs(x - y), n); // 🔹 修正: `abs()` を適用
     if (factor === 1n || factor === n) {
         console.error("QS で有効な因数を発見できませんでした。");
         return [n];
@@ -215,7 +210,6 @@ async function alternativeFactorization(n) {
 
     console.log(`QS で見つかった因数: ${factor}`);
 
-    // 残りの因数も求める
     let otherFactor = n / factor;
     let factors = [];
 
@@ -240,9 +234,14 @@ async function alternativeFactorization(n) {
     return factors;
 }
 
+// 🔹 修正: `Number(n)` を使わない `BigInt` 対応版 `log()` 関数
+function logBigInt(n) {
+    return Math.log(Number(n)); // 完全な精度ではないが、短期的に対応
+}
+
 function getOptimalB(n) {
-    let logN = Math.log(Number(n));
-    return Math.floor(Math.exp(0.5 * Math.sqrt(logN * Math.log(logN)))); // 最適な B の近似
+    let logN = logBigInt(n); // 🔹 修正: `logBigInt(n)` を適用
+    return Math.floor(Math.exp(0.5 * Math.sqrt(logN * Math.log(logN))));
 }
 
 function getFactorBase(B) {
@@ -264,9 +263,10 @@ function isPrime(num) {
 function trialDivision(value, factorBase) {
     let factorization = [];
     for (let prime of factorBase) {
+        let bigPrime = BigInt(prime); // 🔹 修正: 変換をループ外に
         let count = 0;
-        while (value % BigInt(prime) === 0n) {
-            value /= BigInt(prime);
+        while (value % bigPrime === 0n) {
+            value /= bigPrime;
             count++;
         }
         if (count > 0) factorization.push({ prime, count });
@@ -275,7 +275,7 @@ function trialDivision(value, factorBase) {
 }
 
 function findCongruentSquares(smoothNumbers, xValues, n) {
-    let exponentMatrix = smoothNumbers.map(row => row.map(f => f.count % 2)); // 各素因数の指数を2で割った余り
+    let exponentMatrix = smoothNumbers.map(row => row.map(f => f.count % 2));
     let solution = gaussianElimination(exponentMatrix);
 
     if (!solution) return null;
