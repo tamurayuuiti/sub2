@@ -144,4 +144,70 @@ async function trialDivisionFromFile(number) {
     return { factors, remainder: number };
 }
 
+async function alternativeFactorization(n) {
+    if (typeof n !== "bigint") {
+        throw new TypeError(`エラー: alternativeFactorization() に渡された number (${n}) が BigInt ではありません。`);
+    }
+
+    console.log(`Quadratic Sieve を開始: ${n}`);
+
+    // 素因数基数の設定（B値）
+    let B = getOptimalB(n);
+    let factorBase = getFactorBase(B);
+    console.log(`素因数基数 (Factor Base) のサイズ: ${factorBase.length}`);
+
+    // 平滑数の収集
+    let smoothNumbers = [];
+    let xValues = [];
+    for (let x = Math.ceil(Math.sqrt(Number(n))); smoothNumbers.length < factorBase.length + 10; x++) {
+        let value = (BigInt(x) ** 2n) % n;
+        let factorization = trialDivision(value, factorBase);
+
+        if (factorization) {
+            smoothNumbers.push(factorization);
+            xValues.push(BigInt(x));
+        }
+
+        if (x % 10000 === 0) await new Promise(resolve => setTimeout(resolve, 0)); // 非同期処理
+    }
+
+    console.log(`平滑数を ${smoothNumbers.length} 個収集`);
+
+    // 線形代数（ガウス消去法）で平方合同を求める
+    let { x, y } = findCongruentSquares(smoothNumbers, xValues, n);
+    if (!x || !y) {
+        console.error("平方合同が見つかりませんでした。");
+        return [n]; // QS 失敗時にそのまま返す
+    }
+
+    // GCD を計算して因数を発見
+    let factor = gcd(x - y, n);
+    if (factor === 1n || factor === n) {
+        console.error("QS で因数を発見できませんでした。");
+        return [n];
+    }
+
+    console.log(`QS で見つかった因数: ${factor}`);
+
+    // 残りの因数も求める
+    let otherFactor = n / factor;
+    let factors = [];
+
+    if (isPrimeMillerRabin(factor)) {
+        factors.push(factor);
+    } else {
+        let subFactors = await alternativeFactorization(factor);
+        factors = factors.concat(subFactors);
+    }
+
+    if (isPrimeMillerRabin(otherFactor)) {
+        factors.push(otherFactor);
+    } else {
+        let subFactors = await alternativeFactorization(otherFactor);
+        factors = factors.concat(subFactors);
+    }
+
+    return factors;
+}
+
 loadPrimes();
