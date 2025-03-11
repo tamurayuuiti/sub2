@@ -54,8 +54,8 @@ export async function pollardsRho(n) {
         console.log(`試行 ${attempt + 1} 回目: 使用中の f(x) = ${fxFunctionString}, MAX_TRIALS = ${MAX_TRIALS}`);
 
         if (digitCount >= 21 && attempt >= 2) {
-            console.log(`試行 ${attempt + 1} 回目: Pollard’s Rho では因数を発見できず。新しい処理に移行`);
-            return alternativeFactorization(n);
+            console.log(`試行 ${attempt + 1} 回目: Pollard's Rho では因数を発見できませんでした。`);
+            return ["FAIL"];
         }
 
         x = fxFunction(x, c, n);
