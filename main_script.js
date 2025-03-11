@@ -192,9 +192,6 @@ async function alternativeFactorization(n) {
 
     console.log(`平滑数の収集完了！ 合計 ${smoothNumbers.length} 個`);
     
-    return smoothNumbers;
-}
-
     console.log(`平方合同を探索中...`);
     let { x, y } = findCongruentSquares(smoothNumbers, xValues, n);
     if (!x || !y) {
