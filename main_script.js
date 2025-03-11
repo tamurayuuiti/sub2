@@ -171,7 +171,7 @@ async function alternativeFactorization(n) {
             smoothNumbers.push(factorization);
             xValues.push(BigInt(x));
 
-            if (smoothNumbers.length % 10 === 0) {
+            if (smoothNumbers.length % 1 === 0) {
                 console.log(`平滑数 ${smoothNumbers.length}/${factorBase.length + 10} 取得`);
             }
         }
