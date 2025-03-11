@@ -85,10 +85,14 @@ async function startFactorization() {
 
         if (remainder > 1n) {
             console.log(`Pollard's rhoを開始: n = ${remainder}`);
+            let extraFactors = await pollardsRhoFactorization(remainder);
 
-            let extraFactors;
-            extraFactors = await pollardsRhoFactorization(remainder);
-
+            // **Pollard's Rho で因数分解できなかった場合**
+            if (extraFactors.includes("FAIL")) {
+                console.error(`Pollard's Rho では因数を発見できませんでした。Quadratic Sieve に移行`);
+                extraFactors = await alternativeFactorization(remainder);
+            }
+            
             factors = factors.concat(extraFactors);
         }
 
