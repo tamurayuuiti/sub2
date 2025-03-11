@@ -149,66 +149,81 @@ async function alternativeFactorization(n) {
         throw new TypeError(`エラー: alternativeFactorization() に渡された number (${n}) が BigInt ではありません。`);
     }
 
-    console.log(`Quadratic Sieve を開始: ${n}`);
+    console.log(`=== Quadratic Sieve を開始: ${n} ===`);
 
     // 素因数基数の設定（B値）
     let B = getOptimalB(n);
     let factorBase = getFactorBase(B);
-    console.log(`素因数基数 (Factor Base) のサイズ: ${factorBase.length}`);
+    console.log(`🔹 素因数基数 (Factor Base) のサイズ: ${factorBase.length}, B = ${B}`);
 
     // 平滑数の収集
     let smoothNumbers = [];
     let xValues = [];
-    for (let x = Math.ceil(Math.sqrt(Number(n))); smoothNumbers.length < factorBase.length + 10; x++) {
+    let sqrtN = Math.ceil(Math.sqrt(Number(n)));
+    let maxAttempts = factorBase.length + 20; // 余裕を持たせる
+
+    console.log(`⏳ 平滑数を収集中...`);
+    for (let x = sqrtN; smoothNumbers.length < factorBase.length + 10 && maxAttempts > 0; x++) {
         let value = (BigInt(x) ** 2n) % n;
         let factorization = trialDivision(value, factorBase);
 
         if (factorization) {
             smoothNumbers.push(factorization);
             xValues.push(BigInt(x));
+
+            if (smoothNumbers.length % 10 === 0) {
+                console.log(`✅ 平滑数を ${smoothNumbers.length} 個発見`);
+            }
         }
 
         if (x % 10000 === 0) await new Promise(resolve => setTimeout(resolve, 0)); // 非同期処理
+        maxAttempts--;
     }
 
-    console.log(`平滑数を ${smoothNumbers.length} 個収集`);
-
-    // 平滑数が足りない場合はエラー
     if (smoothNumbers.length < factorBase.length) {
-        console.error("平滑数が不足。QS 失敗。");
+        console.error(`❌ 平滑数が不足 (必要: ${factorBase.length}, 取得: ${smoothNumbers.length}) → QS 失敗`);
         return [n]; // QS 失敗時にそのまま返す
     }
 
+    console.log(`✅ 平滑数の収集完了！ 合計 ${smoothNumbers.length} 個`);
+
     // 線形代数（ガウス消去法）で平方合同を求める
+    console.log(`⏳ 平方合同を探索中...`);
     let { x, y } = findCongruentSquares(smoothNumbers, xValues, n);
     if (!x || !y) {
-        console.error("平方合同が見つかりませんでした。");
-        return [n];
+        console.error("❌ 平方合同が見つかりませんでした。");
+        return [n]; // 失敗
     }
+    console.log(`✅ 平方合同が見つかりました！`);
 
     // GCD を計算して因数を発見
+    console.log(`⏳ GCD を計算中...`);
     let factor = gcd(x - y, n);
     if (factor === 1n || factor === n) {
-        console.error("QS で因数を発見できませんでした。");
+        console.error("❌ QS で有効な因数を発見できませんでした。");
         return [n];
     }
 
-    console.log(`QS で見つかった因数: ${factor}`);
+    console.log(`🎯 QS で見つかった因数: ${factor}`);
 
     // 残りの因数も求める
     let otherFactor = n / factor;
     let factors = [];
 
     if (isPrimeMillerRabin(factor)) {
+        console.log(`🔹 ${factor} は素数`);
         factors.push(factor);
     } else {
+        console.log(`🔹 ${factor} は合成数 → 再帰処理`);
         let subFactors = await alternativeFactorization(factor);
         factors = factors.concat(subFactors);
     }
 
     if (isPrimeMillerRabin(otherFactor)) {
+        console.log(`🔹 ${otherFactor} は素数`);
         factors.push(otherFactor);
     } else {
+        console.log(`🔹 ${otherFactor} は合成数 → 再帰処理`);
         let subFactors = await alternativeFactorization(otherFactor);
         factors = factors.concat(subFactors);
     }
