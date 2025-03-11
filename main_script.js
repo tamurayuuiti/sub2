@@ -163,7 +163,7 @@ async function alternativeFactorization(n) {
     let maxAttempts = factorBase.length + 20; // 余裕を持たせる
     let logInterval = Math.max(1, Math.floor(maxAttempts / 10)); // 進捗ログの間隔
 
-    console.log(`⏳ 平滑数を収集中 (最大 ${maxAttempts} 試行)...`);
+    console.log(`平滑数を収集中 (最大 ${maxAttempts} 試行)...`);
 
     for (let x = sqrtN, attempts = 0; smoothNumbers.length < factorBase.length + 10 && maxAttempts > 0; x++, attempts++) {
         let value = (BigInt(x) ** 2n) % n;
@@ -174,13 +174,13 @@ async function alternativeFactorization(n) {
             xValues.push(BigInt(x));
 
             if (smoothNumbers.length % 10 === 0) {
-                console.log(`✅ 平滑数 ${smoothNumbers.length}/${factorBase.length + 10} 取得`);
+                console.log(`平滑数 ${smoothNumbers.length}/${factorBase.length + 10} 取得`);
             }
         }
 
         // 一定間隔ごとに進捗ログを出力
         if (attempts % logInterval === 0) {
-            console.log(`⏳ 試行 ${attempts}/${maxAttempts} 回目, 平滑数 ${smoothNumbers.length}/${factorBase.length + 10}`);
+            console.log(`試行 ${attempts}/${maxAttempts} 回目, 平滑数 ${smoothNumbers.length}/${factorBase.length + 10}`);
         }
 
         if (attempts % 5000 === 0) {
@@ -190,30 +190,30 @@ async function alternativeFactorization(n) {
     }
 
     if (smoothNumbers.length < factorBase.length) {
-        console.error(`❌ 平滑数が不足 (必要: ${factorBase.length}, 取得: ${smoothNumbers.length}) → QS 失敗`);
+        console.error(`平滑数が不足 (必要: ${factorBase.length}, 取得: ${smoothNumbers.length}) → QS 失敗`);
         return [n]; // QS 失敗時にそのまま返す
     }
 
-    console.log(`✅ 平滑数の収集完了！ 合計 ${smoothNumbers.length} 個`);
+    console.log(`平滑数の収集完了！ 合計 ${smoothNumbers.length} 個`);
 
     // 線形代数（ガウス消去法）で平方合同を求める
-    console.log(`⏳ 平方合同を探索中...`);
+    console.log(`平方合同を探索中...`);
     let { x, y } = findCongruentSquares(smoothNumbers, xValues, n);
     if (!x || !y) {
-        console.error("❌ 平方合同が見つかりませんでした。");
+        console.error("平方合同が見つかりませんでした。");
         return [n]; // 失敗
     }
-    console.log(`✅ 平方合同が見つかりました！`);
+    console.log(`平方合同が見つかりました！`);
 
     // GCD を計算して因数を発見
-    console.log(`⏳ GCD を計算中...`);
+    console.log(`GCD を計算中...`);
     let factor = gcd(x - y, n);
     if (factor === 1n || factor === n) {
-        console.error("❌ QS で有効な因数を発見できませんでした。");
+        console.error("QS で有効な因数を発見できませんでした。");
         return [n];
     }
 
-    console.log(`🎯 QS で見つかった因数: ${factor}`);
+    console.log(`QS で見つかった因数: ${factor}`);
 
     // 残りの因数も求める
     let otherFactor = n / factor;
