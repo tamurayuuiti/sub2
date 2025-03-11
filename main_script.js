@@ -163,7 +163,7 @@ async function alternativeFactorization(n) {
     let xValues = [];
     let sqrtN = Math.ceil(Math.sqrt(Number(n)));
     let minSmoothCount = factorBase.length;
-    let maxAttempts = Math.max(minSmoothCount * 1.5, sqrtN / 2); // 🔹 動的に調整
+    let maxAttempts = Math.max(minSmoothCount * 2, sqrtN); // 🔹 動的調整
 
     console.log(`平滑数を収集中 (最大 ${maxAttempts} 試行)...`);
 
@@ -230,6 +230,17 @@ async function alternativeFactorization(n) {
     return factors;
 }
 
+// ✅ `BigInt` 対応の `log()` 関数を追加
+function logBigInt(n) {
+    let digits = n.toString().length;
+    return digits * Math.log(10);
+}
+
+function getOptimalB(n) {
+    let logN = logBigInt(n); // 🔹 `BigInt` 対応
+    return Math.floor(Math.exp(0.5 * Math.sqrt(logN * Math.log(logN))));
+}
+
 // ✅ エラトステネスの篩の最適化
 function getFactorBase(B) {
     let sieve = new Array(B + 1).fill(true);
@@ -260,15 +271,15 @@ function trialDivision(value, factorBase) {
     return value === 1n ? factorization : null;
 }
 
-// ✅ ガウス消去法の `BitSet` を最適化
+// ✅ `BitSet` を使ったガウス消去法の最適化
 function gaussianElimination(matrix) {
     let rows = matrix.length, cols = matrix[0].length;
-    let bitMatrix = new Array(rows).fill(0).map(() => new Uint8Array(Math.ceil(cols / 8))); // 🔹 Uint8Array で最適化
+    let bitMatrix = new Array(rows).fill(0).map(() => new Uint8Array(Math.ceil(cols / 8)));
 
     for (let r = 0; r < rows; r++) {
         for (let c = 0; c < cols; c++) {
             if (matrix[r][c]) {
-                bitMatrix[r][Math.floor(c / 8)] |= (1 << (c % 8));
+                bitMatrix[r][c >> 3] |= (1 << (c & 7));
             }
         }
     }
@@ -277,7 +288,7 @@ function gaussianElimination(matrix) {
     for (let col = 0; col < cols; col++) {
         let pivotRow = -1;
         for (let row = col; row < rows; row++) {
-            if (bitMatrix[row][Math.floor(col / 8)] & (1 << (col % 8))) {
+            if (bitMatrix[row][col >> 3] & (1 << (col & 7))) {
                 pivotRow = row;
                 break;
             }
@@ -287,10 +298,8 @@ function gaussianElimination(matrix) {
         [bitMatrix[col], bitMatrix[pivotRow]] = [bitMatrix[pivotRow], bitMatrix[col]];
 
         for (let row = 0; row < rows; row++) {
-            if (row !== col && (bitMatrix[row][Math.floor(col / 8)] & (1 << (col % 8)))) {
-                for (let c = 0; c < bitMatrix[row].length; c++) {
-                    bitMatrix[row][c] ^= bitMatrix[col][c];
-                }
+            if (row !== col && (bitMatrix[row][col >> 3] & (1 << (col & 7)))) {
+                bitMatrix[row].set(bitMatrix[col], 0); // 🔹 `set()` を使用
             }
         }
     }
@@ -298,19 +307,14 @@ function gaussianElimination(matrix) {
     for (let row = 0; row < rows; row++) {
         if (bitMatrix[row].every(v => v === 0)) continue;
         for (let col = 0; col < cols; col++) {
-            if (bitMatrix[row][Math.floor(col / 8)] & (1 << (col % 8))) {
-                solution[Math.floor(col / 8)] |= (1 << (col % 8));
+            if (bitMatrix[row][col >> 3] & (1 << (col & 7))) {
+                solution[col >> 3] |= (1 << (col & 7));
                 break;
             }
         }
     }
 
     return solution.some(v => v !== 0) ? solution : null;
-}
-
-function getOptimalB(n) {
-    let logN = Math.log(Number(n));
-    return Math.floor(Math.exp(0.5 * Math.sqrt(logN * Math.log(logN))));
 }
 
 loadPrimes();
