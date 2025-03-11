@@ -304,4 +304,9 @@ function gaussianElimination(matrix) {
     return solution.some(v => v !== 0) ? solution : null;
 }
 
+function getOptimalB(n) {
+    let logN = Math.log(Number(n));
+    return Math.floor(Math.exp(0.5 * Math.sqrt(logN * Math.log(logN))));
+}
+
 loadPrimes();
