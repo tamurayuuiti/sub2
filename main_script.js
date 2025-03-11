@@ -161,9 +161,11 @@ async function alternativeFactorization(n) {
     let xValues = [];
     let sqrtN = Math.ceil(Math.sqrt(Number(n)));
     let maxAttempts = factorBase.length + 20; // 余裕を持たせる
+    let logInterval = Math.max(1, Math.floor(maxAttempts / 10)); // 進捗ログの間隔
 
-    console.log(`⏳ 平滑数を収集中...`);
-    for (let x = sqrtN; smoothNumbers.length < factorBase.length + 10 && maxAttempts > 0; x++) {
+    console.log(`⏳ 平滑数を収集中 (最大 ${maxAttempts} 試行)...`);
+
+    for (let x = sqrtN, attempts = 0; smoothNumbers.length < factorBase.length + 10 && maxAttempts > 0; x++, attempts++) {
         let value = (BigInt(x) ** 2n) % n;
         let factorization = trialDivision(value, factorBase);
 
@@ -172,11 +174,18 @@ async function alternativeFactorization(n) {
             xValues.push(BigInt(x));
 
             if (smoothNumbers.length % 10 === 0) {
-                console.log(`✅ 平滑数を ${smoothNumbers.length} 個発見`);
+                console.log(`✅ 平滑数 ${smoothNumbers.length}/${factorBase.length + 10} 取得`);
             }
         }
 
-        if (x % 10000 === 0) await new Promise(resolve => setTimeout(resolve, 0)); // 非同期処理
+        // 一定間隔ごとに進捗ログを出力
+        if (attempts % logInterval === 0) {
+            console.log(`⏳ 試行 ${attempts}/${maxAttempts} 回目, 平滑数 ${smoothNumbers.length}/${factorBase.length + 10}`);
+        }
+
+        if (attempts % 5000 === 0) {
+            await new Promise(resolve => setTimeout(resolve, 0)); // 非同期処理でフリーズ防止
+        }
         maxAttempts--;
     }
 
