@@ -158,36 +158,31 @@ async function alternativeFactorization(n) {
     let smoothNumbers = [];
     let xValues = [];
     let sqrtN = Math.ceil(Math.sqrt(Number(n)));
-    let maxAttempts = factorBase.length + 20;
-    let logInterval = Math.max(1, Math.floor(maxAttempts / 10));
+    let minSmoothCount = factorBase.length; // 動的に収集数を決定
+    let maxAttempts = minSmoothCount * 1.5; // 余裕を持たせる
 
     console.log(`平滑数を収集中 (最大 ${maxAttempts} 試行)...`);
 
-    for (let x = sqrtN, attempts = 0; smoothNumbers.length < factorBase.length + 10 && maxAttempts > 0; x++, attempts++) {
-        let value = (BigInt(x) * BigInt(x)) % n; // 🔹 修正: `** 2n` → `*`
+    for (let x = sqrtN, attempts = 0; smoothNumbers.length < minSmoothCount && attempts < maxAttempts; x++, attempts++) {
+        let value = (BigInt(x) * BigInt(x)) % n;
         let factorization = trialDivision(value, factorBase);
 
         if (factorization) {
             smoothNumbers.push(factorization);
             xValues.push(BigInt(x));
 
-            if (smoothNumbers.length % 1 === 0) {
-                console.log(`平滑数 ${smoothNumbers.length}/${factorBase.length + 10} 取得`);
+            if (smoothNumbers.length % 10 === 0) {
+                console.log(`平滑数 ${smoothNumbers.length}/${minSmoothCount} 取得`);
             }
-        }
-
-        if (attempts % logInterval === 0) {
-            console.log(`試行 ${attempts}/${maxAttempts} 回目, 平滑数 ${smoothNumbers.length}/${factorBase.length + 10}`);
         }
 
         if (attempts % 5000 === 0) {
             await new Promise(resolve => setTimeout(resolve, 0));
         }
-        maxAttempts--;
     }
 
-    if (smoothNumbers.length < factorBase.length) {
-        console.error(`平滑数が不足 (必要: ${factorBase.length}, 取得: ${smoothNumbers.length}) → QS 失敗`);
+    if (smoothNumbers.length < minSmoothCount) {
+        console.error(`平滑数が不足 (必要: ${minSmoothCount}, 取得: ${smoothNumbers.length}) → QS 失敗`);
         return [n];
     }
 
@@ -199,10 +194,11 @@ async function alternativeFactorization(n) {
         console.error("平方合同が見つかりませんでした。");
         return [n];
     }
+
     console.log(`平方合同が見つかりました！`);
 
     console.log(`GCD を計算中...`);
-    let factor = gcd(BigInt.abs(x - y), n); // 🔹 修正: `abs()` を適用
+    let factor = gcd(BigInt.abs(x - y), n);
     if (factor === 1n || factor === n) {
         console.error("QS で有効な因数を発見できませんでした。");
         return [n];
@@ -214,19 +210,15 @@ async function alternativeFactorization(n) {
     let factors = [];
 
     if (isPrimeMillerRabin(factor)) {
-        console.log(`🔹 ${factor} は素数`);
         factors.push(factor);
     } else {
-        console.log(`🔹 ${factor} は合成数 → 再帰処理`);
         let subFactors = await alternativeFactorization(factor);
         factors = factors.concat(subFactors);
     }
 
     if (isPrimeMillerRabin(otherFactor)) {
-        console.log(`🔹 ${otherFactor} は素数`);
         factors.push(otherFactor);
     } else {
-        console.log(`🔹 ${otherFactor} は合成数 → 再帰処理`);
         let subFactors = await alternativeFactorization(otherFactor);
         factors = factors.concat(subFactors);
     }
@@ -234,36 +226,24 @@ async function alternativeFactorization(n) {
     return factors;
 }
 
-// 🔹 修正: `Number(n)` を使わない `BigInt` 対応版 `log()` 関数
-function logBigInt(n) {
-    return Math.log(Number(n)); // 完全な精度ではないが、短期的に対応
-}
-
-function getOptimalB(n) {
-    let logN = logBigInt(n); // 🔹 修正: `logBigInt(n)` を適用
-    return Math.floor(Math.exp(0.5 * Math.sqrt(logN * Math.log(logN))));
-}
-
+// ✅ エラトステネスの篩を使用
 function getFactorBase(B) {
-    let primes = [];
-    for (let p = 2; p <= B; p++) {
-        if (isPrime(p)) primes.push(p);
+    let sieve = new Array(B + 1).fill(true);
+    sieve[0] = sieve[1] = false;
+    for (let i = 2; i * i <= B; i++) {
+        if (sieve[i]) {
+            for (let j = i * i; j <= B; j += i) {
+                sieve[j] = false;
+            }
+        }
     }
-    return primes;
-}
-
-function isPrime(num) {
-    if (num < 2) return false;
-    for (let i = 2; i * i <= num; i++) {
-        if (num % i === 0) return false;
-    }
-    return true;
+    return sieve.map((isPrime, num) => (isPrime ? num : null)).filter(n => n);
 }
 
 function trialDivision(value, factorBase) {
     let factorization = [];
     for (let prime of factorBase) {
-        let bigPrime = BigInt(prime); // 🔹 修正: 変換をループ外に
+        let bigPrime = BigInt(prime);
         let count = 0;
         while (value % bigPrime === 0n) {
             value /= bigPrime;
@@ -274,62 +254,52 @@ function trialDivision(value, factorBase) {
     return value === 1n ? factorization : null;
 }
 
-function findCongruentSquares(smoothNumbers, xValues, n) {
-    let exponentMatrix = smoothNumbers.map(row => row.map(f => f.count % 2));
-    let solution = gaussianElimination(exponentMatrix);
+// ✅ ガウス消去法を `BitSet` ベースで最適化
+function gaussianElimination(matrix) {
+    let rows = matrix.length, cols = matrix[0].length;
+    let bitMatrix = new Array(rows).fill(0).map(() => new Uint32Array(Math.ceil(cols / 32)));
 
-    if (!solution) return null;
-
-    let x = 1n;
-    let y = 1n;
-    for (let i = 0; i < solution.length; i++) {
-        if (solution[i]) {
-            x *= xValues[i];
-            for (let factor of smoothNumbers[i]) {
-                y *= BigInt(factor.prime) ** BigInt(factor.count / 2);
+    for (let r = 0; r < rows; r++) {
+        for (let c = 0; c < cols; c++) {
+            if (matrix[r][c]) {
+                bitMatrix[r][Math.floor(c / 32)] |= (1 << (c % 32));
             }
         }
     }
 
-    return { x: x % n, y: y % n };
-}
-
-function gaussianElimination(matrix) {
-    let rows = matrix.length, cols = matrix[0].length;
-    let solution = new Array(cols).fill(0);
-
+    let solution = new Uint32Array(Math.ceil(cols / 32));
     for (let col = 0; col < cols; col++) {
         let pivotRow = -1;
         for (let row = col; row < rows; row++) {
-            if (matrix[row][col] === 1) {
+            if (bitMatrix[row][Math.floor(col / 32)] & (1 << (col % 32))) {
                 pivotRow = row;
                 break;
             }
         }
         if (pivotRow === -1) continue;
 
-        [matrix[col], matrix[pivotRow]] = [matrix[pivotRow], matrix[col]];
+        [bitMatrix[col], bitMatrix[pivotRow]] = [bitMatrix[pivotRow], bitMatrix[col]];
 
         for (let row = 0; row < rows; row++) {
-            if (row !== col && matrix[row][col] === 1) {
-                for (let c = 0; c < cols; c++) {
-                    matrix[row][c] ^= matrix[col][c];
+            if (row !== col && (bitMatrix[row][Math.floor(col / 32)] & (1 << (col % 32)))) {
+                for (let c = 0; c < bitMatrix[row].length; c++) {
+                    bitMatrix[row][c] ^= bitMatrix[col][c];
                 }
             }
         }
     }
 
     for (let row = 0; row < rows; row++) {
-        if (matrix[row].every(v => v === 0)) continue;
+        if (bitMatrix[row].every(v => v === 0)) continue;
         for (let col = 0; col < cols; col++) {
-            if (matrix[row][col] === 1) {
-                solution[col] = 1;
+            if (bitMatrix[row][Math.floor(col / 32)] & (1 << (col % 32))) {
+                solution[Math.floor(col / 32)] |= (1 << (col % 32));
                 break;
             }
         }
     }
 
-    return solution.includes(1) ? solution : null;
+    return solution.some(v => v !== 0) ? solution : null;
 }
 
 loadPrimes();
