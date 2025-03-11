@@ -20,8 +20,8 @@ export async function pollardsRhoFactorization(number) {
             factor = await pollardsRho(number);
 
             if (factor === null) {
-                console.error(`Pollard's Rho では因数を見つけられませんでした。新しい処理に移行`);
-                return await alternativeFactorization(number);  // **新しい処理（仮）へ移行**
+                console.error(`Pollard's Rho では因数を発見できませんでした。`);
+                return ["FAIL"];
             }
         }
 
@@ -32,6 +32,7 @@ export async function pollardsRhoFactorization(number) {
         } else {
             console.log(`合成数を発見: ${factor} → さらに分解`);
             let subFactors = await pollardsRhoFactorization(factor);
+            if (subFactors.includes("FAIL")) return ["FAIL"];
             factors = factors.concat(subFactors);
         }
 
