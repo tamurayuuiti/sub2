@@ -87,7 +87,7 @@ async function startFactorization() {
             console.log(`Pollard's rhoを開始: n = ${remainder}`);
 
             let extraFactors;
-            extraFactors = await pollardsRhoFactorization(remainder);
+            extraFactors = alternativeFactorization(remainder);
 
             factors = factors.concat(extraFactors);
         }
