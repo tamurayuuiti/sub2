@@ -55,7 +55,7 @@ export async function pollardsRho(n) {
 
         if (digitCount >= 21 && attempt >= 2) {
             console.log(`試行 ${attempt + 1} 回目: Pollard's Rho では因数を発見できませんでした。`);
-            return ["FAIL"];
+            return null
         }
 
         x = fxFunction(x, c, n);
