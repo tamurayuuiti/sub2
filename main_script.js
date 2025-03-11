@@ -149,7 +149,7 @@ async function alternativeFactorization(n) {
         throw new TypeError(`エラー: alternativeFactorization() に渡された number (${n}) が BigInt ではありません。`);
     }
 
-    console.log(`=== Quadratic Sieve を開始: ${n} ===`);
+    console.log(`Quadratic Sieve を開始: n = ${n} ===`);
 
     let B = getOptimalB(n);
     let factorBase = getFactorBase(B);
@@ -226,7 +226,7 @@ async function alternativeFactorization(n) {
     return factors;
 }
 
-// ✅ エラトステネスの篩を使用
+// エラトステネスの篩
 function getFactorBase(B) {
     let sieve = new Array(B + 1).fill(true);
     sieve[0] = sieve[1] = false;
@@ -254,7 +254,6 @@ function trialDivision(value, factorBase) {
     return value === 1n ? factorization : null;
 }
 
-// ✅ ガウス消去法を `BitSet` ベースで最適化
 function gaussianElimination(matrix) {
     let rows = matrix.length, cols = matrix[0].length;
     let bitMatrix = new Array(rows).fill(0).map(() => new Uint32Array(Math.ceil(cols / 32)));
