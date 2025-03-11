@@ -173,11 +173,17 @@ async function alternativeFactorization(n) {
 
     console.log(`平滑数を ${smoothNumbers.length} 個収集`);
 
+    // 平滑数が足りない場合はエラー
+    if (smoothNumbers.length < factorBase.length) {
+        console.error("平滑数が不足。QS 失敗。");
+        return [n]; // QS 失敗時にそのまま返す
+    }
+
     // 線形代数（ガウス消去法）で平方合同を求める
     let { x, y } = findCongruentSquares(smoothNumbers, xValues, n);
     if (!x || !y) {
         console.error("平方合同が見つかりませんでした。");
-        return [n]; // QS 失敗時にそのまま返す
+        return [n];
     }
 
     // GCD を計算して因数を発見
@@ -213,6 +219,93 @@ async function alternativeFactorization(n) {
 function getOptimalB(n) {
     let logN = Math.log(Number(n));
     return Math.floor(Math.exp(0.5 * Math.sqrt(logN * Math.log(logN)))); // 最適な B の近似
+}
+
+function getFactorBase(B) {
+    let primes = [];
+    for (let p = 2; p <= B; p++) {
+        if (isPrime(p)) primes.push(p);
+    }
+    return primes;
+}
+
+function isPrime(num) {
+    if (num < 2) return false;
+    for (let i = 2; i * i <= num; i++) {
+        if (num % i === 0) return false;
+    }
+    return true;
+}
+
+function trialDivision(value, factorBase) {
+    let factorization = [];
+    for (let prime of factorBase) {
+        let count = 0;
+        while (value % BigInt(prime) === 0n) {
+            value /= BigInt(prime);
+            count++;
+        }
+        if (count > 0) factorization.push({ prime, count });
+    }
+    return value === 1n ? factorization : null;
+}
+
+function findCongruentSquares(smoothNumbers, xValues, n) {
+    let exponentMatrix = smoothNumbers.map(row => row.map(f => f.count % 2)); // 各素因数の指数を2で割った余り
+    let solution = gaussianElimination(exponentMatrix);
+
+    if (!solution) return null;
+
+    let x = 1n;
+    let y = 1n;
+    for (let i = 0; i < solution.length; i++) {
+        if (solution[i]) {
+            x *= xValues[i];
+            for (let factor of smoothNumbers[i]) {
+                y *= BigInt(factor.prime) ** BigInt(factor.count / 2);
+            }
+        }
+    }
+
+    return { x: x % n, y: y % n };
+}
+
+function gaussianElimination(matrix) {
+    let rows = matrix.length, cols = matrix[0].length;
+    let solution = new Array(cols).fill(0);
+
+    for (let col = 0; col < cols; col++) {
+        let pivotRow = -1;
+        for (let row = col; row < rows; row++) {
+            if (matrix[row][col] === 1) {
+                pivotRow = row;
+                break;
+            }
+        }
+        if (pivotRow === -1) continue;
+
+        [matrix[col], matrix[pivotRow]] = [matrix[pivotRow], matrix[col]];
+
+        for (let row = 0; row < rows; row++) {
+            if (row !== col && matrix[row][col] === 1) {
+                for (let c = 0; c < cols; c++) {
+                    matrix[row][c] ^= matrix[col][c];
+                }
+            }
+        }
+    }
+
+    for (let row = 0; row < rows; row++) {
+        if (matrix[row].every(v => v === 0)) continue;
+        for (let col = 0; col < cols; col++) {
+            if (matrix[row][col] === 1) {
+                solution[col] = 1;
+                break;
+            }
+        }
+    }
+
+    return solution.includes(1) ? solution : null;
 }
 
 loadPrimes();
