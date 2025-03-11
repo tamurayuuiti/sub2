@@ -161,13 +161,13 @@ async function alternativeFactorization(n) {
 
     let smoothNumbers = [];
     let xValues = [];
-    let sqrtN = Math.ceil(Math.sqrt(Number(n)));
+    let sqrtN = sqrtBigInt(n);  // 🔹 `BigInt` で平方根計算
     let minSmoothCount = factorBase.length;
-    let maxAttempts = Math.max(minSmoothCount * 2, sqrtN); // 🔹 動的調整
+    let maxAttempts = Math.min(Math.max(minSmoothCount * 2, Number(sqrtN)), 10_000_000);  // 🔹 上限を設定
 
     console.log(`平滑数を収集中 (最大 ${maxAttempts} 試行)...`);
 
-    for (let x = sqrtN, attempts = 0; smoothNumbers.length < minSmoothCount && attempts < maxAttempts; x++, attempts++) {
+    for (let x = Number(sqrtN), attempts = 0; smoothNumbers.length < minSmoothCount && attempts < maxAttempts; x++, attempts++) {
         let value = (BigInt(x) * BigInt(x)) % n;
         let factorization = trialDivision(value, factorBase);
 
@@ -191,6 +191,9 @@ async function alternativeFactorization(n) {
     }
 
     console.log(`平滑数の収集完了！ 合計 ${smoothNumbers.length} 個`);
+    
+    return smoothNumbers;
+}
 
     console.log(`平方合同を探索中...`);
     let { x, y } = findCongruentSquares(smoothNumbers, xValues, n);
@@ -239,6 +242,21 @@ function logBigInt(n) {
 function getOptimalB(n) {
     let logN = logBigInt(n); // 🔹 `BigInt` 対応
     return Math.floor(Math.exp(0.5 * Math.sqrt(logN * Math.log(logN))));
+}
+
+function sqrtBigInt(n) {
+    if (n < 0n) throw new RangeError("負の数の平方根は計算できません");
+    if (n < 2n) return n;
+    
+    let x0 = n;
+    let x1 = (n + 1n) / 2n;
+    
+    while (x1 < x0) {
+        x0 = x1;
+        x1 = (x1 + n / x1) / 2n;
+    }
+    
+    return x0;
 }
 
 // ✅ エラトステネスの篩の最適化
