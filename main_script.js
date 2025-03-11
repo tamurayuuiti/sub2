@@ -149,17 +149,17 @@ async function alternativeFactorization(n) {
         throw new TypeError(`エラー: alternativeFactorization() に渡された number (${n}) が BigInt ではありません。`);
     }
 
-    console.log(`Quadratic Sieve を開始: n = ${n} ===`);
+    console.log(`=== Quadratic Sieve を開始: ${n} ===`);
 
     let B = getOptimalB(n);
     let factorBase = getFactorBase(B);
-    console.log(`🔹 素因数基数 (Factor Base) のサイズ: ${factorBase.length}, B = ${B}`);
+    console.log(`素因数基数 (Factor Base) のサイズ: ${factorBase.length}, B = ${B}`);
 
     let smoothNumbers = [];
     let xValues = [];
     let sqrtN = Math.ceil(Math.sqrt(Number(n)));
-    let minSmoothCount = factorBase.length; // 動的に収集数を決定
-    let maxAttempts = minSmoothCount * 1.5; // 余裕を持たせる
+    let minSmoothCount = factorBase.length;
+    let maxAttempts = Math.max(minSmoothCount * 1.5, sqrtN / 2); // 🔹 動的に調整
 
     console.log(`平滑数を収集中 (最大 ${maxAttempts} 試行)...`);
 
@@ -226,18 +226,20 @@ async function alternativeFactorization(n) {
     return factors;
 }
 
-// エラトステネスの篩
+// ✅ エラトステネスの篩の最適化
 function getFactorBase(B) {
     let sieve = new Array(B + 1).fill(true);
     sieve[0] = sieve[1] = false;
-    for (let i = 2; i * i <= B; i++) {
+    let primes = [];
+    for (let i = 2; i <= B; i++) {
         if (sieve[i]) {
+            primes.push(i);
             for (let j = i * i; j <= B; j += i) {
                 sieve[j] = false;
             }
         }
     }
-    return sieve.map((isPrime, num) => (isPrime ? num : null)).filter(n => n);
+    return primes;
 }
 
 function trialDivision(value, factorBase) {
@@ -254,23 +256,24 @@ function trialDivision(value, factorBase) {
     return value === 1n ? factorization : null;
 }
 
+// ✅ ガウス消去法の `BitSet` を最適化
 function gaussianElimination(matrix) {
     let rows = matrix.length, cols = matrix[0].length;
-    let bitMatrix = new Array(rows).fill(0).map(() => new Uint32Array(Math.ceil(cols / 32)));
+    let bitMatrix = new Array(rows).fill(0).map(() => new Uint8Array(Math.ceil(cols / 8))); // 🔹 Uint8Array で最適化
 
     for (let r = 0; r < rows; r++) {
         for (let c = 0; c < cols; c++) {
             if (matrix[r][c]) {
-                bitMatrix[r][Math.floor(c / 32)] |= (1 << (c % 32));
+                bitMatrix[r][Math.floor(c / 8)] |= (1 << (c % 8));
             }
         }
     }
 
-    let solution = new Uint32Array(Math.ceil(cols / 32));
+    let solution = new Uint8Array(Math.ceil(cols / 8));
     for (let col = 0; col < cols; col++) {
         let pivotRow = -1;
         for (let row = col; row < rows; row++) {
-            if (bitMatrix[row][Math.floor(col / 32)] & (1 << (col % 32))) {
+            if (bitMatrix[row][Math.floor(col / 8)] & (1 << (col % 8))) {
                 pivotRow = row;
                 break;
             }
@@ -280,7 +283,7 @@ function gaussianElimination(matrix) {
         [bitMatrix[col], bitMatrix[pivotRow]] = [bitMatrix[pivotRow], bitMatrix[col]];
 
         for (let row = 0; row < rows; row++) {
-            if (row !== col && (bitMatrix[row][Math.floor(col / 32)] & (1 << (col % 32)))) {
+            if (row !== col && (bitMatrix[row][Math.floor(col / 8)] & (1 << (col % 8)))) {
                 for (let c = 0; c < bitMatrix[row].length; c++) {
                     bitMatrix[row][c] ^= bitMatrix[col][c];
                 }
@@ -291,8 +294,8 @@ function gaussianElimination(matrix) {
     for (let row = 0; row < rows; row++) {
         if (bitMatrix[row].every(v => v === 0)) continue;
         for (let col = 0; col < cols; col++) {
-            if (bitMatrix[row][Math.floor(col / 32)] & (1 << (col % 32))) {
-                solution[Math.floor(col / 32)] |= (1 << (col % 32));
+            if (bitMatrix[row][Math.floor(col / 8)] & (1 << (col % 8))) {
+                solution[Math.floor(col / 8)] |= (1 << (col % 8));
                 break;
             }
         }
