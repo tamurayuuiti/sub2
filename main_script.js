@@ -210,4 +210,9 @@ async function alternativeFactorization(n) {
     return factors;
 }
 
+function getOptimalB(n) {
+    let logN = Math.log(Number(n));
+    return Math.floor(Math.exp(0.5 * Math.sqrt(logN * Math.log(logN)))); // 最適な B の近似
+}
+
 loadPrimes();
