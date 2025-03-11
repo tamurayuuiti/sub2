@@ -26,7 +26,7 @@ document.getElementById("numberInput").addEventListener("keydown", function(even
 // 外部の素数リスト読み込み
 async function loadPrimes() {
     try {
-        console.log("素数リストの読み込みを開始します...");
+        console.log("素数リストの読み込みを開始します");
         const response = await fetch("https://tamurayuuiti.github.io/sub2/data/primes.txt");
         if (!response.ok) {
             throw new Error(`素数リストの読み込みに失敗しました (HTTP ${response.status})`);
@@ -79,7 +79,7 @@ async function startFactorization() {
             }
         }
 
-        console.log("試し割り法を実行します...");
+        console.log("試し割り法を実行します");
         let { factors, remainder } = await trialDivisionFromFile(num);
         console.log(`試し割り法完了。残りの数: ${remainder}`);
 
