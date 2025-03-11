@@ -1,4 +1,4 @@
-async function pollardsRhoFactorization(number) {
+export async function pollardsRhoFactorization(number) {
     if (typeof number !== "bigint") {
         throw new TypeError(`エラー: pollardsRhoFactorization() に渡された number (${number}) が BigInt ではありません。`);
     }
@@ -37,7 +37,7 @@ async function pollardsRhoFactorization(number) {
     return factors;
 }
 
-async function pollardsRho(n) {
+export async function pollardsRho(n) {
     let attempt = 0;
 
     while (true) {
@@ -100,7 +100,7 @@ async function pollardsRho(n) {
     }
 }
 
-function getDigitBasedParams(n, attempt = 0) {
+export function getDigitBasedParams(n, attempt = 0) {
     let digitCount = Math.floor(Math.log10(Number(n))) + 1;
 
     // `k` の値（GCD 計算頻度）
@@ -146,7 +146,7 @@ function getDigitBasedParams(n, attempt = 0) {
     return { digitCount, k, maxC, fxFunction, fxFunctionString, MAX_TRIALS };
 }
 
-function getRandomC(n, attempt = 0) {
+export　function getRandomC(n, attempt = 0) {
     let { maxC, fxFunctionString } = getDigitBasedParams(n, attempt);
     let c = BigInt((Math.floor(Math.random() * maxC) * 2) + 1);
 
@@ -155,12 +155,12 @@ function getRandomC(n, attempt = 0) {
     return c;
 }
 
-function f(x, n, c) {
+export function f(x, n, c) {
     let { fxFunction } = getDigitBasedParams(n);
     return fxFunction(x, c, n);
 }
 
-function gcd(a, b) {
+export function gcd(a, b) {
     if (a === 0n) return b;
     if (b === 0n) return a;
 
@@ -182,6 +182,6 @@ function gcd(a, b) {
     return a << shift;  
 }
 
-function abs(n) {
+export function abs(n) {
     return n < 0n ? -n : n;
 }
