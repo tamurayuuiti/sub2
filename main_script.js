@@ -18,19 +18,10 @@ document.getElementById("numberInput").addEventListener("keypress", function(eve
 
 // 入力の桁数制限（30桁まで）
 document.getElementById("numberInput").addEventListener("keydown", function(event) {
-    const allowedKeys = ["ArrowLeft", "ArrowRight", "Enter", "Backspace", "Delete",];
-    
-    // 30桁以内のとき、0-9の数字キーを許可
-    if (this.value.length < 30) {
-        if (!/^[0-9]$/.test(event.key) && !allowedKeys.includes(event.key)) {
-            event.preventDefault();
-        }
-    }
-    // 30桁を超えた場合は、方向キーとエンターキーのみ許可
-    else {
-        if (!allowedKeys.includes(event.key)) {
-            event.preventDefault();
-        }
+    if (this.value.length >= 30 && /^[0-9]$/.test(event.key)) {
+        event.preventDefault();
+    } else if (!/^[0-9]$/.test(event.key) && !["ArrowLeft", "ArrowRight", "Enter", "Backspace", "Delete"].includes(event.key)) {
+        event.preventDefault();
     }
 });
 
