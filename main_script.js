@@ -29,16 +29,19 @@ const sanitizeInput = (event) => {
             event.preventDefault();
         }
     } else {
-        const sanitized = inputField.value.replace(/[^0-9]/g, '').slice(0, 30);
-        if (inputField.value !== sanitized) {
-            console.log(`無効な文字を削除: ${inputField.value} → ${sanitized}`);
-            inputField.value = sanitized;
-        }
+        setTimeout(() => {
+            const sanitized = inputField.value.replace(/[^0-9]/g, '').slice(0, 30);
+            if (inputField.value !== sanitized) {
+                console.log(`無効な文字を削除: ${inputField.value} → ${sanitized}`);
+                inputField.value = sanitized;
+            }
+        }, 0);
     }
 };
 
 inputField.addEventListener("keydown", sanitizeInput);
 inputField.addEventListener("input", sanitizeInput);
+inputField.addEventListener("paste", sanitizeInput);
 
 // 外部の素数リスト読み込み
 async function loadPrimes() {
