@@ -20,47 +20,34 @@ document.getElementById("numberInput").addEventListener("keypress", function(eve
 const inputField = document.getElementById("numberInput");
 const container = document.querySelector(".container");
 
-// エラーメッセージ要素を動的に作成
+// エラーメッセージを動的に作成
 let errorMessage = document.createElement("div");
 errorMessage.classList.add("error-message");
-errorMessage.textContent = "30桁以内の数値を入力してください";
+errorMessage.textContent = "最大30桁まで入力できます";
 container.insertBefore(errorMessage, inputField.nextSibling);
 
-let errorTimeout; // タイマー管理用の変数
-
+// 入力時の制御
 inputField.addEventListener("keydown", function(event) {
     if (["e", "E", "+", "-", "."].includes(event.key)) {
         event.preventDefault();
     } else if (this.value.length >= 30 && event.key >= "0" && event.key <= "9") {
-        event.preventDefault();
-        showError();
+        event.preventDefault(); // 31桁目の入力を防ぐ
+        errorMessage.style.display = "block"; // エラーメッセージを表示
+    } else {
+        errorMessage.style.display = "none"; // エラーを隠す
     }
 });
 
 inputField.addEventListener("input", function() {
     const sanitized = this.value.replace(/[^0-9]/g, '').slice(0, 30);
+    
     if (this.value !== sanitized) {
         this.value = sanitized;
-    }
-    
-    if (this.value.length >= 30) {
-        showError();
+        errorMessage.style.display = "block"; // 31桁以上の入力時にエラーメッセージを表示
+    } else {
+        errorMessage.style.display = "none"; // 問題なければエラーを隠す
     }
 });
-
-// エラーメッセージを表示し、一定時間後に非表示にする関数
-function showError() {
-    errorMessage.style.display = "block";
-    
-    // 以前のタイマーがあればクリア
-    clearTimeout(errorTimeout);
-    
-    // 3秒後に非表示
-    errorTimeout = setTimeout(() => {
-        errorMessage.style.display = "none";
-    }, 3000);
-}
-
 
 // 外部の素数リスト読み込み
 async function loadPrimes() {
