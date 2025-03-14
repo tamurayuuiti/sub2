@@ -93,7 +93,6 @@ button:hover {
     font-size: 18px;
     color: #333;
     margin-top: 5px;
-    font-weight: bold;
 }
 .char-counter.limit-reached {
     color: red;
@@ -101,7 +100,6 @@ button:hover {
 .error-message {
     font-size: 16px;
     color: red;
-    font-weight: bold;
     margin-top: 5px;
     display: none;
 }
