@@ -17,16 +17,23 @@ document.getElementById("numberInput").addEventListener("keypress", function(eve
 });
 
 // 入力の桁数制限（30桁まで）
-document.getElementById("numberInput").addEventListener("keydown", function(event) {
+const inputField = document.getElementById("numberInput");
+
+inputField.addEventListener("keydown", function(event) {
     if (["e", "E", "+", "-", "."].includes(event.key)) {
         console.log(`入力ブロック: ${event.key}（記号は使用不可）`);
         event.preventDefault();
-        return;
-    }
-
-    if (this.value.length >= 30 && event.key >= "0" && event.key <= "9") {
+    } else if (this.value.length >= 30 && event.key >= "0" && event.key <= "9") {
         console.log(`入力ブロック: ${event.key}（30桁を超えるため）`);
         event.preventDefault();
+    }
+});
+
+inputField.addEventListener("input", function() {
+    const sanitized = this.value.replace(/[^0-9]/g, '').slice(0, 30);
+    if (this.value !== sanitized) {
+        console.log(`無効な文字を削除: ${this.value} → ${sanitized}`);
+        this.value = sanitized;
     }
 });
 
