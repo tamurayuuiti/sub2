@@ -29,22 +29,23 @@ const sanitizeInput = (event) => {
             event.preventDefault();
         }
     } else {
-        const sanitized = inputField.value.replace(/[^0-9]/g, '').slice(0, 30);
-        if (inputField.value !== sanitized) {
-            console.log(`無効な文字を削除: ${inputField.value} → ${sanitized}`);
+        const before = inputField.value;
+        const sanitized = before.replace(/[^0-9]/g, '').slice(0, 30);
+        if (before !== sanitized) {
+            console.log(`無効な文字を削除: ${before} → ${sanitized}`);
             inputField.value = sanitized;
         }
     }
 };
 
-// ペースト時に事前に無効な文字を削除
+// ペースト時の無効文字削除
 inputField.addEventListener("paste", (event) => {
     event.preventDefault();
     let pasteData = (event.clipboardData || window.clipboardData).getData("text");
     let sanitized = pasteData.replace(/[^0-9]/g, '').slice(0, 30);
     
-    console.log(`ペースト前データ: ${pasteData}`);
-    console.log(`ペースト後データ: ${sanitized}`);
+    console.log(`ペースト入力前: ${pasteData}`);
+    console.log(`ペースト入力後: ${sanitized}`);
 
     document.execCommand("insertText", false, sanitized);
 });
