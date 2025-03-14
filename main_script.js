@@ -19,39 +19,23 @@ document.getElementById("numberInput").addEventListener("keypress", function(eve
 // 入力の桁数制限（30桁まで）
 const inputField = document.getElementById("numberInput");
 
-const sanitizeInput = (event) => {
-    if (event.type === "keydown") {
-        if (["e", "E", "+", "-", "."].includes(event.key)) {
-            console.log(`入力ブロック: ${event.key}（記号は使用不可）`);
-            event.preventDefault();
-        } else if (inputField.value.length >= 30 && event.key >= "0" && event.key <= "9") {
-            console.log(`入力ブロック: ${event.key}（30桁を超えるため）`);
-            event.preventDefault();
-        }
-    } else {
-        const before = inputField.value;
-        const sanitized = before.replace(/[^0-9]/g, '').slice(0, 30);
-        if (before !== sanitized) {
-            console.log(`無効な文字を削除: ${before} → ${sanitized}`);
-            inputField.value = sanitized;
-        }
+inputField.addEventListener("keydown", function(event) {
+    if (["e", "E", "+", "-", "."].includes(event.key)) {
+        console.log(`入力ブロック: ${event.key}（記号は使用不可）`);
+        event.preventDefault();
+    } else if (this.value.length >= 30 && event.key >= "0" && event.key <= "9") {
+        console.log(`入力ブロック: ${event.key}（30桁を超えるため）`);
+        event.preventDefault();
     }
-};
-
-// ペースト時の無効文字削除
-inputField.addEventListener("paste", (event) => {
-    event.preventDefault();
-    let pasteData = event.clipboardData.getData("text/plain").trim();
-    let sanitized = pasteData.replace(/[^0-9]/g, '').slice(0, 30);
-
-    console.log(`ペースト入力前: "${pasteData}"`);
-    console.log(`ペースト入力後: "${sanitized}"`);
-
-    document.execCommand("insertText", false, sanitized);
 });
 
-inputField.addEventListener("keydown", sanitizeInput);
-inputField.addEventListener("input", sanitizeInput);
+inputField.addEventListener("input", function() {
+    const sanitized = this.value.replace(/[^0-9]/g, '').slice(0, 30);
+    if (this.value !== sanitized) {
+        console.log(`無効な文字を削除: ${this.value} → ${sanitized}`);
+        this.value = sanitized;
+    }
+});
 
 // 外部の素数リスト読み込み
 async function loadPrimes() {
