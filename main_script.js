@@ -29,19 +29,28 @@ const sanitizeInput = (event) => {
             event.preventDefault();
         }
     } else {
-        setTimeout(() => {
-            const sanitized = inputField.value.replace(/[^0-9]/g, '').slice(0, 30);
-            if (inputField.value !== sanitized) {
-                console.log(`無効な文字を削除: ${inputField.value} → ${sanitized}`);
-                inputField.value = sanitized;
-            }
-        }, 0);
+        const sanitized = inputField.value.replace(/[^0-9]/g, '').slice(0, 30);
+        if (inputField.value !== sanitized) {
+            console.log(`無効な文字を削除: ${inputField.value} → ${sanitized}`);
+            inputField.value = sanitized;
+        }
     }
 };
 
+// ペースト時に事前に無効な文字を削除
+inputField.addEventListener("paste", (event) => {
+    event.preventDefault();
+    let pasteData = (event.clipboardData || window.clipboardData).getData("text");
+    let sanitized = pasteData.replace(/[^0-9]/g, '').slice(0, 30);
+    
+    console.log(`ペースト前データ: ${pasteData}`);
+    console.log(`ペースト後データ: ${sanitized}`);
+
+    document.execCommand("insertText", false, sanitized);
+});
+
 inputField.addEventListener("keydown", sanitizeInput);
 inputField.addEventListener("input", sanitizeInput);
-inputField.addEventListener("paste", sanitizeInput);
 
 // 外部の素数リスト読み込み
 async function loadPrimes() {
