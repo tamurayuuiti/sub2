@@ -18,34 +18,34 @@ document.getElementById("numberInput").addEventListener("keypress", function(eve
 
 // 入力の桁数制限（30桁まで）
 const inputField = document.getElementById("numberInput");
-const container = document.querySelector(".container");
+const charCounter = document.getElementById("charCounter");
 
-// エラーメッセージを動的に作成
-let errorMessage = document.createElement("div");
-errorMessage.classList.add("error-message");
-errorMessage.textContent = "最大30桁まで入力できます";
-container.insertBefore(errorMessage, inputField.nextSibling);
-
-// 入力時の制御
-inputField.addEventListener("keydown", function(event) {
-    if (["e", "E", "+", "-", "."].includes(event.key)) {
-        event.preventDefault();
-    } else if (this.value.length >= 30 && event.key >= "0" && event.key <= "9") {
-        event.preventDefault(); // 31桁目の入力を防ぐ
-        errorMessage.style.display = "block"; // エラーメッセージを表示
-    } else {
-        errorMessage.style.display = "none"; // エラーを隠す
-    }
-});
-
+// 入力制御 & カウンター更新
 inputField.addEventListener("input", function() {
     const sanitized = this.value.replace(/[^0-9]/g, '').slice(0, 30);
     
     if (this.value !== sanitized) {
+        console.log(`無効な文字を削除: ${this.value} → ${sanitized}`);
         this.value = sanitized;
-        errorMessage.style.display = "block"; // 31桁以上の入力時にエラーメッセージを表示
+    }
+    
+    // 現在の桁数を表示
+    charCounter.textContent = `${this.value.length} / 30`;
+
+    // 30桁に到達したら警告
+    if (this.value.length >= 30) {
+        charCounter.classList.add("limit-reached");
     } else {
-        errorMessage.style.display = "none"; // 問題なければエラーを隠す
+        charCounter.classList.remove("limit-reached");
+    }
+});
+
+// 入力制限（30桁超えを防ぐ）
+inputField.addEventListener("keydown", function(event) {
+    if (["e", "E", "+", "-", "."].includes(event.key)) {
+        event.preventDefault();
+    } else if (this.value.length >= 30 && event.key >= "0" && event.key <= "9") {
+        event.preventDefault();
     }
 });
 
