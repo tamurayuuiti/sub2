@@ -26,32 +26,41 @@ errorMessage.classList.add("error-message");
 errorMessage.textContent = "30桁以内の数値を入力してください";
 container.insertBefore(errorMessage, inputField.nextSibling);
 
-// 入力時の制御
+let errorTimeout; // タイマー管理用の変数
+
 inputField.addEventListener("keydown", function(event) {
     if (["e", "E", "+", "-", "."].includes(event.key)) {
-        console.log(`入力ブロック: ${event.key}（記号は使用不可）`);
         event.preventDefault();
     } else if (this.value.length >= 30 && event.key >= "0" && event.key <= "9") {
-        console.log(`入力ブロック: ${event.key}（30桁を超えるため）`);
         event.preventDefault();
-        errorMessage.style.display = "block"; // エラーメッセージを表示
+        showError();
     }
 });
 
 inputField.addEventListener("input", function() {
     const sanitized = this.value.replace(/[^0-9]/g, '').slice(0, 30);
     if (this.value !== sanitized) {
-        console.log(`無効な文字を削除: ${this.value} → ${sanitized}`);
         this.value = sanitized;
     }
     
-    // エラーメッセージの制御
     if (this.value.length >= 30) {
-        errorMessage.style.display = "block";
-    } else {
-        errorMessage.style.display = "none";
+        showError();
     }
 });
+
+// エラーメッセージを表示し、一定時間後に非表示にする関数
+function showError() {
+    errorMessage.style.display = "block";
+    
+    // 以前のタイマーがあればクリア
+    clearTimeout(errorTimeout);
+    
+    // 3秒後に非表示
+    errorTimeout = setTimeout(() => {
+        errorMessage.style.display = "none";
+    }, 3000);
+}
+
 
 // 外部の素数リスト読み込み
 async function loadPrimes() {
