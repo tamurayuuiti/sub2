@@ -29,6 +29,10 @@ inputField.addEventListener("keydown", function(event) {
     }
 });
 
+inputField.addEventListener("paste", function(event) {
+    console.log(`ペーストされた値: ${event.clipboardData.getData("text")}`);
+});
+
 inputField.addEventListener("input", function() {
     setTimeout(() => {
         const sanitized = this.value.replace(/[^0-9]/g, '').slice(0, 30);
