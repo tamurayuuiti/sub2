@@ -83,12 +83,6 @@ button:hover {
     margin-top: 10px;
     display: none;
 }
-.error-message {
-    font-size: 14px;
-    color: red;
-    margin-top: 5px;
-    display: none;
-}
 .input-container {
     position: relative;
     display: flex;
@@ -96,13 +90,20 @@ button:hover {
     align-items: center;
 }
 .char-counter {
-    font-size: 14px;
+    font-size: 18px;
     color: #333;
     margin-top: 5px;
+    font-weight: bold;
 }
 .char-counter.limit-reached {
     color: red;
+}
+.error-message {
+    font-size: 16px;
+    color: red;
     font-weight: bold;
+    margin-top: 5px;
+    display: none;
 }
 @keyframes spin {
     from { transform: rotate(0deg); }
