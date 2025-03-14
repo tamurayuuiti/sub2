@@ -89,6 +89,21 @@ button:hover {
     margin-top: 5px;
     display: none;
 }
+.input-container {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+.char-counter {
+    font-size: 14px;
+    color: #333;
+    margin-top: 5px;
+}
+.char-counter.limit-reached {
+    color: red;
+    font-weight: bold;
+}
 @keyframes spin {
     from { transform: rotate(0deg); }
     to { transform: rotate(360deg); }
