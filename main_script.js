@@ -41,11 +41,11 @@ const sanitizeInput = (event) => {
 // ペースト時の無効文字削除
 inputField.addEventListener("paste", (event) => {
     event.preventDefault();
-    let pasteData = (event.clipboardData || window.clipboardData).getData("text");
+    let pasteData = event.clipboardData.getData("text/plain").trim();
     let sanitized = pasteData.replace(/[^0-9]/g, '').slice(0, 30);
-    
-    console.log(`ペースト入力前: ${pasteData}`);
-    console.log(`ペースト入力後: ${sanitized}`);
+
+    console.log(`ペースト入力前: "${pasteData}"`);
+    console.log(`ペースト入力後: "${sanitized}"`);
 
     document.execCommand("insertText", false, sanitized);
 });
