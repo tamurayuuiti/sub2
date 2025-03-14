@@ -18,7 +18,15 @@ document.getElementById("numberInput").addEventListener("keypress", function(eve
 
 // 入力の桁数制限（30桁まで）
 const inputField = document.getElementById("numberInput");
+const container = document.querySelector(".container");
 
+// エラーメッセージ要素を動的に作成
+let errorMessage = document.createElement("div");
+errorMessage.classList.add("error-message");
+errorMessage.textContent = "30桁以内の数値を入力してください";
+container.insertBefore(errorMessage, inputField.nextSibling);
+
+// 入力時の制御
 inputField.addEventListener("keydown", function(event) {
     if (["e", "E", "+", "-", "."].includes(event.key)) {
         console.log(`入力ブロック: ${event.key}（記号は使用不可）`);
@@ -26,6 +34,7 @@ inputField.addEventListener("keydown", function(event) {
     } else if (this.value.length >= 30 && event.key >= "0" && event.key <= "9") {
         console.log(`入力ブロック: ${event.key}（30桁を超えるため）`);
         event.preventDefault();
+        errorMessage.style.display = "block"; // エラーメッセージを表示
     }
 });
 
@@ -34,6 +43,13 @@ inputField.addEventListener("input", function() {
     if (this.value !== sanitized) {
         console.log(`無効な文字を削除: ${this.value} → ${sanitized}`);
         this.value = sanitized;
+    }
+    
+    // エラーメッセージの制御
+    if (this.value.length >= 30) {
+        errorMessage.style.display = "block";
+    } else {
+        errorMessage.style.display = "none";
     }
 });
 
