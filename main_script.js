@@ -30,8 +30,7 @@ inputField.addEventListener("input", function() {
         this.value = sanitized;
     }
 
-    // 現在の桁数を表示
-    charCounter.textContent = `現在の桁数: ${this.value.length} / 30 (最大30桁)`;
+    charCounter.textContent = `現在の桁数: ${this.value.length} (最大30桁)`;
 
     // 30桁に到達したら警告
     if (this.value.length >= 30) {
