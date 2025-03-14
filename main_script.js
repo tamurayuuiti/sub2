@@ -18,14 +18,12 @@ document.getElementById("numberInput").addEventListener("keypress", function(eve
 
 // 入力の桁数制限（30桁まで）
 document.getElementById("numberInput").addEventListener("keydown", function(event) {
-    // ブロックするキー（指数表記 e, E、小数点 ., 符号 +, -）
     if (["e", "E", "+", "-", "."].includes(event.key)) {
         console.log(`入力ブロック: ${event.key}（記号は使用不可）`);
         event.preventDefault();
         return;
     }
 
-    // 30桁以上の場合、新しい入力をブロック（編集キーは許可）
     if (this.value.length >= 30 && event.key >= "0" && event.key <= "9") {
         console.log(`入力ブロック: ${event.key}（30桁を超えるため）`);
         event.preventDefault();
