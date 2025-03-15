@@ -28,7 +28,6 @@ body {
 /* ====== 入力フィールド ====== */
 input {
     width: 80%;
-    max-width: 300px;
     padding: 10px;
     font-size: 18px;
     margin: 5px;
