@@ -21,8 +21,8 @@ body {
     display: flex;
     flex-direction: column;
     align-items: center;
-    max-width: 90%;
-    width: 400px;
+    width: 80%;  /* 画面幅の80% */
+    max-width: 500px;  /* 最大幅を500pxに制限 */
 }
 
 /* ====== 入力フィールド ====== */
