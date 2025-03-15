@@ -27,10 +27,10 @@ body {
 
 /* ====== 入力フィールド ====== */
 input {
-    width: 80%;
+    width: 70%;
     padding: 10px;
     font-size: 18px;
-    margin: 5px;
+    margin-bottom: 20px;
     text-align: center;
     border: 2px solid #4facfe;
     border-radius: 50px;
