@@ -27,7 +27,7 @@ body {
 
 /* ====== 入力フィールド ====== */
 input {
-    width: 80%;
+    width: 200px;
     max-width: 300px;
     padding: 10px;
     font-size: 18px;
