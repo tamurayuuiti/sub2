@@ -27,7 +27,7 @@ inputField.addEventListener("input", function() {
 
     if (this.value !== sanitized) {
         console.log(`無効な文字を削除: ${this.value} → ${sanitized}`);
-        this.value = sanitized;
+        requestAnimationFrame(() => { this.value = sanitized; });
     }
 
     charCounter.textContent = `現在の桁数: ${this.value.length} (最大30桁)`;
