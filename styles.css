@@ -33,7 +33,7 @@ input {
     margin: 5px;
     text-align: center;
     border: 2px solid #4facfe;
-    border-radius: 5px;
+    border-radius: 50px;
     box-sizing: border-box; /* 追加: padding と border を width に含める */
 }
 
@@ -103,7 +103,6 @@ button:hover {
 /* ====== 入力欄と桁数カウンターのスタイル ====== */
 .input-container {
     width: 100%;
-    max-width: 300px; /* 固定幅 */
     display: flex;
     flex-direction: column;
     align-items: center;
