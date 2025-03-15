@@ -1,54 +1,57 @@
-/* === 全体のスタイル === */
-body {
+/* === 画面全体の設定（最大サイズをデバイスの大きさに制限）=== */
+body, html {
     font-family: Arial, sans-serif;
     background: white;
     text-align: center;
-    padding: 1.25rem; /* 20px → rem */
+    margin: 0;
+    padding: 0;
+    width: 100vw;
+    height: 100vh;
+    overflow: hidden; /* スクロールを防ぐ */
     display: flex;
     justify-content: center;
     align-items: center;
-    min-height: 100vh;
-    margin: 0;
-    flex-direction: column;
 }
 
-/* === メインコンテナ === */
+/* === メインコンテナ（最大サイズはデバイスのサイズ）=== */
 .container {
     background: white;
-    padding: 1.5rem; /* 24px → rem */
-    border-radius: 0.625rem; /* 10px → rem */
+    padding: 1.5rem;
+    border-radius: 0.625rem;
     box-shadow: 0px 0.25rem 0.625rem rgba(0, 0, 0, 0.2);
     display: flex;
     flex-direction: column;
     align-items: center;
-    max-width: 90%;
-    width: 26rem; /* 416px → rem */
+    max-width: 80vw; /* 画面サイズの 80% */
+    max-height: 80vh;
+    min-width: 300px;
+    min-height: 400px;
 }
 
-/* === 入力フィールド（数値入力）=== */
+/* === 入力フィールド（サイズ調整済み）=== */
 input {
     width: 80%;
     max-width: 300px;
-    padding: 0.75rem; /* 12px → rem */
-    font-size: 1.125rem; /* 18px → rem */
-    margin: 0.5rem 0; /* 8px → rem */
+    padding: 0.75rem;
+    font-size: 1.125rem;
+    margin: 0.5rem 0;
     text-align: center;
-    border: 0.125rem solid #4facfe; /* 2px → rem */
-    border-radius: 0.375rem; /* 6px → rem */
+    border: 0.125rem solid #4facfe;
+    border-radius: 0.375rem;
 }
 
-/* === ボタン === */
+/* === ボタン（入力フィールドに合わせる）=== */
 button {
-    width: 30%;
+    width: 80%;
     max-width: 300px;
     background: #00c6ff;
     color: white;
-    padding: 0.75rem; /* 12px → rem */
+    padding: 0.75rem;
     border: none;
     cursor: pointer;
     font-size: 1.125rem;
     border-radius: 0.375rem;
-    margin-top: 0.75rem; /* 12px → rem */
+    margin-top: 0.75rem;
 }
 
 button:hover {
@@ -57,7 +60,7 @@ button:hover {
 
 /* === 結果表示エリア === */
 .result, .time, .progress {
-    font-size: 1.125rem; /* 18px → rem */
+    font-size: 1.125rem;
     margin-top: 0.75rem;
     color: #333;
     word-wrap: break-word;
@@ -70,7 +73,7 @@ button:hover {
 
 /* === 警告メッセージ === */
 .limits {
-    font-size: 0.875rem; /* 14px → rem */
+    font-size: 0.875rem;
     margin-top: 0.75rem;
     color: red;
 }
@@ -116,15 +119,14 @@ button:hover {
 
 /* === 現在の桁数表示 === */
 .char-counter {
-    font-size: 1.125rem; /* 18px → rem */
+    font-size: 1.125rem;
     color: #333;
-    margin-top: 0.375rem; /* 6px → rem */
+    margin-top: 0.375rem;
 }
 
 /* === 30桁制限を超えた時の強調表示 === */
 .char-counter.limit-reached {
     color: red;
-    font-weight: bold;
 }
 
 /* === 30桁制限を超えた時のエラーメッセージ === */
