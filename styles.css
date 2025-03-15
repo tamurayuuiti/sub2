@@ -1,67 +1,61 @@
-/* === 画面全体の設定（最大サイズをデバイスの大きさに制限）=== */
-body, html {
+/* ====== ページ全体のスタイル ====== */
+body {
     font-family: Arial, sans-serif;
     background: white;
     text-align: center;
-    margin: 0;
-    padding: 0;
-    width: 100vw;
-    height: 100vh;
-    overflow: hidden; /* スクロールを防ぐ */
+    padding: 20px;
     display: flex;
     justify-content: center;
     align-items: center;
+    min-height: 100vh;
+    margin: 0;
+    flex-direction: column;
 }
 
-/* === メインコンテナ（最大サイズはデバイスのサイズ）=== */
+/* ====== メインコンテンツのコンテナ ====== */
 .container {
     background: white;
-    padding: 1.5rem;
-    border-radius: 0.625rem;
-    box-shadow: 0px 0.25rem 0.625rem rgba(0, 0, 0, 0.2);
+    padding: 20px;
+    border-radius: 10px;
+    box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.2);
     display: flex;
     flex-direction: column;
     align-items: center;
-    max-width: 80vw; /* 画面サイズの 80% */
-    max-height: 80vh;
-    min-width: 300px;
-    min-height: 400px;
+    max-width: 90%;
+    width: 400px;
 }
 
-/* === 入力フィールド（サイズ調整済み）=== */
+/* ====== 入力フィールド ====== */
 input {
-    width: 80%;
-    max-width: 300px;
-    padding: 0.75rem;
-    font-size: 1.125rem;
-    margin: 0.5rem 0;
+    width: 200px;
+    padding: 10px;
+    font-size: 18px;
+    margin: 5px;
     text-align: center;
-    border: 0.125rem solid #4facfe;
-    border-radius: 0.375rem;
+    border: 2px solid #4facfe;
+    border-radius: 5px;
 }
 
-/* === ボタン（入力フィールドに合わせる）=== */
+/* ====== ボタンのスタイル ====== */
 button {
-    width: 80%;
-    max-width: 300px;
     background: #00c6ff;
     color: white;
-    padding: 0.75rem;
+    padding: 10px 20px;
     border: none;
     cursor: pointer;
-    font-size: 1.125rem;
-    border-radius: 0.375rem;
-    margin-top: 0.75rem;
+    font-size: 18px;
+    border-radius: 5px;
+    margin-top: 10px;
 }
 
 button:hover {
     background: #0072ff;
 }
 
-/* === 結果表示エリア === */
+/* ====== 結果・時間・進行状況の表示 ====== */
 .result, .time, .progress {
-    font-size: 1.125rem;
-    margin-top: 0.75rem;
+    font-size: 18px;
+    margin-top: 10px;
     color: #333;
     word-wrap: break-word;
     overflow-wrap: break-word;
@@ -71,87 +65,74 @@ button:hover {
     font-family: monospace;
 }
 
-/* === 警告メッセージ === */
+/* ====== 制限メッセージ ====== */
 .limits {
-    font-size: 0.875rem;
-    margin-top: 0.75rem;
+    font-size: 14px;
+    margin-top: 10px;
     color: red;
 }
 
-/* === ローディング表示（計算中）=== */
+/* ====== 読み込み中の表示 ====== */
 .loading {
-    font-size: 1rem;
+    font-size: 16px;
     color: #0072ff;
-    margin-top: 0.75rem;
+    margin-top: 10px;
     display: none;
     display: flex;
     align-items: center;
-    gap: 0.5rem;
+    gap: 8px;
 }
 
-/* === ローディング用スピナー === */
+/* ====== ローディングアニメーション ====== */
 .spinner {
     display: none;
-    border: 0.25rem solid rgba(0, 0, 0, 0.1);
+    border: 4px solid rgba(0, 0, 0, 0.1);
     border-top-color: #0072ff;
     border-radius: 50%;
-    width: 1.5rem;
-    height: 1.5rem;
+    width: 24px;
+    height: 24px;
     animation: spin 1s linear infinite;
 }
 
-/* === 進行状況の表示（計算進行）=== */
-.progress {
-    font-size: 1rem;
-    color: #0072ff;
-    margin-top: 0.75rem;
-    display: none;
+@keyframes spin {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
 }
 
-/* === 入力フィールドのカウンター表示 === */
+/* ====== 入力欄と桁数カウンターのスタイル ====== */
 .input-container {
     position: relative;
     display: flex;
     flex-direction: column;
     align-items: center;
-    width: 100%;
 }
 
-/* === 現在の桁数表示 === */
 .char-counter {
-    font-size: 1.125rem;
+    font-size: 18px;
     color: #333;
-    margin-top: 0.375rem;
+    margin-top: 5px;
 }
 
-/* === 30桁制限を超えた時の強調表示 === */
 .char-counter.limit-reached {
     color: red;
 }
 
-/* === 30桁制限を超えた時のエラーメッセージ === */
+/* ====== エラーメッセージのスタイル ====== */
 .error-message {
-    font-size: 1rem;
+    font-size: 16px;
     color: red;
-    margin-top: 0.375rem;
+    margin-top: 5px;
     display: none;
 }
 
-/* === スピンボタンを非表示にする === */
-/* Chrome, Safari, Edge, Opera */
+/* ====== スピンボタンの非表示（数値入力フィールド） ====== */
 input[type="number"]::-webkit-outer-spin-button,
 input[type="number"]::-webkit-inner-spin-button {
     -webkit-appearance: none;
     margin: 0;
 }
 
-/* Firefox */
 input[type="number"] {
     -moz-appearance: textfield;
 }
 
-/* === スピナーのアニメーション === */
-@keyframes spin {
-    from { transform: rotate(0deg); }
-    to { transform: rotate(360deg); }
-}
