@@ -1,17 +1,7 @@
-/* ====== エヴァンゲリオン風スタイル（元の要素を完全維持） ====== */
-@import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&display=swap');
-
-@keyframes evaGradientBG {
-    0% { background-position: 0% 50%; }
-    50% { background-position: 100% 50%; }
-    100% { background-position: 0% 50%; }
-}
-
+/* ====== ページ全体のスタイル ====== */
 body {
-    font-family: 'Orbitron', sans-serif;
-    background: linear-gradient(-45deg, #200122, #6f0000, #000000);
-    background-size: 400% 400%;
-    animation: evaGradientBG 8s ease infinite;
+    font-family: Arial, sans-serif;
+    background: white;
     text-align: center;
     padding: 20px;
     display: flex;
@@ -20,16 +10,14 @@ body {
     height: 100vh;
     margin: 0;
     flex-direction: column;
-    color: #39ff14;
-    text-shadow: 0 0 10px #39ff14;
 }
 
-/* ====== コンテナ ====== */
+/* ====== メインコンテンツのコンテナ ====== */
 .container {
-    background: rgba(0, 0, 0, 0.9);
+    background: white;
     padding: 20px;
     border-radius: 10px;
-    box-shadow: 0px 4px 10px rgba(57, 255, 20, 0.8);
+    box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.2);
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -44,17 +32,15 @@ input {
     font-size: 18px;
     margin-bottom: 20px;
     text-align: center;
-    border: 2px solid #39ff14;
+    border: 2px solid #4facfe;
     border-radius: 50px;
-    background: black;
-    color: #39ff14;
-    box-sizing: border-box;
+    box-sizing: border-box; /* 追加: padding と border を width に含める */
 }
 
-/* ====== ボタン ====== */
+/* ====== ボタンのスタイル ====== */
 button {
-    background: #9b0000;
-    color: #39ff14;
+    background: #00c6ff;
+    color: white;
     padding: 10px 20px;
     border: none;
     cursor: pointer;
@@ -64,14 +50,17 @@ button {
 }
 
 button:hover {
-    background: #ff0000;
+    background: #0072ff;
 }
 
 /* ====== 結果・時間・進行状況の表示 ====== */
 .result, .time, .progress {
     font-size: 18px;
     margin-top: 10px;
-    color: #39ff14;
+    color: #333;
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+    max-width: 100%;
     text-align: left;
     white-space: pre-wrap;
     font-family: monospace;
@@ -87,8 +76,9 @@ button:hover {
 /* ====== 読み込み中の表示 ====== */
 .loading {
     font-size: 16px;
-    color: #ff0000;
+    color: #0072ff;
     margin-top: 10px;
+    display: none;
     display: flex;
     align-items: center;
     gap: 8px;
@@ -97,8 +87,8 @@ button:hover {
 /* ====== ローディングアニメーション ====== */
 .spinner {
     display: none;
-    border: 4px solid rgba(255, 0, 0, 0.2);
-    border-top-color: #ff0000;
+    border: 4px solid rgba(0, 0, 0, 0.1);
+    border-top-color: #0072ff;
     border-radius: 50%;
     width: 24px;
     height: 24px;
@@ -110,7 +100,7 @@ button:hover {
     to { transform: rotate(360deg); }
 }
 
-/* ====== 入力欄と桁数カウンター ====== */
+/* ====== 入力欄と桁数カウンターのスタイル ====== */
 .input-container {
     width: 100%;
     display: flex;
@@ -120,7 +110,7 @@ button:hover {
 
 .char-counter {
     font-size: 18px;
-    color: #39ff14;
+    color: #333;
     margin-top: 5px;
 }
 
@@ -128,7 +118,7 @@ button:hover {
     color: red;
 }
 
-/* ====== エラーメッセージ ====== */
+/* ====== エラーメッセージのスタイル ====== */
 .error-message {
     font-size: 16px;
     color: red;
