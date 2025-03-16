@@ -7,7 +7,7 @@ body {
     display: flex;
     justify-content: center;
     align-items: center;
-    min-height: 90vh;
+    height: 100vh;
     margin: 0;
     flex-direction: column;
 }
@@ -21,10 +21,9 @@ body {
     display: flex;
     flex-direction: column;
     align-items: center;
-    width: 80%;  /* 画面幅の80% */
-    max-width: 500px;  /* 最大幅を500pxに制限 */
-    height: 80%; /* 高さを固定 */
-    overflow: auto; /* 内容が多すぎる場合はスクロール */
+    width: 80%;
+    max-width: 500px;
+    height: 80%;
 }
 
 /* ====== 入力フィールド ====== */
