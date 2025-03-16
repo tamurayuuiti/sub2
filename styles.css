@@ -23,6 +23,8 @@ body {
     align-items: center;
     width: 80%;  /* 画面幅の80% */
     max-width: 500px;  /* 最大幅を500pxに制限 */
+    height: 500px; /* 高さを固定 */
+    overflow: auto; /* 内容が多すぎる場合はスクロール */
 }
 
 /* ====== 入力フィールド ====== */
