@@ -191,7 +191,7 @@ async function alternativeFactorization(n) {
 
     console.log(`=== Quadratic Sieve を開始: ${n} ===`);
 
-    let B = getOptimalB(n);
+    let B = 6000
     let factorBase = getFactorBase(B);
 
     console.log("B:", B);
