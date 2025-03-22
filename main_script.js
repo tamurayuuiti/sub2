@@ -178,10 +178,10 @@ async function trialDivisionFromFile(number) {
 
 async function alternativeFactorization(n) {
     if (typeof n !== "bigint") {
-        throw new TypeError(`エラー: alternativeFactorization() に渡された number (${n}) が BigInt ではありません。`);
+        throw new TypeError(`エラー: siqsFactorization() に渡された number (${n}) が BigInt ではありません。`);
     }
 
-    console.log(`=== Quadratic Sieve を開始: ${n} ===`);
+    console.log(`=== SIQS を開始: ${n} ===`);
 
     let B = getOptimalB(n);
     let factorBase = getFactorBase(B);
@@ -189,55 +189,49 @@ async function alternativeFactorization(n) {
 
     let smoothNumbers = [];
     let xValues = [];
-    let sqrtN = sqrtBigInt(n);  // 🔹 `BigInt` で平方根計算
+    let sqrtN = sqrtBigInt(n);
     let minSmoothCount = factorBase.length;
-    let maxAttempts = Math.min(Math.max(minSmoothCount * 2, Number(sqrtN)), 10_000_000);  // 🔹 上限を設定
+    let maxAttempts = Math.min(Math.max(minSmoothCount * 2, Number(sqrtN)), 10_000_000);
 
-    console.log(`平滑数を収集中 (最大 ${maxAttempts} 試行)...`);
+    console.log(`SIQS の篩処理を実行中 (最大 ${maxAttempts} 試行)...`);
 
-    for (let x = Number(sqrtN), attempts = 0; smoothNumbers.length < minSmoothCount && attempts < maxAttempts; x++, attempts++) {
-        let value = (BigInt(x) * BigInt(x)) % n;
+    for (let attempt = 0; attempt < maxAttempts; attempt++) {
+        let { a, b, c } = generatePolynomial(n, factorBase);
+        let value = (BigInt(a) * BigInt(attempt) ** 2n + BigInt(b) * BigInt(attempt) + BigInt(c)) % n;
         let factorization = trialDivision(value, factorBase);
 
         if (factorization) {
             smoothNumbers.push(factorization);
-            xValues.push(BigInt(x));
-
-            if (smoothNumbers.length % 10 === 0) {
-                console.log(`平滑数 ${smoothNumbers.length}/${minSmoothCount} 取得`);
-            }
+            xValues.push(BigInt(attempt));
         }
 
-        if (attempts % 5000 === 0) {
-            await new Promise(resolve => setTimeout(resolve, 0));
+        if (smoothNumbers.length >= minSmoothCount) {
+            break;
         }
     }
 
     if (smoothNumbers.length < minSmoothCount) {
-        console.error(`平滑数が不足 (必要: ${minSmoothCount}, 取得: ${smoothNumbers.length}) → QS 失敗`);
+        console.error(`SIQS 失敗: 平滑数が不足 (${smoothNumbers.length}/${minSmoothCount})`);
         return [n];
     }
 
-    console.log(`平滑数の収集完了！ 合計 ${smoothNumbers.length} 個`);
+    console.log(`平滑数の収集完了！`);
     
-    console.log(`平方合同を探索中...`);
+    console.log(`ガウス消去法を適用...`);
     let { x, y } = findCongruentSquares(smoothNumbers, xValues, n);
     if (!x || !y) {
         console.error("平方合同が見つかりませんでした。");
         return [n];
     }
 
-    console.log(`平方合同が見つかりました！`);
-
     console.log(`GCD を計算中...`);
     let factor = gcd(BigInt.abs(x - y), n);
     if (factor === 1n || factor === n) {
-        console.error("QS で有効な因数を発見できませんでした。");
+        console.error("SIQS で有効な因数を発見できませんでした。");
         return [n];
     }
 
-    console.log(`QS で見つかった因数: ${factor}`);
-
+    console.log(`SIQS で見つかった因数: ${factor}`);
     let otherFactor = n / factor;
     let factors = [];
 
@@ -257,6 +251,7 @@ async function alternativeFactorization(n) {
 
     return factors;
 }
+
 
 // ✅ `BigInt` 対応の `log()` 関数を追加
 function logBigInt(n) {
