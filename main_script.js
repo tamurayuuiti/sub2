@@ -190,7 +190,7 @@ async function alternativeFactorization(n) {
     let smoothNumbers = [];
     let xValues = [];
     let minSmoothCount = 350;  // 余裕を持たせて350に設定
-    let maxAttempts = 1_000_000;  // 最大試行回数を100万回に制限
+    let maxAttempts = 100000000;  // 最大試行回数を100万回に制限
 
     console.log(`素因数基数のサイズ: ${factorBase.length}, B = ${B}`);
     console.log(`最低限必要な平滑数: ${minSmoothCount}, 最大試行回数: ${maxAttempts}`);
