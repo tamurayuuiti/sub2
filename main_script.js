@@ -183,17 +183,17 @@ async function alternativeFactorization(n) {
 
     console.log(`=== Quadratic Sieve を開始: ${n} ===`);
 
-    // nが最大30桁の場合の調整
-    let B = 300;  // 素因数基数のサイズを固定
+    let B = getOptimalB(n);
     let factorBase = getFactorBase(B);
-    let sqrtN = sqrtBigInt(n); 
+    console.log(`素因数基数 (Factor Base) のサイズ: ${factorBase.length}, B = ${B}`);
+
     let smoothNumbers = [];
     let xValues = [];
-    let minSmoothCount = 350;  // 余裕を持たせて350に設定
-    let maxAttempts = 100000000;  // 最大試行回数を100万回に制限
+    let sqrtN = sqrtBigInt(n);  // 🔹 `BigInt` で平方根計算
+    let minSmoothCount = factorBase.length;
+    let maxAttempts = Math.min(Math.max(minSmoothCount * 2, Number(sqrtN)), 10_000_000);  // 🔹 上限を設定
 
-    console.log(`素因数基数のサイズ: ${factorBase.length}, B = ${B}`);
-    console.log(`最低限必要な平滑数: ${minSmoothCount}, 最大試行回数: ${maxAttempts}`);
+    console.log(`平滑数を収集中 (最大 ${maxAttempts} 試行)...`);
 
     for (let x = Number(sqrtN), attempts = 0; smoothNumbers.length < minSmoothCount && attempts < maxAttempts; x++, attempts++) {
         let value = (BigInt(x) * BigInt(x)) % n;
@@ -203,7 +203,7 @@ async function alternativeFactorization(n) {
             smoothNumbers.push(factorization);
             xValues.push(BigInt(x));
 
-            if (smoothNumbers.length % 5 === 0) {  // 50個ごとに進捗ログを出力
+            if (smoothNumbers.length % 10 === 0) {
                 console.log(`平滑数 ${smoothNumbers.length}/${minSmoothCount} 取得`);
             }
         }
