@@ -431,4 +431,13 @@ function gaussianElimination(matrix) {
     return solution.some(v => v !== 0) ? solution : null;
 }
 
+function gcd(a, b) {
+    while (b !== 0n) {
+        let temp = b;
+        b = a % b;
+        a = temp;
+    }
+    return a;
+}
+
 loadPrimes();
