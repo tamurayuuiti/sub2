@@ -266,7 +266,7 @@ function logBigInt(n) {
 
 function getOptimalB(n) {
     let logN = logBigInt(n);
-    let C = 2; // 補正係数（30桁の `n` で B ≈ 300 に調整）
+    let C = 1.8; // 補正係数（30桁の `n` で B ≈ 300 に調整）
     return Math.floor(C * Math.exp(0.5 * Math.sqrt(logN * Math.log(logN))));
 }
 
@@ -333,6 +333,24 @@ function findCongruentSquares(smoothNumbers, xValues, n) {
     }
 
     return { x: x % n, y: y % n };
+}
+
+function createExponentMatrix(smoothNumbers, factorBase) {
+    let matrix = [];
+
+    for (let factorization of smoothNumbers) {
+        let row = new Array(factorBase.length).fill(0);
+
+        for (let { prime, count } of factorization) {
+            let index = factorBase.indexOf(Number(prime));
+            if (index !== -1) {
+                row[index] = count % 2; // mod 2 で偶奇を記録
+            }
+        }
+        matrix.push(row);
+    }
+
+    return matrix;
 }
 
 // ✅ `BitSet` を使ったガウス消去法の最適化
