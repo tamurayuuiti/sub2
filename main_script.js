@@ -249,13 +249,49 @@ async function alternativeFactorization(n) {
 
     console.log(`GCD を計算中...`);
     let diff = abs(x - y);
+    console.log(`x - y = ${diff}`);
+
     if (diff === 0n) {
         console.error("エラー: x と y が等しいため GCD 計算が無意味です");
         return [n];
     }
-    
+
     let factor = gcd(diff, n);
+    console.log(`GCD(${diff}, ${n}) = ${factor}`);
+
     
+    if (factor === 1n) {
+        console.error(`QS 失敗: ${diff} と ${n} は互いに素 (gcd = 1)`);
+        return [n]; 
+    }
+    
+    if (factor === n) {
+        console.error(`QS 失敗: ${diff} は n の倍数 (gcd = n)`);
+        return [n];
+    }
+
+    let factor = gcd(diff, n);
+    console.log(`GCD(${diff}, ${n}) = ${factor}`);
+    
+    let maxRetries = 5; // 最大5回まで平方合同を再探索
+    let retryCount = 0;
+
+    while ((factor === 1n || factor === n) && retryCount < maxRetries) {
+        console.warn(`QS 失敗 (factor=${factor})、平方合同を再探索中... (${retryCount + 1}/${maxRetries})`);
+        let { newX, newY } = findCongruentSquares(smoothNumbers, xValues, factorBase, n);
+    
+        if (!newX || !newY) {
+            console.error("新しい平方合同の探索に失敗しました。");
+            return [n]; // 完全に失敗
+        }
+    
+        x = newX;
+        y = newY;
+        factor = gcd(abs(x - y), n);
+        retryCount++;
+    }
+
+
     if (factor === 1n || factor === n) {
         console.error("QS で有効な因数を発見できませんでした。");
         return [n];
@@ -285,7 +321,6 @@ async function alternativeFactorization(n) {
     return factors;
 }
 
-// ✅ `BigInt` 対応の `log()` 関数を追加
 function logBigInt(n) {
     let digits = n.toString().length;
     return digits * Math.log(10);
@@ -293,7 +328,7 @@ function logBigInt(n) {
 
 function getOptimalB(n) {
     let logN = logBigInt(n);
-    let C = 1.2; // 補正係数（30桁の `n` で B ≈ 300 に調整）
+    let C = 1.1; // 補正係数
     return Math.floor(C * Math.exp(0.5 * Math.sqrt(logN * Math.log(logN))));
 }
 
@@ -395,7 +430,6 @@ function createExponentMatrix(smoothNumbers, factorBase) {
     return matrix;
 }
 
-// ✅ `BitSet` を使ったガウス消去法の最適化
 function gaussianElimination(matrix) {
     let rows = matrix.length, cols = matrix[0].length;
     let bitMatrix = new Array(rows).fill(0).map(() => new Uint8Array(Math.ceil(cols / 8)));
