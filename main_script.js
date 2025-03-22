@@ -247,7 +247,7 @@ async function alternativeFactorization(n) {
     console.log(`平方合同が見つかりました！`);
 
     console.log(`GCD を計算中...`);
-    let factor = gcd(BigInt.abs(x - y), n);
+    let factor = gcd(abs(x - y), n);
     if (factor === 1n || factor === n) {
         console.error("QS で有効な因数を発見できませんでした。");
         return [n];
