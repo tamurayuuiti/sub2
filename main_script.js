@@ -440,4 +440,8 @@ function gcd(a, b) {
     return a;
 }
 
+function abs(n) {
+    return n < 0n ? -n : n;
+}
+
 loadPrimes();
