@@ -195,7 +195,6 @@ async function alternativeFactorization(n) {
     let factorBase = getFactorBase(B);
 
     console.log("B:", B);
-    console.log("factorBase:", factorBase);
     console.log("factorBase.length:", factorBase.length);
 
     if (!factorBase || factorBase.length === 0) {
@@ -208,7 +207,7 @@ async function alternativeFactorization(n) {
     let xValues = [];
     let sqrtN = sqrtBigInt(n);
     let minSmoothCount = factorBase.length;
-    let maxAttempts = Math.min(Math.max(minSmoothCount * 2, Number(sqrtN)), 100_000_000);  // 🔹 上限を設定
+    let maxAttempts = Math.min(Math.max(minSmoothCount * 2, Number(sqrtN)), 100_000_000);
 
     console.log(`平滑数を収集中 (最大 ${maxAttempts} 試行)...`);
 
@@ -239,15 +238,24 @@ async function alternativeFactorization(n) {
     
     console.log(`平方合同を探索中...`);
     let { x, y } = findCongruentSquares(smoothNumbers, xValues, factorBase, n);
+    
     if (!x || !y) {
         console.error("平方合同が見つかりませんでした。");
+        console.error("デバッグ情報: smoothNumbers.length =", smoothNumbers.length);
         return [n];
     }
 
-    console.log(`平方合同が見つかりました！`);
+    console.log(`平方合同が見つかりました！ x = ${x}, y = ${y}`);
 
     console.log(`GCD を計算中...`);
-    let factor = gcd(abs(x - y), n);
+    let diff = abs(x - y);
+    if (diff === 0n) {
+        console.error("エラー: x と y が等しいため GCD 計算が無意味です");
+        return [n];
+    }
+    
+    let factor = gcd(diff, n);
+    
     if (factor === 1n || factor === n) {
         console.error("QS で有効な因数を発見できませんでした。");
         return [n];
@@ -261,6 +269,7 @@ async function alternativeFactorization(n) {
     if (isPrimeMillerRabin(factor)) {
         factors.push(factor);
     } else {
+        console.log(`因数 ${factor} を再帰的に分解`);
         let subFactors = await alternativeFactorization(factor);
         factors = factors.concat(subFactors);
     }
@@ -268,6 +277,7 @@ async function alternativeFactorization(n) {
     if (isPrimeMillerRabin(otherFactor)) {
         factors.push(otherFactor);
     } else {
+        console.log(`因数 ${otherFactor} を再帰的に分解`);
         let subFactors = await alternativeFactorization(otherFactor);
         factors = factors.concat(subFactors);
     }
