@@ -315,6 +315,26 @@ function trialDivision(value, factorBase) {
     return value === 1n ? factorization : null;
 }
 
+function findCongruentSquares(smoothNumbers, xValues, n) {
+    // ガウス消去法で平方合同を見つける
+    let matrix = createExponentMatrix(smoothNumbers);
+    let solution = gaussianElimination(matrix);
+
+    if (!solution) {
+        return { x: null, y: null };
+    }
+
+    let x = 1n, y = 1n;
+    for (let i = 0; i < solution.length; i++) {
+        if (solution[i]) {
+            x *= xValues[i];
+            y *= reconstructY(smoothNumbers[i], n);
+        }
+    }
+
+    return { x: x % n, y: y % n };
+}
+
 // ✅ `BitSet` を使ったガウス消去法の最適化
 function gaussianElimination(matrix) {
     let rows = matrix.length, cols = matrix[0].length;
