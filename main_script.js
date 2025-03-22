@@ -186,6 +186,7 @@ async function alternativeFactorization(n) {
     // nが最大30桁の場合の調整
     let B = 300;  // 素因数基数のサイズを固定
     let factorBase = getFactorBase(B);
+    let sqrtN = sqrtBigInt(n); 
     let minSmoothCount = 350;  // 余裕を持たせて350に設定
     let maxAttempts = 1_000_000;  // 最大試行回数を100万回に制限
 
