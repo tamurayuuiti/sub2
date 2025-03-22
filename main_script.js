@@ -201,7 +201,6 @@ async function alternativeFactorization(n) {
     if (!factorBase || factorBase.length === 0) {
         throw new Error(`factorBase の生成に失敗しました。B=${B} に対して十分な素数がありません。`);
     }
-}
 
     console.log(`素因数基数 (Factor Base) のサイズ: ${factorBase.length}, B = ${B}`);
 
