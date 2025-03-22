@@ -203,7 +203,7 @@ async function alternativeFactorization(n) {
             smoothNumbers.push(factorization);
             xValues.push(BigInt(x));
 
-            if (smoothNumbers.length % 50 === 0) {  // 50個ごとに進捗ログを出力
+            if (smoothNumbers.length % 5 === 0) {  // 50個ごとに進捗ログを出力
                 console.log(`平滑数 ${smoothNumbers.length}/${minSmoothCount} 取得`);
             }
         }
