@@ -238,7 +238,7 @@ async function alternativeFactorization(n) {
     console.log(`平滑数の収集完了！ 合計 ${smoothNumbers.length} 個`);
     
     console.log(`平方合同を探索中...`);
-    let { x, y } = findCongruentSquares(smoothNumbers, xValues, n);
+    let { x, y } = findCongruentSquares(smoothNumbers, xValues, factorBase, n);
     if (!x || !y) {
         console.error("平方合同が見つかりませんでした。");
         return [n];
@@ -330,9 +330,8 @@ function trialDivision(value, factorBase) {
     return value === 1n ? factorization : null;
 }
 
-function findCongruentSquares(smoothNumbers, xValues, n) {
-    // ガウス消去法で平方合同を見つける
-    let matrix = createExponentMatrix(smoothNumbers);
+function findCongruentSquares(smoothNumbers, xValues, factorBase, n) {
+    let matrix = createExponentMatrix(smoothNumbers, factorBase); // ✅ factorBase を渡す
     let solution = gaussianElimination(matrix);
 
     if (!solution) {
