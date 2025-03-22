@@ -183,7 +183,7 @@ async function alternativeFactorization(n) {
 
     console.log(`=== Quadratic Sieve を開始: ${n} ===`);
 
-    let B = getOptimalB(n);
+    let B = 300
     let factorBase = getFactorBase(B);
     console.log(`素因数基数 (Factor Base) のサイズ: ${factorBase.length}, B = ${B}`);
 
