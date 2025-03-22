@@ -266,7 +266,7 @@ function logBigInt(n) {
 
 function getOptimalB(n) {
     let logN = logBigInt(n);
-    let C = 1.5; // 補正係数（30桁の `n` で B ≈ 300 に調整）
+    let C = 1.3; // 補正係数（30桁の `n` で B ≈ 300 に調整）
     return Math.floor(C * Math.exp(0.5 * Math.sqrt(logN * Math.log(logN))));
 }
 
