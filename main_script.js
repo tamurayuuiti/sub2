@@ -335,6 +335,17 @@ function findCongruentSquares(smoothNumbers, xValues, n) {
     return { x: x % n, y: y % n };
 }
 
+function reconstructY(factorization, n) {
+    let y = 1n;
+
+    for (let { prime, count } of factorization) {
+        let exp = count / 2n; // 指数を 2 で割る
+        y *= BigInt(prime) ** exp; // 偶数回登場する素因数を掛け合わせる
+    }
+
+    return y % n; // `y` を `mod n` で返す
+}
+
 function createExponentMatrix(smoothNumbers, factorBase) {
     if (!smoothNumbers || !Array.isArray(smoothNumbers) || smoothNumbers.length === 0) {
         throw new Error("smoothNumbers が未定義または空です。指数行列を作成できません。");
