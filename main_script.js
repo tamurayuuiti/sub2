@@ -181,10 +181,28 @@ async function alternativeFactorization(n) {
         throw new TypeError(`エラー: alternativeFactorization() に渡された number (${n}) が BigInt ではありません。`);
     }
 
+    if (primes.length === 0) {
+        console.warn("primes が未ロードのため、ロードを試行します...");
+        await loadPrimes();
+        if (primes.length === 0) {
+            throw new Error("素数リストのロードに失敗しました。factorBase を生成できません。");
+        }
+    }
+
     console.log(`=== Quadratic Sieve を開始: ${n} ===`);
 
     let B = getOptimalB(n);
     let factorBase = getFactorBase(B);
+
+    console.log("B:", B);
+    console.log("factorBase:", factorBase);
+    console.log("factorBase.length:", factorBase.length);
+
+    if (!factorBase || factorBase.length === 0) {
+        throw new Error(`factorBase の生成に失敗しました。B=${B} に対して十分な素数がありません。`);
+    }
+}
+
     console.log(`素因数基数 (Factor Base) のサイズ: ${factorBase.length}, B = ${B}`);
 
     let smoothNumbers = [];
@@ -285,7 +303,6 @@ function sqrtBigInt(n) {
     return x0;
 }
 
-// ✅ エラトステネスの篩の最適化
 function getFactorBase(B) {
     if (primes.length === 0) {
         throw new Error("素数リストが未読み込みです。");
