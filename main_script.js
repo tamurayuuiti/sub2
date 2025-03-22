@@ -208,7 +208,7 @@ async function alternativeFactorization(n) {
     let xValues = [];
     let sqrtN = sqrtBigInt(n);
     let minSmoothCount = factorBase.length;
-    let maxAttempts = Math.min(Math.max(minSmoothCount * 2, Number(sqrtN)), 100_000_000);
+    let maxAttempts = Math.min(Math.max(minSmoothCount * 3, Math.floor(Number(sqrtN) / 2)), 100_000_000);
 
     console.log(`平滑数を収集中 (最大 ${maxAttempts} 試行)...`);
 
