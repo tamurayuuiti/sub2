@@ -189,9 +189,9 @@ async function alternativeFactorization(n) {
 
     let smoothNumbers = [];
     let xValues = [];
-    let sqrtN = sqrtBigInt(n);  // 🔹 `BigInt` で平方根計算
+    let sqrtN = sqrtBigInt(n);
     let minSmoothCount = factorBase.length;
-    let maxAttempts = Math.min(Math.max(minSmoothCount * 2, Number(sqrtN)), 10_000_000);  // 🔹 上限を設定
+    let maxAttempts = Math.min(Math.max(minSmoothCount * 2, Number(sqrtN)), 100_000_000);  // 🔹 上限を設定
 
     console.log(`平滑数を収集中 (最大 ${maxAttempts} 試行)...`);
 
