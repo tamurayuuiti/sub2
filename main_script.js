@@ -266,7 +266,7 @@ function logBigInt(n) {
 
 function getOptimalB(n) {
     let logN = logBigInt(n);
-    let C = 1.8; // 補正係数（30桁の `n` で B ≈ 300 に調整）
+    let C = 1.5; // 補正係数（30桁の `n` で B ≈ 300 に調整）
     return Math.floor(C * Math.exp(0.5 * Math.sqrt(logN * Math.log(logN))));
 }
 
@@ -336,6 +336,13 @@ function findCongruentSquares(smoothNumbers, xValues, n) {
 }
 
 function createExponentMatrix(smoothNumbers, factorBase) {
+    if (!smoothNumbers || !Array.isArray(smoothNumbers) || smoothNumbers.length === 0) {
+        throw new Error("smoothNumbers が未定義または空です。指数行列を作成できません。");
+    }
+    if (!factorBase || !Array.isArray(factorBase) || factorBase.length === 0) {
+        throw new Error("factorBase が未定義または空です。");
+    }
+
     let matrix = [];
 
     for (let factorization of smoothNumbers) {
@@ -344,7 +351,7 @@ function createExponentMatrix(smoothNumbers, factorBase) {
         for (let { prime, count } of factorization) {
             let index = factorBase.indexOf(Number(prime));
             if (index !== -1) {
-                row[index] = count % 2; // mod 2 で偶奇を記録
+                row[index] = count % 2;
             }
         }
         matrix.push(row);
