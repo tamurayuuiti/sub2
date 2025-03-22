@@ -191,7 +191,7 @@ async function alternativeFactorization(n) {
     let xValues = [];
     let sqrtN = sqrtBigInt(n);  // 🔹 `BigInt` で平方根計算
     let minSmoothCount = factorBase.length;
-    let maxAttempts = Math.min(Math.max(minSmoothCount * 2, Number(sqrtN)), 10_000_000);  // 🔹 上限を設定
+    let maxAttempts = Math.min(Math.max(minSmoothCount * 2, Number(sqrtN)), 100000000);  // 🔹 上限を設定
 
     console.log(`平滑数を収集中 (最大 ${maxAttempts} 試行)...`);
 
@@ -266,7 +266,7 @@ function logBigInt(n) {
 
 function getOptimalB(n) {
     let logN = logBigInt(n);
-    let C = 0.55; // 補正係数（30桁の `n` で B ≈ 300 に調整）
+    let C = 0.35; // 補正係数（30桁の `n` で B ≈ 300 に調整）
     return Math.floor(C * Math.exp(0.5 * Math.sqrt(logN * Math.log(logN))));
 }
 
