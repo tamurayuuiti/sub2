@@ -287,18 +287,17 @@ function sqrtBigInt(n) {
 
 // ✅ エラトステネスの篩の最適化
 function getFactorBase(B) {
-    let sieve = new Array(B + 1).fill(true);
-    sieve[0] = sieve[1] = false;
-    let primes = [];
-    for (let i = 2; i <= B; i++) {
-        if (sieve[i]) {
-            primes.push(i);
-            for (let j = i * i; j <= B; j += i) {
-                sieve[j] = false;
-            }
-        }
+    if (primes.length === 0) {
+        throw new Error("素数リストが未読み込みです。");
     }
-    return primes;
+
+    let factorBase = primes.filter(p => p <= BigInt(B)).map(p => Number(p));
+
+    if (factorBase.length === 0) {
+        throw new Error(`factorBase が空です。B=${B} に対して十分な素数がありません。`);
+    }
+
+    return factorBase;
 }
 
 function trialDivision(value, factorBase) {
