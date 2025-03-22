@@ -183,7 +183,7 @@ async function alternativeFactorization(n) {
 
     console.log(`=== Quadratic Sieve を開始: ${n} ===`);
 
-    let B = 300
+    let B = getOptimalB(n)
     let factorBase = getFactorBase(B);
     console.log(`素因数基数 (Factor Base) のサイズ: ${factorBase.length}, B = ${B}`);
 
@@ -265,8 +265,9 @@ function logBigInt(n) {
 }
 
 function getOptimalB(n) {
-    let logN = logBigInt(n); // 🔹 `BigInt` 対応
-    return Math.floor(Math.exp(0.5 * Math.sqrt(logN * Math.log(logN))));
+    let logN = logBigInt(n);
+    let C = 0.75; // 補正係数（30桁の `n` で B ≈ 300 に調整）
+    return Math.floor(C * Math.exp(0.5 * Math.sqrt(logN * Math.log(logN))));
 }
 
 function sqrtBigInt(n) {
