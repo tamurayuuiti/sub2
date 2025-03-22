@@ -203,6 +203,7 @@ async function alternativeFactorization(n) {
 
     console.log(`素因数基数 (Factor Base) のサイズ: ${factorBase.length}, B = ${B}`);
 
+    let factor = null;
     let smoothNumbers = [];
     let xValues = [];
     let sqrtN = sqrtBigInt(n);
@@ -266,7 +267,7 @@ async function alternativeFactorization(n) {
         return [n];
     }
 
-    let factor = gcd(diff, n);
+    factor = gcd(diff, n);
     console.log(`GCD(${diff}, ${n}) = ${factor}`);
     
     let maxRetries = 5; 
