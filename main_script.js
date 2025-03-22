@@ -353,11 +353,11 @@ function reconstructY(factorization, n) {
     let y = 1n;
 
     for (let { prime, count } of factorization) {
-        let exp = count / 2n; // 指数を 2 で割る
-        y *= BigInt(prime) ** exp; // 偶数回登場する素因数を掛け合わせる
+        let exp = BigInt(count) / 2n; // ✅ `count` を `BigInt` に変換
+        y *= BigInt(prime) ** exp; // ✅ `BigInt` 同士の演算にする
     }
 
-    return y % n; // `y` を `mod n` で返す
+    return y % n;
 }
 
 function createExponentMatrix(smoothNumbers, factorBase) {
