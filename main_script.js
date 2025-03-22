@@ -255,10 +255,6 @@ async function alternativeFactorization(n) {
         console.error("エラー: x と y が等しいため GCD 計算が無意味です");
         return [n];
     }
-
-    let factor = gcd(diff, n);
-    console.log(`GCD(${diff}, ${n}) = ${factor}`);
-
     
     if (factor === 1n) {
         console.error(`QS 失敗: ${diff} と ${n} は互いに素 (gcd = 1)`);
@@ -273,27 +269,22 @@ async function alternativeFactorization(n) {
     let factor = gcd(diff, n);
     console.log(`GCD(${diff}, ${n}) = ${factor}`);
     
-    let maxRetries = 5; // 最大5回まで平方合同を再探索
+    let maxRetries = 5; 
     let retryCount = 0;
 
-    while ((factor === 1n || factor === n) && retryCount < maxRetries) {
-        console.warn(`QS 失敗 (factor=${factor})、平方合同を再探索中... (${retryCount + 1}/${maxRetries})`);
-        let { newX, newY } = findCongruentSquares(smoothNumbers, xValues, factorBase, n);
-    
-        if (!newX || !newY) {
-            console.error("新しい平方合同の探索に失敗しました。");
-            return [n]; // 完全に失敗
+    while ((!x || !y) && retryCount < maxRetries) {
+        console.warn(`平方合同が見つかりませんでした。再探索中... (${retryCount + 1}/${maxRetries})`);
+        let newXY = findCongruentSquares(smoothNumbers, xValues, factorBase, n);
+        if (!newXY.x || !newXY.y) {
+            retryCount++;
+            continue;
         }
-    
-        x = newX;
-        y = newY;
-        factor = gcd(abs(x - y), n);
-        retryCount++;
+        x = newXY.x;
+        y = newXY.y;
     }
 
-
-    if (factor === 1n || factor === n) {
-        console.error("QS で有効な因数を発見できませんでした。");
+    if (!x || !y) {
+        console.error("平方合同を見つけることができませんでした。");
         return [n];
     }
 
