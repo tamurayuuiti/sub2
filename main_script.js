@@ -320,7 +320,7 @@ function logBigInt(n) {
 
 function getOptimalB(n) {
     let logN = logBigInt(n);
-    let C = 6000; // 補正係数
+    let C = 3000000; // 補正係数
     return Math.floor(C * Math.exp(0.5 * Math.sqrt(logN * Math.log(logN))));
 }
 
@@ -368,7 +368,7 @@ function trialDivision(value, factorBase) {
 }
 
 function findCongruentSquares(smoothNumbers, xValues, factorBase, n) {
-    let matrix = createExponentMatrix(smoothNumbers, factorBase); // ✅ factorBase を渡す
+    let matrix = createExponentMatrix(smoothNumbers, factorBase);
     let solution = gaussianElimination(matrix);
 
     if (!solution) {
@@ -449,7 +449,7 @@ function gaussianElimination(matrix) {
 
         for (let row = 0; row < rows; row++) {
             if (row !== col && (bitMatrix[row][col >> 3] & (1 << (col & 7)))) {
-                bitMatrix[row].set(bitMatrix[col], 0); // 🔹 `set()` を使用
+                bitMatrix[row].set(bitMatrix[col], 0);
             }
         }
     }
