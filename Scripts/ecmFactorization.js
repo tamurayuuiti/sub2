@@ -84,6 +84,7 @@ export function getECMParams(n, attempt = 0) {
     let baseB1 = 10n ** (logN / 3n);
     let adaptiveB1 = baseB1 * (BigInt(attempt) + 1n);
     let maxB1 = 10n ** 6n;
+    let minB1 = 10n ** 5n;
     let B1 = adaptiveB1 > maxB1 ? maxB1 : adaptiveB1;
 
     let a = (getRandomX(n) * getRandomX(n) + 1n) % n;
@@ -99,32 +100,26 @@ export function ECM_step(n, P, a, B1) {
     let y = P.y;
     let gcdValue = 1n;
 
-    let maxB1 = 10n ** 7n; // 最大100万回まで
+    let maxB1 = 10n ** 6n;
     let actualB1 = B1 > maxB1 ? maxB1 : B1;
 
-    console.log(`🔄 ECM_step 開始: B1=${actualB1} (元のB1=${B1})`);
+    console.log(`🔄 ECM_step 開始: B1=${actualB1}`);
 
     for (let k = 2n; k <= actualB1; k++) {
         let kModN = k % n;
         let newX = (x * kModN + 1n) % n;
         let newY = (y * kModN + 2n) % n;
-        let z = (newX - newY + n + 3n) % n;
+        let z = (newX - newY + n + k) % n;  // `k` を追加
 
         gcdValue = gcd(abs(z), n);
-
-        if (gcdValue === 1n) {
-            if (k % (actualB1 / 100n) === 0n) {
-                console.log(`⚠️ k=${k}: GCD(z, n) はまだ 1`);
-            }
-        }
 
         if (gcdValue > 1n && gcdValue !== n) {
             console.log(`✅ GCD(${z}, ${n}) = ${gcdValue} → 因数発見`);
             return gcdValue;
         }
 
-        if (k % (actualB1 / 10n) === 0n) {
-            console.log(`🔹 進捗: k=${k}/${actualB1}`);
+        if (k % (actualB1 / 100n) === 0n) {
+            console.log(`⚠️ k=${k}: GCD(z, n) はまだ 1`);
         }
     }
 
