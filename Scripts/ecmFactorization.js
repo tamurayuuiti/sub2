@@ -112,6 +112,12 @@ export function ECM_step(n, P, a, B1) {
 
         gcdValue = gcd(abs(z), n);
 
+        if (gcdValue === 1n) {
+            if (k % (actualB1 / 100n) === 0n) {
+                console.log(`⚠️ k=${k}: GCD(z, n) はまだ 1`);
+            }
+        }
+
         if (gcdValue > 1n && gcdValue !== n) {
             console.log(`✅ GCD(${z}, ${n}) = ${gcdValue} → 因数発見`);
             return gcdValue;
