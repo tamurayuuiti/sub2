@@ -1,7 +1,7 @@
 export async function ecm(n, logCallback = console.log) {
     let attempt = 0;
     while (true) {
-        let { a, B1, maxAttempts } = getECMParams(n, attempt);
+        let { a, B1, maxAttempts } = getECMParams(n, attempt, logCallback); // ✅ logCallback を渡す
         let x = getRandomX(n);
         let y = ((x * x * x + a * x + getRandomX(n)) * getRandomX(n)) % n;
         let P = { x, y };
@@ -48,7 +48,6 @@ export async function ECM_step(n, P, a, B1, logCallback = console.log) {
     logCallback(`🔄 ECM_step 開始: B1=${actualB1}`);
 
     for (let k = 2n; k <= actualB1; k++) {
-        let kModN = k % n;
         let newX = (x * x - a) % n;
         let newY = (y * y - 1n) % n;
         P.x = newX;
@@ -66,7 +65,6 @@ export async function ECM_step(n, P, a, B1, logCallback = console.log) {
             logCallback(`⚠️ k=${k}: GCD(z, n) はまだ 1`);
         }
 
-        // ✅ `await` を入れて他の処理と並列化
         if (k % 1000n === 0n) {
             await new Promise(resolve => setTimeout(resolve, 0));
         }
