@@ -27,7 +27,7 @@ export async function ecmFactorization(number) {
 
             const workers = [];
             for (let i = 0; i < cpuCores; i++) {
-                workers[i] = new Worker("ecmWorker.js");
+                workers[i] = new Worker("./Scripts/ecmWorker.js");
                 workers[i].postMessage(number.toString());
 
                 // ✅ Worker のログを確実に受信して表示
