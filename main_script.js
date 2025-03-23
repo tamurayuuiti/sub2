@@ -1,8 +1,8 @@
 // ミラー・ラビン素数判定法
-import { isPrimeMillerRabin } from './millerRabin.js';
+import { isPrimeMillerRabin } from './Scripts/millerRabin.js';
 
 // Pollard’s rho 法
-import { pollardsRhoFactorization } from './pollardsRho.js';
+import { pollardsRhoFactorization } from './Scripts/pollardsRho.js';
 
 let startTime = null;
 let isCalculating = false;
