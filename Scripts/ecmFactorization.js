@@ -80,10 +80,10 @@ export async function ecm(n) {
 }
 
 export function getECMParams(n, attempt = 0) {
-    let logN = BigInt(n.toString().length);
+    let logN = BigInt(n.toString().length);  
     let baseB1 = 10n ** (logN / 3n);
-    let adaptiveB1 = baseB1 * (attempt + 1n);
-    let maxB1 = 10n ** 6n; // 最大100万回まで
+    let adaptiveB1 = baseB1 * (BigInt(attempt) + 1n);
+    let maxB1 = 10n ** 6n;
     let B1 = adaptiveB1 > maxB1 ? maxB1 : adaptiveB1;
 
     let a = (getRandomX(n) * getRandomX(n) + 1n) % n;
