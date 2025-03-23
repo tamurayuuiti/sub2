@@ -5,10 +5,10 @@ export async function ecmFactorization(number) {
     if (typeof number !== "bigint") {
         throw new TypeError(`エラー: ecmFactorization() に渡された number (${number}) が BigInt ではありません。`);
     }
-    
+
     let factors = [];
     console.log(`===== ECM 因数分解開始: ${number} =====`);
-    
+
     while (number > 1n) {
         console.log(`現在の数: ${number}`);
 
@@ -17,31 +17,39 @@ export async function ecmFactorization(number) {
             factors.push(number);
             break;
         }
-        
-        let factor = null;
 
-        // ✅ CPU コア数を取得し、並列数を動的に設定
+        let factor = null;
         const cpuCores = navigator.hardwareConcurrency || 4;
-        console.log(`⚡ 並列 ECM 試行数: ${cpuCores}`);
+        console.log(`⚡ Web Worker 並列 ECM 試行数: ${cpuCores}`);
 
         while (!factor || factor === number) {
             console.log(`🔄 ECM を試行: ${number}`);
-            
-            const attempts = Array.from({ length: cpuCores }, (_, i) => {
-                console.log(`🔹 並列試行 ${i + 1}`);
-                return ecm(number);  // ✅ `await` を使った非同期 `ecm()`
-            });
 
-            factor = (await Promise.all(attempts)).find(f => f && f !== number);
-            
+            const workers = [];
+            for (let i = 0; i < cpuCores; i++) {
+                workers[i] = new Worker("ecmWorker.js");
+                workers[i].postMessage(number.toString());  // ✅ BigInt を文字列化して送る
+            }
+
+            const results = await Promise.all(workers.map(worker => 
+                new Promise(resolve => {
+                    worker.onmessage = event => {
+                        resolve(BigInt(event.data)); // ✅ 受け取った値を BigInt に戻す
+                        worker.terminate(); // ✅ メモリリーク防止
+                    };
+                })
+            ));
+
+            factor = results.find(f => f && f !== number);
+
             if (!factor) {
                 console.error(`❌ ECM では因数を発見できませんでした。`);
                 return ["FAIL"];
             }
         }
-        
+
         console.log(`✅ 見つかった因数: ${factor}`);
-        
+
         if (isPrimeMillerRabin(factor)) {
             console.log(`🔹 ${factor} は素数`);
             factors.push(factor);
@@ -51,7 +59,7 @@ export async function ecmFactorization(number) {
             if (subFactors.includes("FAIL")) return ["FAIL"];
             factors = factors.concat(subFactors);
         }
-        
+
         number /= factor;
     }
 
