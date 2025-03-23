@@ -94,11 +94,7 @@ export function ECM_step(n, P, a, B1) {
     let x = P.x;
     let y = P.y;
     let gcdValue = 1n;
-
-    let maxB1 = n / 10n;
-    let actualB1 = B1 < maxB1 ? B1 : maxB1;
-
-    console.log(`🔄 ECM_step: maxB1 = ${actualB1}`);
+    let actualB1 = B1;
 
     for (let k = 2n; k <= actualB1; k++) {
         let kModN = k % n;
@@ -123,20 +119,16 @@ export function ECM_step(n, P, a, B1) {
 }
 
 export function getRandomX(n) {
-    let max = n - 2n;
-    let randNum;
-    do {
-        let randArray = new Uint32Array(2);
-        crypto.getRandomValues(randArray);
-        randNum = (BigInt(randArray[0]) << 32n) | BigInt(randArray[1]);
-    } while (randNum > max);
-    return randNum + 1n;
+    let randArray = new Uint32Array(2);
+    crypto.getRandomValues(randArray);
+    let randNum = (BigInt(randArray[0]) << 32n) | BigInt(randArray[1]);
+    return (randNum % (n - 2n)) + 1n;
 }
 
 export function gcd(a, b) {
-    if (a === 0n) return b;
     if (b === 0n) return a;
-
+    if (a === 0n) return b;
+    
     let shift = 0n;
     while (((a | b) & 1n) === 0n) {  
         a >>= 1n;
@@ -148,10 +140,9 @@ export function gcd(a, b) {
     while (b !== 0n) {
         while ((b & 1n) === 0n) b >>= 1n;
         if (a > b) [a, b] = [b, a];  
-        b -= a;
+        b %= a;
         if (b === 0n) return a << shift;
     }
-
     return a << shift;
 }
 
