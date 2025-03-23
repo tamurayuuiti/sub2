@@ -94,3 +94,29 @@ export function getECMParams(n, attempt = 0) {
 export function getRandomX(n) {
     return BigInt(Math.floor(Math.random() * Number(n - 2n))) + 1n;
 }
+
+export function gcd(a, b) {
+    if (a === 0n) return b;
+    if (b === 0n) return a;
+
+    let shift = 0n;
+    while (((a | b) & 1n) === 0n) {  
+        a >>= 1n;
+        b >>= 1n;
+        shift++;
+    }
+
+    while ((a & 1n) === 0n) a >>= 1n;  
+    while (b !== 0n) {
+        while ((b & 1n) === 0n) b >>= 1n;
+        if (a > b) [a, b] = [b, a];  
+        b -= a;
+        if (b === 0n) break;
+    }
+
+    return a << shift;  
+}
+
+export function abs(n) {
+    return n < 0n ? -n : n;
+}
