@@ -1,10 +1,10 @@
-importScripts("millerRabin.js", "ecmUtils.js"); // ECM に必要な関数を読み込む
+importScripts("ecmUtils.js");
 
 self.onmessage = async function(event) {
-    const number = BigInt(event.data);  // ✅ 文字列 → BigInt 変換
-    console.log(`🔄 Worker: ECM 実行中 (${number})`);
+    const number = BigInt(event.data);
+    self.postMessage({ type: "log", message: `🔄 Worker: ECM 実行中 (${number})` });
 
-    const factor = await ecm(number);  // ECM 実行
+    const factor = await ecm(number, msg => self.postMessage({ type: "log", message: msg }));
 
-    self.postMessage(factor.toString());  // ✅ 結果を文字列にして送信
+    self.postMessage({ type: "result", factor: factor.toString() });
 };
