@@ -28,9 +28,8 @@ export async function ecmFactorization(number) {
             const workers = [];
             for (let i = 0; i < cpuCores; i++) {
                 workers[i] = new Worker("ecmWorker.js");
-                workers[i].postMessage(number.toString());  // ✅ BigInt を文字列化して送る
+                workers[i].postMessage(number.toString());
 
-                // ✅ Web Worker のログをメインスレッドに転送
                 workers[i].onmessage = event => {
                     if (event.data.type === "log") {
                         console.log(`[Worker ${i + 1}] ${event.data.message}`);
@@ -42,8 +41,8 @@ export async function ecmFactorization(number) {
                 new Promise(resolve => {
                     worker.onmessage = event => {
                         if (event.data.type === "result") {
-                            resolve(BigInt(event.data.factor)); // ✅ 受け取った値を BigInt に戻す
-                            worker.terminate(); // ✅ メモリリーク防止
+                            resolve(BigInt(event.data.factor));
+                            worker.terminate();
                         }
                     };
                 })
@@ -60,10 +59,8 @@ export async function ecmFactorization(number) {
         console.log(`✅ 見つかった因数: ${factor}`);
 
         if (isPrimeMillerRabin(factor)) {
-            console.log(`🔹 ${factor} は素数`);
             factors.push(factor);
         } else {
-            console.log(`🔄 ${factor} は合成数 → さらに分解`);
             let subFactors = await ecmFactorization(factor);
             if (subFactors.includes("FAIL")) return ["FAIL"];
             factors = factors.concat(subFactors);
