@@ -59,7 +59,7 @@ export async function ecm(n) {
     while (true) {
         let { a, B1, maxAttempts } = getECMParams(n, attempt);
         let x = getRandomX(n);
-        let y = (x * x * x + a * x) % n;
+        let y = ((x * x * x + a * x + getRandomX(n)) * getRandomX(n)) % n;
         let P = { x, y };
         
         console.log(`🟢 試行 ${attempt + 1}: a = ${a}, P = (${x}, ${y}), B1 = ${B1}`);
