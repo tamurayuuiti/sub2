@@ -36,7 +36,7 @@ export async function ecmFactorization(number) {
             
             if (!factor) {
                 console.error(`❌ ECM では因数を発見できませんでした。`);
-                return ["NG"];
+                return null;
             }
         }
         
