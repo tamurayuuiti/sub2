@@ -1,5 +1,5 @@
 async function ecm(n, logCallback = console.log) {
-    logCallback(`getECMParams() 呼び出し: n=${n}, attempt=${attempt}`);
+    console.log(`getECMParams() 呼び出し: n=${n}, attempt=${attempt}`);
     let attempt = 0;
     while (true) {
         let { a, B1, maxAttempts } = getECMParams(n, attempt, logCallback);
