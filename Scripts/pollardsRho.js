@@ -136,17 +136,17 @@ export function getDigitBasedParams(n, attempt = 0) {
             fxFunction = (x, c, n) => ((x * x + c * x) % n);
             fxFunctionString = "(x² + c x) % n";
             MAX_TRIALS = 5000000;
-        } else if (attempt === 2) {
-            fxFunction = (x, c, n) => ((x * x * x + x * x + c) % n);
-            fxFunctionString = "(x * x * x + x * x + c) % n;
-            MAX_TRIALS = 10000000;
-        } else {
-            fxFunction = null;
-            fxFunctionString = "別の因数分解関数に移行";
-            MAX_TRIALS = 0;
+            } else if (attempt === 2) {
+                fxFunction = (x, c, n) => ((x * x * x + x * x + c) % n);
+                fxFunctionString = "(x * x * x + x * x + c) % n;
+                MAX_TRIALS = 10000000;
+                } else {
+                    fxFunction = null;
+                    fxFunctionString = "別の因数分解関数に移行";
+                    MAX_TRIALS = 0;
         }
     }
-
+    
     return { digitCount, k, maxC, fxFunction, fxFunctionString, MAX_TRIALS };
 }
 
