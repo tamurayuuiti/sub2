@@ -1,3 +1,6 @@
+// ミラー・ラビン素数判定法
+import { isPrimeMillerRabin } from './millerRabin.js';
+
 // ECMによる素因数分解
 eprt async function ecmFactorization(number) {
     if (typeof number !== "bigint") {
