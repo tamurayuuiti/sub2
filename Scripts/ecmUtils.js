@@ -23,7 +23,7 @@ export async function ecm(n, logCallback = console.log) {
     }
 }
 
-export function getECMParams(n, attempt = 0) {
+export function getECMParams(n, attempt = 0, logCallback = console.log) {
     let logN = BigInt(n.toString().length);  
     let baseB1 = 10n ** (logN / 3n);
     let adaptiveB1 = baseB1 * (BigInt(attempt) + 1n);
