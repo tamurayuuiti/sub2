@@ -53,7 +53,7 @@ export async function pollardsRho(n) {
 
         console.log(`試行 ${attempt + 1} 回目: 使用中の f(x) = ${fxFunctionString}, MAX_TRIALS = ${MAX_TRIALS}`);
 
-        if (digitCount >= 21 && attempt >= 3) {
+        if (digitCount >= 21 && attempt >= 2) {
             console.log(`試行 ${attempt + 1} 回目: Pollard's Rho では因数を発見できませんでした。`);
             return null
         }
