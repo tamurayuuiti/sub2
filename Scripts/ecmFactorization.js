@@ -86,7 +86,7 @@ export function ECM_step(n, P, a, B1) {
 export function getECMParams(n, attempt = 0) {
     let B1 = attempt < 2 ? 1000n : 5000n;  // B1 の値を動的に変更
     let a = (BigInt(attempt) * 3n + 1n) % n;
-    let maxAttempts = 1000;
+    let maxAttempts = 10;
 
     return { a, B1, maxAttempts };
 }
