@@ -1,4 +1,4 @@
-import ("millerRabin.js", "ecmUtils.js"); // ECM に必要な関数を読み込む
+importScripts("millerRabin.js", "ecmUtils.js"); // ECM に必要な関数を読み込む
 
 self.onmessage = async function(event) {
     const number = BigInt(event.data);  // ✅ 文字列 → BigInt 変換
