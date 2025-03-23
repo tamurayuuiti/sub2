@@ -85,9 +85,8 @@ export function getECMParams(n, attempt = 0) {
     let adaptiveB1 = baseB1 * (BigInt(attempt) + 1n);
     let maxB1 = 10n ** 7n;
     let minB1 = 10n ** 5n;
-    let B1 = adaptiveB1 > maxB1 ? maxB1 : adaptiveB1;
-
-    let a = (getRandomX(n) * getRandomX(n) + 1n) % n;
+    let B1 = adaptiveB1 > maxB1 ? maxB1 : (adaptiveB1 < minB1 ? minB1 : adaptiveB1);
+    let a = (getRandomX(n) * getRandomX(n) + getRandomX(n) + 1n) % n;
     let maxAttempts = 500;
     
     console.log(`⚙️ ECM パラメータ: a=${a}, B1=${B1}, maxAttempts=${maxAttempts}`);
@@ -101,7 +100,6 @@ export function ECM_step(n, P, a, B1) {
     let gcdValue = 1n;
     let maxB1 = 10n ** 7n;
     let actualB1 = B1 > maxB1 ? maxB1 : B1;
-    let a = (getRandomX(n) * getRandomX(n) + getRandomX(n) + 1n) % n;
 
     console.log(`🔄 ECM_step 開始: B1=${actualB1}`);
 
@@ -109,8 +107,7 @@ export function ECM_step(n, P, a, B1) {
         let kModN = k % n;
         let newX = (x * kModN + 1n) % n;
         let newY = ((y * kModN + getRandomX(n)) * getRandomX(n)) % n;
-        let z = ((newX + newY + a) * k) % n;
-        
+        let z = ((newX * newY + a * k + getRandomX(n)) % n);
         if (z === 0n) z = getRandomX(n);
 
         gcdValue = gcd(abs(z), n);
