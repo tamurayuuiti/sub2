@@ -99,7 +99,7 @@ export function ECM_step(n, P, a, B1) {
     let y = P.y;
     let gcdValue = 1n;
 
-    let maxB1 = 10n ** 6n; // 最大100万回まで
+    let maxB1 = 10n ** 7n; // 最大100万回まで
     let actualB1 = B1 > maxB1 ? maxB1 : B1;
 
     console.log(`🔄 ECM_step 開始: B1=${actualB1} (元のB1=${B1})`);
