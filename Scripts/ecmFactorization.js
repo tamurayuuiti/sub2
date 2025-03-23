@@ -30,7 +30,6 @@ export async function ecmFactorization(number) {
                 workers[i] = new Worker("./Scripts/ecmWorker.js");
                 workers[i].postMessage(number.toString());
 
-                // ✅ Worker のログを確実に受信して表示
                 workers[i].onmessage = event => {
                     if (event.data.type === "log") {
                         console.log(`[Worker ${i + 1}] ${event.data.message}`);
@@ -38,12 +37,10 @@ export async function ecmFactorization(number) {
                 };
             }
 
-            // ✅ Worker からの結果を取得
             const results = await Promise.all(workers.map(worker => 
                 new Promise(resolve => {
                     worker.onmessage = event => {
                         if (event.data.type === "result") {
-                            console.log(`[Worker] 結果を受信: ${event.data.factor}`);
                             resolve(BigInt(event.data.factor));
                             worker.terminate();
                         }
