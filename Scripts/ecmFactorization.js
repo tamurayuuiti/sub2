@@ -2,7 +2,7 @@
 import { isPrimeMillerRabin } from './millerRabin.js';
 
 // ECMによる素因数分解
-eprt async function ecmFactorization(number) {
+export async function ecmFactorization(number) {
     if (typeof number !== "bigint") {
         throw new TypeError(`エラー: ecmFactorization() に渡された number (${number}) が BigInt ではありません。`);
     }
