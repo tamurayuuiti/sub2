@@ -7,32 +7,41 @@ export async function ecmFactorization(number) {
     }
     
     let factors = [];
+    console.log(`===== ECM 因数分解開始: ${number} =====`);
+    
     while (number > 1n) {
+        console.log(`現在の数: ${number}`);
+
         if (isPrimeMillerRabin(number)) {
-            console.log(`素因数を発見: ${number}`);
+            console.log(`✅ 素因数を発見: ${number}`);
             factors.push(number);
             break;
         }
         
         let factor = null;
         while (!factor || factor === number) {
-            console.log(`ECM を試行: ${number}`);
+            console.log(`🔄 ECM を試行: ${number}`);
             
-            const attempts = Array.from({ length: 4 }, () => ecm(number));
+            const attempts = Array.from({ length: 4 }, (_, i) => {
+                console.log(`🔹 並列試行 ${i + 1}`);
+                return ecm(number);
+            });
+
             factor = (await Promise.all(attempts)).find(f => f && f !== number);
             
             if (!factor) {
-                console.error(`ECM では因数を発見できませんでした。`);
+                console.error(`❌ ECM では因数を発見できませんでした。`);
                 return ["FAIL"];
             }
         }
         
-        console.log(`見つかった因数: ${factor}`);
+        console.log(`✅ 見つかった因数: ${factor}`);
         
         if (isPrimeMillerRabin(factor)) {
+            console.log(`🔹 ${factor} は素数`);
             factors.push(factor);
         } else {
-            console.log(`合成数を発見: ${factor} → さらに分解`);
+            console.log(`🔄 ${factor} は合成数 → さらに分解`);
             let subFactors = await ecmFactorization(factor);
             if (subFactors.includes("FAIL")) return ["FAIL"];
             factors = factors.concat(subFactors);
@@ -40,6 +49,8 @@ export async function ecmFactorization(number) {
         
         number /= factor;
     }
+
+    console.log(`===== 因数分解完了: ${factors} =====`);
     return factors;
 }
 
@@ -51,25 +62,30 @@ export async function ecm(n) {
         let y = (x * x * x + a * x) % n;
         let P = { x, y };
         
-        console.log(`試行 ${attempt + 1} 回目: a = ${a}, P = (${x}, ${y}), B1 = ${B1}`);
+        console.log(`🟢 試行 ${attempt + 1}: a = ${a}, P = (${x}, ${y}), B1 = ${B1}`);
         
         let factor = ECM_step(n, P, a, B1);
         
         if (factor > 1n && factor !== n) {
-            console.log(`因数を発見: ${factor}`);
+            console.log(`✅ 試行 ${attempt + 1} で因数発見: ${factor}`);
             return factor;
         }
         
         attempt++;
-        if (attempt >= maxAttempts) return null;
+        if (attempt >= maxAttempts) {
+            console.log(`❌ 最大試行回数 ${maxAttempts} に達したため終了`);
+            return null;
+        }
     }
 }
 
 export function getECMParams(n, attempt = 0) {
     let logN = BigInt(n.toString().length);
-    let B1 = 10n ** (logN / 3n);  // 桁数に応じた B1
+    let B1 = 10n ** (logN / 3n);
     let a = (getRandomX(n) * getRandomX(n) + 1n) % n;
     let maxAttempts = 500;
+    
+    console.log(`⚙️ ECM パラメータ: a=${a}, B1=${B1}, maxAttempts=${maxAttempts}`);
     
     return { a, B1, maxAttempts };
 }
@@ -82,6 +98,8 @@ export function ECM_step(n, P, a, B1) {
     let maxB1 = n / 10n;
     let actualB1 = B1 < maxB1 ? B1 : maxB1;
 
+    console.log(`🔄 ECM_step: maxB1 = ${actualB1}`);
+
     for (let k = 2n; k <= actualB1; k++) {
         let kModN = k % n;
         let newX = (x * kModN) % n;
@@ -89,10 +107,18 @@ export function ECM_step(n, P, a, B1) {
         let z = (newX - newY + n) % n;
 
         gcdValue = gcd(abs(z), n);
+        
         if (gcdValue > 1n && gcdValue !== n) {
+            console.log(`✅ GCD(${z}, ${n}) = ${gcdValue} → 因数発見`);
             return gcdValue;
         }
+        
+        if (k % (actualB1 / 10n) === 0n) {
+            console.log(`🔹 進捗: k=${k}/${actualB1}`);
+        }
     }
+
+    console.log(`❌ ECM_step 失敗`);
     return 1n;
 }
 
@@ -125,6 +151,7 @@ export function gcd(a, b) {
         b -= a;
         if (b === 0n) return a << shift;
     }
+
     return a << shift;
 }
 
