@@ -92,7 +92,7 @@ export function getECMParams(n, attempt = 0) {
     let minB1 = 10n ** 5n;
     let B1 = adaptiveB1 > maxB1 ? maxB1 : (adaptiveB1 < minB1 ? minB1 : adaptiveB1);
     let a = (getRandomX(n) * getRandomX(n) + getRandomX(n) + 1n) % n;
-    let maxAttempts = 1000;
+    let maxAttempts = 10000;
     
     console.log(`⚙️ ECM パラメータ: a=${a}, B1=${B1}, maxAttempts=${maxAttempts}`);
     
@@ -129,7 +129,7 @@ export async function ECM_step(n, P, a, B1) {
         }
 
         // ✅ `await` を入れて他の処理と並列化
-        if (k % 1000n === 0n) {
+        if (k % 10000n === 0n) {
             await new Promise(resolve => setTimeout(resolve, 0));
         }
     }
