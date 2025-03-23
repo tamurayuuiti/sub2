@@ -1,4 +1,4 @@
-export async function ecm(n, logCallback = console.log) {
+async function ecm(n, logCallback = console.log) {
     logCallback(`✅ ecm() 関数が呼び出されました (${n})`);
     let attempt = 0;
     while (true) {
@@ -24,7 +24,7 @@ export async function ecm(n, logCallback = console.log) {
     }
 }
 
-export function getECMParams(n, attempt = 0, logCallback = console.log) {
+function getECMParams(n, attempt = 0, logCallback = console.log) {
     let logN = BigInt(n.toString().length);  
     let baseB1 = 10n ** (logN / 3n);
     let adaptiveB1 = baseB1 * (BigInt(attempt) + 1n);
@@ -39,7 +39,7 @@ export function getECMParams(n, attempt = 0, logCallback = console.log) {
     return { a, B1, maxAttempts };
 }
 
-export async function ECM_step(n, P, a, B1, logCallback = console.log) {
+async function ECM_step(n, P, a, B1, logCallback = console.log) {
     let x = P.x;
     let y = P.y;
     let gcdValue = 1n;
@@ -75,14 +75,14 @@ export async function ECM_step(n, P, a, B1, logCallback = console.log) {
     return 1n;
 }
 
-export function getRandomX(n) {
+function getRandomX(n) {
     let randArray = new Uint32Array(2);
     crypto.getRandomValues(randArray);
     let randNum = (BigInt(randArray[0]) << 32n) | BigInt(randArray[1]);
     return (randNum % (n - 2n)) + 1n;
 }
 
-export function gcd(a, b) {
+function gcd(a, b) {
     if (b === 0n) return a;
     if (a === 0n) return b;
     
@@ -103,6 +103,6 @@ export function gcd(a, b) {
     return a << shift;
 }
 
-export function abs(n) {
+function abs(n) {
     return n < 0n ? -n : n;
 }
