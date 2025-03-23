@@ -41,9 +41,14 @@ export async function ecmFactorization(number) {
                 new Promise(resolve => {
                     worker.onmessage = event => {
                         if (event.data.type === "result") {
-                            resolve(BigInt(event.data.factor));
-                            worker.terminate();
+                            if (event.data.factor === "null" || event.data.factor === null) {
+                                console.error("❌ Worker から null を受信！");
+                                resolve(null);  // `null` をそのまま返す
+                            } else {
+                                resolve(BigInt(event.data.factor));
+                            }
                         }
+                        worker.terminate();
                     };
                 })
             ));
