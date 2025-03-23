@@ -43,7 +43,7 @@ export async function ecmFactorization(number) {
 }
 
 // ECM のメイン処理
-async function ecm(n) {
+export async function ecm(n) {
     let attempt = 0;
 
     while (true) {
@@ -68,7 +68,7 @@ async function ecm(n) {
 }
 
 // ECM のステップ（スカラー倍 + GCD 計算）
-function ECM_step(n, P, a, B1) {
+export function ECM_step(n, P, a, B1) {
     let x = P.x;
     let y = P.y;
     let gcdValue = 1n;
@@ -87,7 +87,7 @@ function ECM_step(n, P, a, B1) {
 }
 
 // ECM のパラメータを取得
-function getECMParams(n, attempt = 0) {
+export function getECMParams(n, attempt = 0) {
     let B1 = attempt < 2 ? 1000n : 5000n;  // B1 の値を動的に変更
     let a = (BigInt(attempt) * 3n + 1n) % n;
     let maxAttempts = 1000;
@@ -96,11 +96,11 @@ function getECMParams(n, attempt = 0) {
 }
 
 // ランダムな x 座標を取得
-function getRandomX(n) {
+export function getRandomX(n) {
     return BigInt(Math.floor(Math.random() * Number(n - 2n))) + 1n;
 }
 
-function gcd(a, b) {
+export function gcd(a, b) {
     if (a === 0n) return b;
     if (b === 0n) return a;
 
@@ -122,6 +122,6 @@ function gcd(a, b) {
     return a << shift;  
 }
 
-function abs(n) {
+export function abs(n) {
     return n < 0n ? -n : n;
 }
