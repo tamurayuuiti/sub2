@@ -1,15 +1,14 @@
 async function ecm(n, logCallback = console.log) {
-    logCallback(`✅ ecm() 関数が呼び出されました (${n})`);
     let attempt = 0;
     while (true) {
-        let { a, B1, maxAttempts } = getECMParams(n, attempt, logCallback); // ✅ logCallback を渡す
+        let { a, B1, maxAttempts } = getECMParams(n, attempt, logCallback);
         let x = getRandomX(n);
         let y = ((x * x * x + a * x + getRandomX(n)) * getRandomX(n)) % n;
         let P = { x, y };
 
         logCallback(`🟢 試行 ${attempt + 1}: a = ${a}, P = (${x}, ${y}), B1 = ${B1}`);
 
-        let factor = await ECM_step(n, P, a, B1, logCallback); // ✅ logCallback を渡す
+        let factor = await ECM_step(n, P, a, B1, logCallback);
 
         if (factor > 1n && factor !== n) {
             logCallback(`✅ 試行 ${attempt + 1} で因数発見: ${factor}`);
@@ -33,8 +32,6 @@ function getECMParams(n, attempt = 0, logCallback = console.log) {
     let B1 = adaptiveB1 > maxB1 ? maxB1 : (adaptiveB1 < minB1 ? minB1 : adaptiveB1);
     let a = (getRandomX(n) * getRandomX(n) + getRandomX(n) + 1n) % n;
     let maxAttempts = 500;
-
-    logCallback(`⚙️ ECM パラメータ: a=${a}, B1=${B1}, maxAttempts=${maxAttempts}`);
 
     return { a, B1, maxAttempts };
 }
@@ -60,10 +57,6 @@ async function ECM_step(n, P, a, B1, logCallback = console.log) {
         if (gcdValue > 1n && gcdValue !== n) {
             logCallback(`✅ GCD(${z}, ${n}) = ${gcdValue} → 因数発見`);
             return gcdValue;
-        }
-
-        if (k % (actualB1 / 100n) === 0n) {
-            logCallback(`⚠️ k=${k}: GCD(z, n) はまだ 1`);
         }
 
         if (k % 1000n === 0n) {
