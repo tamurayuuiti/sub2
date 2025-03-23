@@ -123,6 +123,11 @@ async function startFactorization() {
                 console.error(`Pollard's Rho では因数を発見できませんでした。Quadratic Sieve に移行`);
                 extraFactors = await ecmFactorization(remainder);
             }
+
+                if (extraFactors.includes("NG")) {
+                console.error(`悲しいです`);
+                extraFactors = await ecmFactorization(remainder);
+            }
             
             factors = factors.concat(extraFactors);
         }
