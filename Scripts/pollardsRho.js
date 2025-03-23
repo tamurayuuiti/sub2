@@ -1,5 +1,5 @@
 // ミラー・ラビン素数判定法
-import { isPrimeMillerRabin } from './millerRabin.js';
+import { isPrimeMillerRabin } from './Scripts/millerRabin.js';
 
 export async function pollardsRhoFactorization(number) {
     if (typeof number !== "bigint") {
