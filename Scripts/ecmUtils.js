@@ -8,7 +8,7 @@ export async function ecm(n, logCallback = console.log) {
 
         logCallback(`🟢 試行 ${attempt + 1}: a = ${a}, P = (${x}, ${y}), B1 = ${B1}`);
 
-        let factor = await ECM_step(n, P, a, B1, logCallback);
+        let factor = await ECM_step(n, P, a, B1, logCallback); // ✅ logCallback を渡す
 
         if (factor > 1n && factor !== n) {
             logCallback(`✅ 試行 ${attempt + 1} で因数発見: ${factor}`);
@@ -32,13 +32,13 @@ export function getECMParams(n, attempt = 0) {
     let B1 = adaptiveB1 > maxB1 ? maxB1 : (adaptiveB1 < minB1 ? minB1 : adaptiveB1);
     let a = (getRandomX(n) * getRandomX(n) + getRandomX(n) + 1n) % n;
     let maxAttempts = 500;
-    
+
     logCallback(`⚙️ ECM パラメータ: a=${a}, B1=${B1}, maxAttempts=${maxAttempts}`);
-    
+
     return { a, B1, maxAttempts };
 }
 
-export async function ECM_step(n, P, a, B1) {
+export async function ECM_step(n, P, a, B1, logCallback = console.log) {
     let x = P.x;
     let y = P.y;
     let gcdValue = 1n;
@@ -49,7 +49,6 @@ export async function ECM_step(n, P, a, B1) {
 
     for (let k = 2n; k <= actualB1; k++) {
         let kModN = k % n;
-        
         let newX = (x * x - a) % n;
         let newY = (y * y - 1n) % n;
         P.x = newX;
