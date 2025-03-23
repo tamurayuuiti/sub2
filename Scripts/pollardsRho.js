@@ -135,7 +135,7 @@ export function getDigitBasedParams(n, attempt = 0) {
         } else if (attempt === 1) {
             fxFunction = (x, c, n) => ((x * x + c * x) % n);
             fxFunctionString = "(x² + c x) % n";
-            MAX_TRIALS = 5000000;
+            MAX_TRIALS = 10000000;
         } else {
             fxFunction = null;
             fxFunctionString = "別の因数分解関数に移行";
