@@ -1,4 +1,4 @@
-importScripts("ecmUtils.js");
+importScripts("ecmUtils.js , ecmFactorization.js");
 
 self.onmessage = async function(event) {
     const number = BigInt(event.data);
