@@ -1,4 +1,5 @@
 export async function ecm(n, logCallback = console.log) {
+    logCallback(`✅ ecm() 関数が呼び出されました (${n})`);
     let attempt = 0;
     while (true) {
         let { a, B1, maxAttempts } = getECMParams(n, attempt, logCallback); // ✅ logCallback を渡す
