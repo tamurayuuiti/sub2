@@ -1,7 +1,6 @@
 // ミラー・ラビン素数判定法
 import { isPrimeMillerRabin } from './millerRabin.js';
 
-// ECMによる素因数分解
 export async function ecmFactorization(number) {
     if (typeof number !== "bigint") {
         throw new TypeError(`エラー: ecmFactorization() に渡された number (${number}) が BigInt ではありません。`);
@@ -42,7 +41,6 @@ export async function ecmFactorization(number) {
     return factors;
 }
 
-// ECM のメイン処理
 export async function ecm(n) {
     let attempt = 0;
 
@@ -67,7 +65,6 @@ export async function ecm(n) {
     }
 }
 
-// ECM のステップ（スカラー倍 + GCD 計算）
 export function ECM_step(n, P, a, B1) {
     let x = P.x;
     let y = P.y;
@@ -86,7 +83,6 @@ export function ECM_step(n, P, a, B1) {
     return 1n;
 }
 
-// ECM のパラメータを取得
 export function getECMParams(n, attempt = 0) {
     let B1 = attempt < 2 ? 1000n : 5000n;  // B1 の値を動的に変更
     let a = (BigInt(attempt) * 3n + 1n) % n;
@@ -95,7 +91,6 @@ export function getECMParams(n, attempt = 0) {
     return { a, B1, maxAttempts };
 }
 
-// ランダムな x 座標を取得
 export function getRandomX(n) {
     return BigInt(Math.floor(Math.random() * Number(n - 2n))) + 1n;
 }
