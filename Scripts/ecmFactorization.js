@@ -29,13 +29,22 @@ export async function ecmFactorization(number) {
             for (let i = 0; i < cpuCores; i++) {
                 workers[i] = new Worker("ecmWorker.js");
                 workers[i].postMessage(number.toString());  // ✅ BigInt を文字列化して送る
+
+                // ✅ Web Worker のログをメインスレッドに転送
+                workers[i].onmessage = event => {
+                    if (event.data.type === "log") {
+                        console.log(`[Worker ${i + 1}] ${event.data.message}`);
+                    }
+                };
             }
 
             const results = await Promise.all(workers.map(worker => 
                 new Promise(resolve => {
                     worker.onmessage = event => {
-                        resolve(BigInt(event.data)); // ✅ 受け取った値を BigInt に戻す
-                        worker.terminate(); // ✅ メモリリーク防止
+                        if (event.data.type === "result") {
+                            resolve(BigInt(event.data.factor)); // ✅ 受け取った値を BigInt に戻す
+                            worker.terminate(); // ✅ メモリリーク防止
+                        }
                     };
                 })
             ));
