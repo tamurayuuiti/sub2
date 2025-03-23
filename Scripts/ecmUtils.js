@@ -1,23 +1,23 @@
-export async function ecm(n) {
+export async function ecm(n, logCallback = console.log) {
     let attempt = 0;
     while (true) {
         let { a, B1, maxAttempts } = getECMParams(n, attempt);
         let x = getRandomX(n);
         let y = ((x * x * x + a * x + getRandomX(n)) * getRandomX(n)) % n;
         let P = { x, y };
-        
-        console.log(`🟢 試行 ${attempt + 1}: a = ${a}, P = (${x}, ${y}), B1 = ${B1}`);
-        
-        let factor = ECM_step(n, P, a, B1);
-        
+
+        logCallback(`🟢 試行 ${attempt + 1}: a = ${a}, P = (${x}, ${y}), B1 = ${B1}`);
+
+        let factor = await ECM_step(n, P, a, B1, logCallback);
+
         if (factor > 1n && factor !== n) {
-            console.log(`✅ 試行 ${attempt + 1} で因数発見: ${factor}`);
+            logCallback(`✅ 試行 ${attempt + 1} で因数発見: ${factor}`);
             return factor;
         }
-        
+
         attempt++;
         if (attempt >= maxAttempts) {
-            console.log(`❌ 最大試行回数 ${maxAttempts} に達したため終了`);
+            logCallback(`❌ 最大試行回数 ${maxAttempts} に達したため終了`);
             return null;
         }
     }
@@ -33,7 +33,7 @@ export function getECMParams(n, attempt = 0) {
     let a = (getRandomX(n) * getRandomX(n) + getRandomX(n) + 1n) % n;
     let maxAttempts = 500;
     
-    console.log(`⚙️ ECM パラメータ: a=${a}, B1=${B1}, maxAttempts=${maxAttempts}`);
+    logCallback(`⚙️ ECM パラメータ: a=${a}, B1=${B1}, maxAttempts=${maxAttempts}`);
     
     return { a, B1, maxAttempts };
 }
@@ -45,7 +45,7 @@ export async function ECM_step(n, P, a, B1) {
     let maxB1 = 10n ** 7n;
     let actualB1 = B1 > maxB1 ? maxB1 : B1;
 
-    console.log(`🔄 ECM_step 開始: B1=${actualB1}`);
+    logCallback(`🔄 ECM_step 開始: B1=${actualB1}`);
 
     for (let k = 2n; k <= actualB1; k++) {
         let kModN = k % n;
@@ -59,12 +59,12 @@ export async function ECM_step(n, P, a, B1) {
         gcdValue = gcd(z, n);
 
         if (gcdValue > 1n && gcdValue !== n) {
-            console.log(`✅ GCD(${z}, ${n}) = ${gcdValue} → 因数発見`);
+            logCallback(`✅ GCD(${z}, ${n}) = ${gcdValue} → 因数発見`);
             return gcdValue;
         }
 
         if (k % (actualB1 / 100n) === 0n) {
-            console.log(`⚠️ k=${k}: GCD(z, n) はまだ 1`);
+            logCallback(`⚠️ k=${k}: GCD(z, n) はまだ 1`);
         }
 
         // ✅ `await` を入れて他の処理と並列化
@@ -73,7 +73,7 @@ export async function ECM_step(n, P, a, B1) {
         }
     }
 
-    console.log(`❌ ECM_step 失敗`);
+    logCallback(`❌ ECM_step 失敗`);
     return 1n;
 }
 
