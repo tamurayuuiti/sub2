@@ -66,7 +66,8 @@ export async function ecm(n) {
 }
 
 export function getECMParams(n, attempt = 0) {
-    let B1 = attempt < 5 ? 100000n : 1000000n;
+    let logN = BigInt(n.toString().length);
+    let B1 = 10n ** (logN / 3n);  // 桁数に応じた B1
     let a = (getRandomX(n) * getRandomX(n) + 1n) % n;
     let maxAttempts = 500;
     
@@ -79,9 +80,10 @@ export function ECM_step(n, P, a, B1) {
     let gcdValue = 1n;
     
     for (let k = 2n; k <= B1; k++) {
-        let newX = (x * k) % n;
-        let newY = (y * k) % n;
-        let z = (newX - newY) % n;
+        let kModN = k % n;
+        let newX = (x * kModN) % n;
+        let newY = (y * kModN) % n;
+        let z = (newX - newY + n) % n;
         
         gcdValue = gcd(abs(z), n);
         if (gcdValue > 1n && gcdValue !== n) {
@@ -92,7 +94,10 @@ export function ECM_step(n, P, a, B1) {
 }
 
 export function getRandomX(n) {
-    return BigInt(Math.floor(Math.random() * Number(n - 2n))) + 1n;
+    let randArray = new Uint32Array(2);
+    crypto.getRandomValues(randArray);
+    let randNum = (BigInt(randArray[0]) << 32n) | BigInt(randArray[1]);
+    return (randNum % (n - 2n)) + 1n;
 }
 
 export function gcd(a, b) {
