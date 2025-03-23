@@ -176,290 +176,103 @@ async function trialDivisionFromFile(number) {
     return { factors, remainder: number };
 }
 
-async function alternativeFactorization(n) {
-    if (typeof n !== "bigint") {
-        throw new TypeError(`エラー: alternativeFactorization() に渡された number (${n}) が BigInt ではありません。`);
+// ECMによる素因数分解
+async function ecmFactorization(number) {
+    if (typeof number !== "bigint") {
+        throw new TypeError(`エラー: ecmFactorization() に渡された number (${number}) が BigInt ではありません。`);
     }
 
-    if (primes.length === 0) {
-        console.warn("primes が未ロードのため、ロードを試行します...");
-        await loadPrimes();
-        if (primes.length === 0) {
-            throw new Error("素数リストのロードに失敗しました。factorBase を生成できません。");
+    let factors = [];
+    while (number > 1n) {
+        if (isPrimeMillerRabin(number)) {
+            console.log(`素因数を発見: ${number}`);
+            factors.push(number);
+            break;
         }
-    }
 
-    console.log(`=== Quadratic Sieve を開始: ${n} ===`);
+        let factor = null;
+        while (!factor || factor === number) {
+            console.log(`ECM を試行: ${number}`);
+            factor = await ecm(number);
 
-    let B = getOptimalB(n);
-    let factorBase = getFactorBase(B);
-
-    console.log("B:", B);
-    console.log("factorBase.length:", factorBase.length);
-
-    if (!factorBase || factorBase.length === 0) {
-        throw new Error(`factorBase の生成に失敗しました。B=${B} に対して十分な素数がありません。`);
-    }
-
-    console.log(`素因数基数 (Factor Base) のサイズ: ${factorBase.length}, B = ${B}`);
-
-    let factor = null;
-    let smoothNumbers = [];
-    let xValues = [];
-    let sqrtN = sqrtBigInt(n);
-    let minSmoothCount = factorBase.length;
-    let maxAttempts = Math.min(Math.max(minSmoothCount * 3, Math.floor(Number(sqrtN) / 2)), 100_000_000);
-
-    console.log(`平滑数を収集中 (最大 ${maxAttempts} 試行)...`);
-
-    for (let x = Number(sqrtN), attempts = 0; smoothNumbers.length < minSmoothCount && attempts < maxAttempts; x++, attempts++) {
-        let value = (BigInt(x) * BigInt(x)) % n;
-        let factorization = trialDivision(value, factorBase);
-
-        if (factorization) {
-            smoothNumbers.push(factorization);
-            xValues.push(BigInt(x));
-
-            if (smoothNumbers.length % 10 === 0) {
-                console.log(`平滑数 ${smoothNumbers.length}/${minSmoothCount} 取得`);
+            if (factor === null) {
+                console.error(`ECM では因数を発見できませんでした。`);
+                return ["FAIL"];
             }
         }
 
-        if (attempts % 5000 === 0) {
-            await new Promise(resolve => setTimeout(resolve, 0));
+        console.log(`見つかった因数: ${factor}`);
+
+        if (isPrimeMillerRabin(factor)) {
+            factors.push(factor);
+        } else {
+            console.log(`合成数を発見: ${factor} → さらに分解`);
+            let subFactors = await ecmFactorization(factor);
+            if (subFactors.includes("FAIL")) return ["FAIL"];
+            factors = factors.concat(subFactors);
         }
+
+        number /= factor;
     }
-
-    if (smoothNumbers.length < minSmoothCount) {
-        console.error(`平滑数が不足 (必要: ${minSmoothCount}, 取得: ${smoothNumbers.length}) → QS 失敗`);
-        return [n];
-    }
-
-    console.log(`平滑数の収集完了！ 合計 ${smoothNumbers.length} 個`);
-    
-    console.log(`平方合同を探索中...`);
-    let { x, y } = findCongruentSquares(smoothNumbers, xValues, factorBase, n);
-    
-    if (!x || !y) {
-        console.error("平方合同が見つかりませんでした。");
-        console.error("デバッグ情報: smoothNumbers.length =", smoothNumbers.length);
-        return [n];
-    }
-
-    console.log(`平方合同が見つかりました！ x = ${x}, y = ${y}`);
-
-    console.log(`GCD を計算中...`);
-    let diff = abs(x - y);
-    console.log(`x - y = ${diff}`);
-
-    if (diff === 0n) {
-        console.error("エラー: x と y が等しいため GCD 計算が無意味です");
-        return [n];
-    }
-    
-    if (factor === 1n) {
-        console.error(`QS 失敗: ${diff} と ${n} は互いに素 (gcd = 1)`);
-        return [n]; 
-    }
-    
-    if (factor === n) {
-        console.error(`QS 失敗: ${diff} は n の倍数 (gcd = n)`);
-        return [n];
-    }
-
-    factor = gcd(diff, n);
-    console.log(`GCD(${diff}, ${n}) = ${factor}`);
-    
-    let maxRetries = 5; 
-    let retryCount = 0;
-
-    while ((!x || !y) && retryCount < maxRetries) {
-        console.warn(`平方合同が見つかりませんでした。再探索中... (${retryCount + 1}/${maxRetries})`);
-        let newXY = findCongruentSquares(smoothNumbers, xValues, factorBase, n);
-        if (!newXY.x || !newXY.y) {
-            retryCount++;
-            continue;
-        }
-        x = newXY.x;
-        y = newXY.y;
-    }
-
-    if (!x || !y) {
-        console.error("平方合同を見つけることができませんでした。");
-        return [n];
-    }
-
-    console.log(`QS で見つかった因数: ${factor}`);
-
-    let otherFactor = n / factor;
-    let factors = [];
-
-    if (isPrimeMillerRabin(factor)) {
-        factors.push(factor);
-    } else {
-        console.log(`因数 ${factor} を再帰的に分解`);
-        let subFactors = await alternativeFactorization(factor);
-        factors = factors.concat(subFactors);
-    }
-
-    if (isPrimeMillerRabin(otherFactor)) {
-        factors.push(otherFactor);
-    } else {
-        console.log(`因数 ${otherFactor} を再帰的に分解`);
-        let subFactors = await alternativeFactorization(otherFactor);
-        factors = factors.concat(subFactors);
-    }
-
     return factors;
 }
 
-function getOptimalB(n) {
-    let logN = n.toString().length * Math.LN10;
-    let C = 0.56; // 補正係数
-    return Math.floor(C * Math.exp(0.5 * Math.sqrt(logN * Math.log(logN))));
+// ECM のメイン処理
+async function ecm(n) {
+    let attempt = 0;
+
+    while (true) {
+        let { a, B1, maxAttempts } = getECMParams(n, attempt);
+        let x = getRandomX(n);
+        let y = (x * x * x + a * x) % n;
+        let P = { x, y };
+
+        console.log(`試行 ${attempt + 1} 回目: a = ${a}, P = (${x}, ${y}), B1 = ${B1}`);
+
+        let factor = ECM_step(n, P, a, B1);
+
+        if (factor > 1n && factor !== n) {
+            console.log(`因数を発見: ${factor}`);
+            return factor;
+        }
+
+        console.log(`試行回数 ${maxAttempts} 回を超過。新しいパラメータで再試行 (${attempt + 1}回目)`);
+        attempt++;
+        if (attempt >= maxAttempts) return null;
+    }
 }
 
-function sqrtBigInt(n) {
-    if (n < 0n) throw new RangeError("負の数の平方根は計算できません");
-    if (n < 2n) return n;
-    
-    let x0 = n;
-    let x1 = (n + 1n) / 2n;
-    
-    while (x1 < x0) {
-        x0 = x1;
-        x1 = (x1 + n / x1) / 2n;
+// ECM のステップ（スカラー倍 + GCD 計算）
+function ECM_step(n, P, a, B1) {
+    let x = P.x;
+    let y = P.y;
+    let gcdValue = 1n;
+
+    for (let k = 2n; k <= B1; k++) {
+        let newX = (x * k) % n;
+        let newY = (y * k) % n;
+        let z = (newX - newY) % n;
+
+        gcdValue = gcd(abs(z), n);
+        if (gcdValue > 1n && gcdValue !== n) {
+            return gcdValue;
+        }
     }
-    
-    return x0;
+    return 1n;
 }
 
-function getFactorBase(B) {
-    if (primes.length === 0) {
-        throw new Error("素数リストが未読み込みです。");
-    }
+// ECM のパラメータを取得
+function getECMParams(n, attempt = 0) {
+    let B1 = attempt < 2 ? 1000n : 5000n;  // B1 の値を動的に変更
+    let a = (BigInt(attempt) * 3n + 1n) % n;
+    let maxAttempts = 10;
 
-    let factorBase = primes.filter(p => p <= BigInt(B)).map(p => Number(p));
-
-    if (factorBase.length === 0) {
-        throw new Error(`factorBase が空です。B=${B} に対して十分な素数がありません。`);
-    }
-
-    return factorBase;
+    return { a, B1, maxAttempts };
 }
 
-function trialDivision(value, factorBase) {
-    let factorization = [];
-    for (let prime of factorBase) {
-        let bigPrime = BigInt(prime);
-        let count = 0;
-        while (value % bigPrime === 0n) {
-            value /= bigPrime;
-            count++;
-        }
-        if (count > 0) factorization.push({ prime, count });
-    }
-    return value === 1n ? factorization : null;
-}
-
-function findCongruentSquares(smoothNumbers, xValues, factorBase, n) {
-    let matrix = createExponentMatrix(smoothNumbers, factorBase);
-    let solution = gaussianElimination(matrix);
-
-    if (!solution) {
-        return { x: null, y: null };
-    }
-
-    let x = 1n, y = 1n;
-    for (let i = 0; i < solution.length; i++) {
-        if (solution[i]) {
-            x *= xValues[i];
-            y *= reconstructY(smoothNumbers[i], n);
-        }
-    }
-
-    return { x: x % n, y: y % n };
-}
-
-function reconstructY(factorization, n) {
-    let y = 1n;
-
-    for (let { prime, count } of factorization) {
-        let exp = BigInt(count) / 2n;
-        y *= BigInt(prime) ** exp;
-    }
-
-    return y % n;
-}
-
-function createExponentMatrix(smoothNumbers, factorBase) {
-    if (!smoothNumbers || !Array.isArray(smoothNumbers) || smoothNumbers.length === 0) {
-        throw new Error("smoothNumbers が未定義または空です。指数行列を作成できません。");
-    }
-    if (!factorBase || !Array.isArray(factorBase) || factorBase.length === 0) {
-        throw new Error("factorBase が未定義または空です。");
-    }
-
-    let matrix = [];
-
-    for (let factorization of smoothNumbers) {
-        let row = new Array(factorBase.length).fill(0);
-
-        for (let { prime, count } of factorization) {
-            let index = factorBase.indexOf(Number(prime));
-            if (index !== -1) {
-                row[index] = count % 2;
-            }
-        }
-        matrix.push(row);
-    }
-
-    return matrix;
-}
-
-function gaussianElimination(matrix) {
-    let rows = matrix.length, cols = matrix[0].length;
-    let bitMatrix = new Array(rows).fill(0).map(() => new Uint8Array(Math.ceil(cols / 8)));
-
-    for (let r = 0; r < rows; r++) {
-        for (let c = 0; c < cols; c++) {
-            if (matrix[r][c]) {
-                bitMatrix[r][c >> 3] |= (1 << (c & 7));
-            }
-        }
-    }
-
-    let solution = new Uint8Array(Math.ceil(cols / 8));
-    for (let col = 0; col < cols; col++) {
-        let pivotRow = -1;
-        for (let row = col; row < rows; row++) {
-            if (bitMatrix[row][col >> 3] & (1 << (col & 7))) {
-                pivotRow = row;
-                break;
-            }
-        }
-        if (pivotRow === -1) continue;
-
-        [bitMatrix[col], bitMatrix[pivotRow]] = [bitMatrix[pivotRow], bitMatrix[col]];
-
-        for (let row = 0; row < rows; row++) {
-            if (row !== col && (bitMatrix[row][col >> 3] & (1 << (col & 7)))) {
-                bitMatrix[row].set(bitMatrix[col], 0);
-            }
-        }
-    }
-
-    for (let row = 0; row < rows; row++) {
-        if (bitMatrix[row].every(v => v === 0)) continue;
-        for (let col = 0; col < cols; col++) {
-            if (bitMatrix[row][col >> 3] & (1 << (col & 7))) {
-                solution[col >> 3] |= (1 << (col & 7));
-                break;
-            }
-        }
-    }
-
-    return solution.some(v => v !== 0) ? solution : null;
+// ランダムな x 座標を取得
+function getRandomX(n) {
+    return BigInt(Math.floor(Math.random() * Number(n - 2n))) + 1n;
 }
 
 function gcd(a, b) {
