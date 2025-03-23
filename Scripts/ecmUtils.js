@@ -1,3 +1,4 @@
+console.log("開始");
 async function ecm(n, logCallback = console.log) {
     logCallback("開始");
     let attempt = 0;
