@@ -1,8 +1,6 @@
 // ミラー・ラビン素数判定法
 import { isPrimeMillerRabin } from './millerRabin.js';
 
-import { ecmUtils } from './ecmUtils.js';
-
 export async function ecmFactorization(number) {
     if (typeof number !== "bigint") {
         throw new TypeError(`エラー: ecmFactorization() に渡された number (${number}) が BigInt ではありません。`);
