@@ -78,13 +78,16 @@ export function ECM_step(n, P, a, B1) {
     let x = P.x;
     let y = P.y;
     let gcdValue = 1n;
-    
-    for (let k = 2n; k <= B1; k++) {
+
+    let maxB1 = n / 10n;
+    let actualB1 = B1 < maxB1 ? B1 : maxB1;
+
+    for (let k = 2n; k <= actualB1; k++) {
         let kModN = k % n;
         let newX = (x * kModN) % n;
         let newY = (y * kModN) % n;
         let z = (newX - newY + n) % n;
-        
+
         gcdValue = gcd(abs(z), n);
         if (gcdValue > 1n && gcdValue !== n) {
             return gcdValue;
@@ -94,10 +97,14 @@ export function ECM_step(n, P, a, B1) {
 }
 
 export function getRandomX(n) {
-    let randArray = new Uint32Array(2);
-    crypto.getRandomValues(randArray);
-    let randNum = (BigInt(randArray[0]) << 32n) | BigInt(randArray[1]);
-    return (randNum % (n - 2n)) + 1n;
+    let max = n - 2n;
+    let randNum;
+    do {
+        let randArray = new Uint32Array(2);
+        crypto.getRandomValues(randArray);
+        randNum = (BigInt(randArray[0]) << 32n) | BigInt(randArray[1]);
+    } while (randNum > max);
+    return randNum + 1n;
 }
 
 export function gcd(a, b) {
@@ -116,10 +123,9 @@ export function gcd(a, b) {
         while ((b & 1n) === 0n) b >>= 1n;
         if (a > b) [a, b] = [b, a];  
         b -= a;
-        if (b === 0n) break;
+        if (b === 0n) return a << shift;
     }
-
-    return a << shift;  
+    return a << shift;
 }
 
 export function abs(n) {
