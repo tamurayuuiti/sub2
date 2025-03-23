@@ -313,14 +313,9 @@ async function alternativeFactorization(n) {
     return factors;
 }
 
-function logBigInt(n) {
-    let digits = n.toString().length;
-    return digits * Math.log(10);
-}
-
 function getOptimalB(n) {
-    let logN = logBigInt(n);
-    let C = 3000000; // 補正係数
+    let logN = let logN = n.toString().length * Math.LN10;
+    let C = 0.56; // 補正係数
     return Math.floor(C * Math.exp(0.5 * Math.sqrt(logN * Math.log(logN))));
 }
 
