@@ -124,11 +124,6 @@ async function startFactorization() {
                 extraFactors = await ecmFactorization(remainder);
             }
 
-                if (extraFactors.includes("NG")) {
-                console.error(`悲しいです`);
-                extraFactors = await ecmFactorization(remainder);
-            }
-            
             factors = factors.concat(extraFactors);
         }
 
