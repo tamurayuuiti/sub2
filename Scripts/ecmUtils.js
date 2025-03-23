@@ -1,4 +1,3 @@
-console.log("開始");
 async function ecm(n, logCallback = console.log) {
     logCallback(`getECMParams() 呼び出し: n=${n}, attempt=${attempt}`);
     let attempt = 0;
