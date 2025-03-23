@@ -19,12 +19,17 @@ export async function ecmFactorization(number) {
         }
         
         let factor = null;
+
+        // ✅ CPU コア数を取得し、並列数を動的に設定
+        const cpuCores = navigator.hardwareConcurrency || 4;
+        console.log(`⚡ 並列 ECM 試行数: ${cpuCores}`);
+
         while (!factor || factor === number) {
             console.log(`🔄 ECM を試行: ${number}`);
             
-            const attempts = Array.from({ length: 4 }, (_, i) => {
+            const attempts = Array.from({ length: cpuCores }, (_, i) => {
                 console.log(`🔹 並列試行 ${i + 1}`);
-                return ecm(number);
+                return ecm(number);  // ✅ `await` を使った非同期 `ecm()`
             });
 
             factor = (await Promise.all(attempts)).find(f => f && f !== number);
@@ -94,7 +99,7 @@ export function getECMParams(n, attempt = 0) {
     return { a, B1, maxAttempts };
 }
 
-export function ECM_step(n, P, a, B1) {
+export async function ECM_step(n, P, a, B1) {
     let x = P.x;
     let y = P.y;
     let gcdValue = 1n;
@@ -105,6 +110,7 @@ export function ECM_step(n, P, a, B1) {
 
     for (let k = 2n; k <= actualB1; k++) {
         let kModN = k % n;
+        
         let newX = (x * x - a) % n;
         let newY = (y * y - 1n) % n;
         P.x = newX;
@@ -120,6 +126,11 @@ export function ECM_step(n, P, a, B1) {
 
         if (k % (actualB1 / 100n) === 0n) {
             console.log(`⚠️ k=${k}: GCD(z, n) はまだ 1`);
+        }
+
+        // ✅ `await` を入れて他の処理と並列化
+        if (k % 1000n === 0n) {
+            await new Promise(resolve => setTimeout(resolve, 0));
         }
     }
 
