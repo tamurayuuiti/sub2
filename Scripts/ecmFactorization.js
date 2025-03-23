@@ -105,12 +105,13 @@ export function ECM_step(n, P, a, B1) {
 
     for (let k = 2n; k <= actualB1; k++) {
         let kModN = k % n;
-        let newX = (x * kModN + 1n) % n;
-        let newY = ((y * kModN + getRandomX(n)) * getRandomX(n)) % n;
-        let z = ((newX * newY + a * k + getRandomX(n)) % n);
-        if (z === 0n) z = getRandomX(n);
+        let newX = (x * x - a) % n;
+        let newY = (y * y - 1n) % n;
+        P.x = newX;
+        P.y = newY;
 
-        gcdValue = gcd(abs(z), n);
+        let z = abs(P.x);
+        gcdValue = gcd(z, n);
 
         if (gcdValue > 1n && gcdValue !== n) {
             console.log(`✅ GCD(${z}, ${n}) = ${gcdValue} → 因数発見`);
