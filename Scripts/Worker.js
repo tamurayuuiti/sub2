@@ -53,17 +53,14 @@ self.onmessage = function(event) {
     }
 };
 
-// ✅ Worker 内部で `getDigitBasedParams` を定義
 function getDigitBasedParams(n, attempt) {
     let digitCount = Math.floor(Math.log10(Number(n))) + 1;
     return { maxC: digitCount <= 20 ? 30 : 50 };
 }
 
-// ✅ Worker 内部で `getRandomC` を定義
 function getRandomC(n, attempt, maxC) {
-    return BigInt((Math.floor(Math.random() * maxC) * 2) + 1);
+    return BigInt(Math.floor(Math.random() * maxC) * 2 + 1);
 }
-
 
 // ✅ gcd の計算を完全維持
 function gcd(a, b) {
