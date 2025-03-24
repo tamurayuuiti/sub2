@@ -7,6 +7,10 @@ self.onmessage = async function(event) {
     self.postMessage({ type: "log", message: `🔄 Worker: ECM 実行開始 (${number})` });
 
     try {
+        console.log("✅ ecm() を呼び出します！");
+        
+        setTimeout(() => console.log("⏳ 1秒経過... まだ動いているか？"), 1000);
+        
         const factor = await ecm(number, msg => self.postMessage({ type: "log", message: msg }));
 
         if (!factor) {
