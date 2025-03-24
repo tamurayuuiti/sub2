@@ -49,12 +49,12 @@ export async function pollardsRho(n) {
 
         for (let i = 0; i < 4; i++) {
             try {
-                const worker = new Worker("./Scripts/worker.js"); // ✅ Web Worker のパス指定
+                const worker = new Worker("./Scripts/worker.js");
                 workers.push(worker);
                 console.log(`✅ Worker ${i + 1} を作成しました。`);
 
                 let x = 2n;
-                let c = getRandomC(n, i);
+                let c = getRandomC(n, i); // ✅ `getRandomC` をメインスレッドで実行
 
                 worker.postMessage({ x, c, n, fxType: fxTypes[i] });
                 console.log(`📤 Worker ${i + 1} にメッセージを送信: fxType = ${fxTypes[i]}, c = ${c}`);
@@ -70,7 +70,7 @@ export async function pollardsRho(n) {
                     if (event.data.factor && event.data.factor !== n) {
                         resolved = true;
                         console.log(`🎯 Worker ${i + 1} が因数 ${event.data.factor} を発見！ (試行回数: ${event.data.trials})`);
-                        workers.forEach((w) => w.terminate()); // すべての Worker を停止
+                        workers.forEach((w) => w.terminate());
                         resolve(event.data.factor);
                     }
                 };
@@ -88,12 +88,14 @@ export async function pollardsRho(n) {
     });
 }
 
+// ✅ `getDigitBasedParams` はメインスレッドのみで使用
 export function getDigitBasedParams(n, attempt = 0) {
     let digitCount = Math.floor(Math.log10(Number(n))) + 1;
     let maxC = digitCount <= 20 ? 30 : 50;
     return { maxC };
 }
 
+// ✅ `getRandomC` もメインスレッドで実行
 export function getRandomC(n, attempt = 0) {
     let { maxC } = getDigitBasedParams(n, attempt);
     let c = BigInt((Math.floor(Math.random() * maxC) * 2) + 1);
