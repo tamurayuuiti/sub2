@@ -41,7 +41,7 @@ self.onmessage = async function(event) {
                     q = 1n;
                 }
 
-                if (trialCount % 10000n === 0n) {  // ✅ 10000回ごとにログを出力し、UIを解放
+                if (trialCount % 500000n === 0n) {  // ✅ 10000回ごとにログを出力し、UIを解放
                     console.log(`🔄 Worker ${fxType}: ${trialCount} 回試行中...`);
                     await new Promise(resolve => setTimeout(resolve, 0)); // ✅ UIのフリーズ防止
                 }
