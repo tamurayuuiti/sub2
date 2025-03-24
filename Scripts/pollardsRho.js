@@ -45,29 +45,38 @@ export async function pollardsRho(n) {
     return new Promise((resolve, reject) => {
         const workers = [];
         const fxTypes = ["fx1", "fx2", "fx3", "fx4"];
-        let resolved = false;
+        const MAX_TRIALS = { fx1: 1000000n, fx2: 5000000n, fx3: 10000000n, fx4: 30000000n }; // ✅ 試行上限を統一変数に設定
+        let activeWorkers = fxTypes.length;
 
-        for (let i = 0; i < 4; i++) {
+        for (let i = 0; i < fxTypes.length; i++) {
             try {
-                const worker = new Worker("./Scripts/Worker.js");
+                const worker = new Worker("./Scripts/worker.js");
                 workers.push(worker);
-                console.log(`✅ Worker ${i + 1} を作成しました。`);
+                console.log(`✅ Worker ${i + 1} (${fxTypes[i]}) を作成しました。`);
 
-                worker.postMessage({ n, fxType: fxTypes[i], attempt: i });
+                worker.postMessage({ n, fxType: fxTypes[i], attempt: i, maxTrials: MAX_TRIALS[fxTypes[i]] });
 
                 worker.onmessage = function (event) {
-                    if (resolved) return;
-
                     if (event.data.error) {
-                        console.error(`❌ Worker ${i + 1} でエラー発生: ${event.data.error}`);
+                        console.error(`❌ Worker ${i + 1} (${fxTypes[i]}) でエラー発生: ${event.data.error}`);
                         return;
                     }
 
                     if (event.data.factor && event.data.factor !== n) {
-                        resolved = true;
-                        console.log(`🎯 Worker ${i + 1} が因数 ${event.data.factor} を発見！ (試行回数: ${event.data.trials})`);
+                        console.log(`🎯 Worker ${i + 1} (${fxTypes[i]}) が因数 ${event.data.factor} を発見！（試行回数: ${event.data.trials}）`);
                         workers.forEach((w) => w.terminate());
                         resolve(event.data.factor);
+                    }
+
+                    if (event.data.stopped) {
+                        console.log(`⏹️ Worker ${i + 1} (${fxTypes[i]}) が試行上限に達し停止 (${MAX_TRIALS[fxTypes[i]]} 回)`);
+                        worker.terminate();
+                        activeWorkers--;
+
+                        if (activeWorkers === 0) {
+                            console.log(`❌ すべての Worker が停止しました。因数を発見できませんでした。`);
+                            resolve(null);
+                        }
                     }
                 };
 
