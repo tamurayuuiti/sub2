@@ -54,7 +54,8 @@ export async function pollardsRho(n) {
                 workers.push(worker);
                 console.log(`✅ Worker ${i + 1} (${fxTypes[i]}) を作成しました。`);
 
-                worker.postMessage({ n, fxType: fxTypes[i], attempt: i, maxTrials: MAX_TRIALS[fxTypes[i]] });
+                // ✅ BigInt を String に変換して渡す
+                worker.postMessage({ n: n.toString(), fxType: fxTypes[i], attempt: i, maxTrials: MAX_TRIALS[fxTypes[i]].toString() });
 
                 worker.onmessage = function (event) {
                     if (event.data.error) {
@@ -62,14 +63,15 @@ export async function pollardsRho(n) {
                         return;
                     }
 
-                    if (event.data.factor && event.data.factor !== n) {
-                        console.log(`🎯 Worker ${i + 1} (${fxTypes[i]}) が因数 ${event.data.factor} を発見！（試行回数: ${event.data.trials}）`);
+                    if (event.data.factor) {
+                        let factor = BigInt(event.data.factor);
+                        console.log(`🎯 Worker ${i + 1} (${fxTypes[i]}) が因数 ${factor} を発見！（試行回数: ${event.data.trials}）`);
                         workers.forEach((w) => w.terminate());
-                        resolve(event.data.factor);
+                        resolve(factor);
                     }
 
                     if (event.data.stopped) {
-                        console.log(`⏹️ Worker ${i + 1} (${fxTypes[i]}) が試行上限に達し停止 (${MAX_TRIALS[fxTypes[i]]} 回)`);
+                        console.log(`⏹️ Worker ${i + 1} (${fxTypes[i]}) が試行上限に達し停止`);
                         worker.terminate();
                         activeWorkers--;
 
