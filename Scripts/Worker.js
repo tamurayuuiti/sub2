@@ -39,7 +39,6 @@ self.onmessage = function(event) {
                 if (i % 10n === 0n) {
                     d = gcd(q, n);
                     if (d > 1n) {
-                        console.log(`🎯 Worker が因数 ${d} を発見！（試行回数: ${trialCount}）`);
                         postMessage({ factor: d, trials: trialCount });
                         return;
                     }
@@ -50,7 +49,7 @@ self.onmessage = function(event) {
 
         postMessage({ factor: null });
     } catch (error) {
-        console.error(`❌ Worker で予期しないエラー発生: ${error.message}`);
+        console.error(`❌ Worker でエラー: ${error.message}`);
         postMessage({ error: error.message });
     }
 };
