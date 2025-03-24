@@ -48,7 +48,7 @@ export async function pollardsRho(n) {
         let resolved = false;
 
         for (let i = 0; i < 4; i++) {
-            const worker = new Worker("worker.js");
+            const worker = new Worker("./Scripts/worker.js");
             workers.push(worker);
 
             let x = 2n;
