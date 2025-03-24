@@ -53,7 +53,7 @@ export async function pollardsRho(n) {
 
         console.log(`試行 ${attempt + 1} 回目: 使用中の f(x) = ${fxFunctionString}, MAX_TRIALS = ${MAX_TRIALS}`);
 
-        if (digitCount >= 21 && attempt >= 2) {
+        if (digitCount >= 21 && attempt >= 3) {
             console.log(`試行 ${attempt + 1} 回目: Pollard's Rho では因数を発見できませんでした。`);
             return null
         }
@@ -135,6 +135,10 @@ export function getDigitBasedParams(n, attempt = 0) {
         } else if (attempt === 1) {
             fxFunction = (x, c, n) => ((x * x + c * x) % n);
             fxFunctionString = "(x² + c x) % n";
+            MAX_TRIALS = 30000000;
+        } else if (attempt === 2) {
+            fxFunction = (x, c, n) => ((x * x * x + 3n * x + c) % n);
+            fxFunctionString = "(x³ + 3x + c) % n";
             MAX_TRIALS = 1000000000;
         } else {
             fxFunction = null;
