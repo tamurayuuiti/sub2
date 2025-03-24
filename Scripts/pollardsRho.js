@@ -49,11 +49,11 @@ export async function pollardsRho(n) {
 
         for (let i = 0; i < 4; i++) {
             try {
-                const worker = new Worker("./Scripts/worker.js"); // ✅ Worker のパス指定
+                const worker = new Worker("./Scripts/worker.js");
                 workers.push(worker);
                 console.log(`✅ Worker ${i + 1} を作成しました。`);
 
-                worker.postMessage({ n, fxType: fxTypes[i], attempt: i }); // ✅ `c` を送らず Worker 側で決定
+                worker.postMessage({ n, fxType: fxTypes[i], attempt: i });
 
                 worker.onmessage = function (event) {
                     if (resolved) return;
