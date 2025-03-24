@@ -79,7 +79,7 @@ export async function pollardsRho(n) {
                     if (d > 1n) break;
                 }
 
-                if (i % 1000000n === 0n) {
+                if (i % 100000n === 0n) {
                     await new Promise(resolve => setTimeout(resolve, 0));
                 }
             }
@@ -135,7 +135,7 @@ export function getDigitBasedParams(n, attempt = 0) {
         } else if (attempt === 1) {
             fxFunction = (x, c, n) => ((x * x + c * x) % n);
             fxFunctionString = "(x² + c x) % n";
-            MAX_TRIALS = 3000000;
+            MAX_TRIALS = 1000000000;
         } else {
             fxFunction = null;
             fxFunctionString = "別の因数分解関数に移行";
