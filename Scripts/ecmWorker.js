@@ -1,13 +1,5 @@
-try {
-    console.log("🔄 ecmUtils.js のインポート開始...");
-    importScripts("ecmUtils.js");
-    console.log("✅ ecmUtils.js のインポート成功！");
-} catch (error) {
-    console.error(`❌ importScripts エラー: ${error.message}`);
-    self.postMessage({ type: "log", message: `❌ ecmUtils.js のロード失敗: ${error.message}` });
-}
-
-console.log("🚀 Web Worker ecmWorker.js が開始されました！");
+// ecmWorker.js
+import { ecm } from "./ecmUtils.js"; // `importScripts` の代わりに `import` を使用
 
 self.onmessage = async function(event) {
     console.log("📩 Worker がメッセージを受信しました！");
