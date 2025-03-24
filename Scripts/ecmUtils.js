@@ -41,6 +41,12 @@ function getECMParams(n, attempt = 0, logCallback = console.log) {
     let a = (getRandomX(n) * getRandomX(n) + getRandomX(n) + 1n) % n;
     let maxAttempts = 500;
 
+    logCallback(`⚙️ ECMパラメータ: a=${a}, B1=${B1}, maxAttempts=${maxAttempts}`);
+    
+    if (B1 === 0n) {
+        throw new Error("🚨 B1 が 0 になっています！ECM が動きません！");
+    }
+
     return { a, B1, maxAttempts };
 }
 
