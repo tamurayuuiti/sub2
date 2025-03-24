@@ -28,7 +28,7 @@ export async function ecmFactorization(number) {
             const workers = [];
             for (let i = 0; i < cpuCores; i++) {
                 try {
-                    workers[i] = new Worker("./Scripts/ecmWorker.js");
+                    workers[i] = new Worker("./Scripts/ecmWorker.js", { type: "module" });
                     workers[i].onerror = (event) => {
                         console.error(`❌ Worker ${i + 1} でエラー発生:`, event.message);
                     };
