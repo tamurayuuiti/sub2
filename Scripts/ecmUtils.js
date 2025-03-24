@@ -1,6 +1,7 @@
 async function ecm(n, logCallback = console.log) {
+    let attempt = 0;  // ✅ 先に attempt を宣言してから使用
     console.log(`getECMParams() 呼び出し: n=${n}, attempt=${attempt}`);
-    let attempt = 0;
+
     while (true) {
         let { a, B1, maxAttempts } = getECMParams(n, attempt, logCallback);
         let x = getRandomX(n);
@@ -22,8 +23,7 @@ async function ecm(n, logCallback = console.log) {
             return null;
         }
 
-        await new Promise(resolve => setTimeout(resolve, 0));
-        
+        await new Promise(resolve => setTimeout(resolve, 0));  // フリーズ防止
     }
 }
 
