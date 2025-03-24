@@ -1,4 +1,4 @@
-self.onmessage = function(event) {
+self.onmessage = async function(event) {
     try {
         const { n, fxType, attempt } = event.data;
         console.log(`✅ Worker がメッセージを受信: fxType = ${fxType}, attempt = ${attempt}`);
@@ -26,26 +26,37 @@ self.onmessage = function(event) {
         let d = 1n;
         let trialCount = 0n;
         let q = 1n;
+        let m = 128n;
 
         while (d === 1n && trialCount < 1000000n) {
-            y = fxFunction(fxFunction(y, c, n), c, n);
-            q *= abs(x - y);
-            if (q >= n) q %= n;
-            trialCount++;
+            let ys = y;
+            for (let i = 0n; i < m && trialCount < 1000000n; i++) {
+                y = fxFunction(fxFunction(y, c, n), c, n);
+                q *= abs(x - y);
+                if (q >= n) q %= n;
+                trialCount++;
 
-            if (q === 0n) {
-                console.error(`❌ Worker でエラー: q が 0 になりました。`);
-                q = 1n;
-            }
+                if (q === 0n) {
+                    console.error(`❌ Worker でエラー: q が 0 になりました。`);
+                    q = 1n;
+                }
 
-            d = gcd(q, n);
-            if (d > 1n) {
-                console.log(`🎯 Worker が因数 ${d} を発見！（試行回数: ${trialCount}）`);
-                postMessage({ factor: d, trials: trialCount });
-                return;
+                if (trialCount % 10000n === 0n) {  // ✅ 10000回ごとにログを出力し、UIを解放
+                    console.log(`🔄 Worker ${fxType}: ${trialCount} 回試行中...`);
+                    await new Promise(resolve => setTimeout(resolve, 0)); // ✅ UIのフリーズ防止
+                }
+
+                d = gcd(q, n);
+                if (d > 1n && d !== n) {
+                    console.log(`🎯 Worker ${fxType} が因数 ${d} を発見！（試行回数: ${trialCount}）`);
+                    postMessage({ factor: d, trials: trialCount });
+                    return;
+                }
             }
+            x = ys;
         }
 
+        console.log(`❌ Worker ${fxType} は 100万回試行しても因数を見つけられませんでした。`);
         postMessage({ factor: null });
     } catch (error) {
         console.error(`❌ Worker でエラー: ${error.message}`);
@@ -53,13 +64,15 @@ self.onmessage = function(event) {
     }
 };
 
+// ✅ Worker 内部で `getDigitBasedParams` を定義
 function getDigitBasedParams(n, attempt) {
     let digitCount = Math.floor(Math.log10(Number(n))) + 1;
     return { maxC: digitCount <= 20 ? 30 : 50 };
 }
 
+// ✅ Worker 内部で `getRandomC` を定義
 function getRandomC(n, attempt, maxC) {
-    return BigInt(Math.floor(Math.random() * maxC) * 2 + 1);
+    return BigInt((Math.floor(Math.random() * maxC) * 2) + 1);
 }
 
 // ✅ gcd の計算を完全維持
