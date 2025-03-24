@@ -1,7 +1,11 @@
 self.onmessage = function(event) {
     try {
-        const { x, c, n, fxType } = event.data;
-        console.log(`✅ Worker がメッセージを受信: fxType = ${fxType}, c = ${c}`);
+        const { n, fxType, attempt } = event.data;
+        console.log(`✅ Worker がメッセージを受信: fxType = ${fxType}, attempt = ${attempt}`);
+
+        let { maxC } = getDigitBasedParams(n, attempt);
+        let c = getRandomC(n, attempt, maxC);
+        console.log(`🎲 Worker が c を決定: ${c} (範囲: 1 ～ ${maxC * 2 - 1})`);
 
         let fxFunction;
         if (fxType === "fx1") {
@@ -17,34 +21,29 @@ self.onmessage = function(event) {
             return;
         }
 
+        let x = 2n;
         let y = fxFunction(x, c, n);
         let d = 1n;
         let trialCount = 0n;
-        let m = 128n;
         let q = 1n;
 
         while (d === 1n && trialCount < 1000000n) {
-            let ys = y;
-            for (let i = 0n; i < m && trialCount < 1000000n; i++) {
-                y = fxFunction(fxFunction(y, c, n), c, n);
-                q *= abs(x - y);
-                if (q >= n) q %= n;
-                trialCount++;
+            y = fxFunction(fxFunction(y, c, n), c, n);
+            q *= abs(x - y);
+            if (q >= n) q %= n;
+            trialCount++;
 
-                if (q === 0n) {
-                    console.error(`❌ Worker でエラー: q が 0 になりました。`);
-                    q = 1n;
-                }
-
-                if (i % 10n === 0n) {
-                    d = gcd(q, n);
-                    if (d > 1n) {
-                        postMessage({ factor: d, trials: trialCount });
-                        return;
-                    }
-                }
+            if (q === 0n) {
+                console.error(`❌ Worker でエラー: q が 0 になりました。`);
+                q = 1n;
             }
-            x = ys;
+
+            d = gcd(q, n);
+            if (d > 1n) {
+                console.log(`🎯 Worker が因数 ${d} を発見！（試行回数: ${trialCount}）`);
+                postMessage({ factor: d, trials: trialCount });
+                return;
+            }
         }
 
         postMessage({ factor: null });
@@ -53,6 +52,18 @@ self.onmessage = function(event) {
         postMessage({ error: error.message });
     }
 };
+
+// ✅ Worker 内部で `getDigitBasedParams` を定義
+function getDigitBasedParams(n, attempt) {
+    let digitCount = Math.floor(Math.log10(Number(n))) + 1;
+    return { maxC: digitCount <= 20 ? 30 : 50 };
+}
+
+// ✅ Worker 内部で `getRandomC` を定義
+function getRandomC(n, attempt, maxC) {
+    return BigInt((Math.floor(Math.random() * maxC) * 2) + 1);
+}
+
 
 // ✅ gcd の計算を完全維持
 function gcd(a, b) {
