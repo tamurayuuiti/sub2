@@ -1,7 +1,7 @@
 self.onmessage = async function(event) {
     try {
-        const { n, fxType, attempt } = event.data;
-        console.log(`✅ Worker がメッセージを受信: fxType = ${fxType}, attempt = ${attempt}`);
+        const { n, fxType, attempt, maxTrials } = event.data;
+        console.log(`✅ Worker がメッセージを受信: fxType = ${fxType}, attempt = ${attempt}, maxTrials = ${maxTrials}`);
 
         let { maxC } = getDigitBasedParams(n, attempt);
         let c = getRandomC(n, attempt, maxC);
@@ -28,9 +28,9 @@ self.onmessage = async function(event) {
         let q = 1n;
         let m = 128n;
 
-        while (d === 1n && trialCount < 100000000n) {
+        while (d === 1n && trialCount < maxTrials) {
             let ys = y;
-            for (let i = 0n; i < m && trialCount < 100000000n; i++) {
+            for (let i = 0n; i < m && trialCount < maxTrials; i++) {
                 y = fxFunction(fxFunction(y, c, n), c, n);
                 q *= abs(x - y);
                 if (q >= n) q %= n;
@@ -41,9 +41,9 @@ self.onmessage = async function(event) {
                     q = 1n;
                 }
 
-                if (trialCount % 500000n === 0n) {  // ✅ 10000回ごとにログを出力し、UIを解放
+                if (trialCount % 100000n === 0n) {
                     console.log(`🔄 Worker ${fxType}: ${trialCount} 回試行中...`);
-                    await new Promise(resolve => setTimeout(resolve, 0)); // ✅ UIのフリーズ防止
+                    await new Promise(resolve => setTimeout(resolve, 0));
                 }
 
                 d = gcd(q, n);
@@ -56,8 +56,9 @@ self.onmessage = async function(event) {
             x = ys;
         }
 
-        console.log(`❌ Worker ${fxType} は 100万回試行しても因数を見つけられませんでした。`);
-        postMessage({ factor: null });
+        console.log(`⏹️ Worker ${fxType} が試行上限 ${maxTrials} に達したため停止。`);
+        postMessage({ stopped: true });
+
     } catch (error) {
         console.error(`❌ Worker でエラー: ${error.message}`);
         postMessage({ error: error.message });
