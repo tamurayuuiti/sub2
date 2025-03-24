@@ -1,4 +1,4 @@
-async function ecm(n, logCallback = console.log) {
+export async function ecm(n, logCallback = console.log) {
     let attempt = 0;
     logCallback(`getECMParams() 呼び出し: n=${n}, attempt=${attempt}`);
 
