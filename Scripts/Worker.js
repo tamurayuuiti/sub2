@@ -28,9 +28,9 @@ self.onmessage = async function(event) {
         let q = 1n;
         let m = 128n;
 
-        while (d === 1n && trialCount < 1000000n) {
+        while (d === 1n && trialCount < 100000000n) {
             let ys = y;
-            for (let i = 0n; i < m && trialCount < 1000000n; i++) {
+            for (let i = 0n; i < m && trialCount < 100000000n; i++) {
                 y = fxFunction(fxFunction(y, c, n), c, n);
                 q *= abs(x - y);
                 if (q >= n) q %= n;
