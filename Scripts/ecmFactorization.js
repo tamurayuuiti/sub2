@@ -27,14 +27,15 @@ export async function ecmFactorization(number) {
 
             const workers = [];
             for (let i = 0; i < cpuCores; i++) {
-                workers[i] = new Worker("./Scripts/ecmWorker.js");
-                workers[i].postMessage(number.toString());
-
-                workers[i].onmessage = event => {
-                    if (event.data.type === "log") {
-                        console.log(`[Worker ${i + 1}] ${event.data.message}`);
-                    }
-                };
+                try {
+                    workers[i] = new Worker("./Scripts/ecmWorker.js");
+                    workers[i].onerror = (event) => {
+                        console.error(`❌ Worker ${i + 1} でエラー発生:`, event.message);
+                    };
+                    workers[i].postMessage(number.toString());
+                } catch (error) {
+                    console.error(`❌ Worker ${i + 1} の作成に失敗: ${error.message}`);
+                }
             }
 
             const results = await Promise.all(workers.map(worker => 
