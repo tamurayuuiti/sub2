@@ -49,15 +49,11 @@ export async function pollardsRho(n) {
 
         for (let i = 0; i < 4; i++) {
             try {
-                const worker = new Worker("./Scripts/worker.js");
+                const worker = new Worker("./Scripts/worker.js"); // ✅ Worker のパス指定
                 workers.push(worker);
                 console.log(`✅ Worker ${i + 1} を作成しました。`);
 
-                let x = 2n;
-                let c = getRandomC(n, i); // ✅ `getRandomC` をメインスレッドで実行
-
-                worker.postMessage({ x, c, n, fxType: fxTypes[i] });
-                console.log(`📤 Worker ${i + 1} にメッセージを送信: fxType = ${fxTypes[i]}, c = ${c}`);
+                worker.postMessage({ n, fxType: fxTypes[i], attempt: i }); // ✅ `c` を送らず Worker 側で決定
 
                 worker.onmessage = function (event) {
                     if (resolved) return;
@@ -86,19 +82,4 @@ export async function pollardsRho(n) {
             }
         }
     });
-}
-
-// ✅ `getDigitBasedParams` はメインスレッドのみで使用
-export function getDigitBasedParams(n, attempt = 0) {
-    let digitCount = Math.floor(Math.log10(Number(n))) + 1;
-    let maxC = digitCount <= 20 ? 30 : 50;
-    return { maxC };
-}
-
-// ✅ `getRandomC` もメインスレッドで実行
-export function getRandomC(n, attempt = 0) {
-    let { maxC } = getDigitBasedParams(n, attempt);
-    let c = BigInt((Math.floor(Math.random() * maxC) * 2) + 1);
-    console.log(`🎲 試行 ${attempt + 1} 回目: 使用中の c = ${c} (範囲: 1 ～ ${maxC * 2 - 1})`);
-    return c;
 }
