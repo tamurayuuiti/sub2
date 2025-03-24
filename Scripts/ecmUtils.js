@@ -1,9 +1,13 @@
 async function ecm(n, logCallback = console.log) {
-    let attempt = 0;  // ✅ 先に attempt を宣言してから使用
-    console.log(`getECMParams() 呼び出し: n=${n}, attempt=${attempt}`);
+    let attempt = 0;
+    logCallback(`getECMParams() 呼び出し: n=${n}, attempt=${attempt}`);
 
     while (true) {
+        logCallback(`🔄 ECM: 試行 ${attempt + 1} を開始 (${n})`);
+
         let { a, B1, maxAttempts } = getECMParams(n, attempt, logCallback);
+        logCallback(`⚙️ ECMパラメータ: a=${a}, B1=${B1}, maxAttempts=${maxAttempts}`);
+
         let x = getRandomX(n);
         let y = ((x * x * x + a * x + getRandomX(n)) * getRandomX(n)) % n;
         let P = { x, y };
@@ -41,13 +45,13 @@ function getECMParams(n, attempt = 0, logCallback = console.log) {
 }
 
 async function ECM_step(n, P, a, B1, logCallback = console.log) {
+    logCallback(`🚀 ECM_step() 開始: n=${n}, P=(${P.x}, ${P.y}), B1=${B1}`);
+
     let x = P.x;
     let y = P.y;
     let gcdValue = 1n;
     let maxB1 = 10n ** 7n;
     let actualB1 = B1 > maxB1 ? maxB1 : B1;
-
-    logCallback(`🔄 ECM_step 開始: B1=${actualB1}`);
 
     for (let k = 2n; k <= actualB1; k++) {
         let newX = (x * x - a) % n;
