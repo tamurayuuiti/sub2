@@ -1,10 +1,15 @@
 self.onmessage = async function(event) {
     try {
         const { n, fxType, attempt, maxTrials } = event.data;
-        console.log(`✅ Worker がメッセージを受信: fxType = ${fxType}, attempt = ${attempt}, maxTrials = ${maxTrials}`);
 
-        let { maxC } = getDigitBasedParams(n, attempt);
-        let c = getRandomC(n, attempt, maxC);
+        // ✅ String → BigInt に変換
+        const N = BigInt(n);
+        const MAX_TRIALS = BigInt(maxTrials);
+
+        console.log(`✅ Worker がメッセージを受信: fxType = ${fxType}, attempt = ${attempt}, maxTrials = ${MAX_TRIALS}`);
+
+        let { maxC } = getDigitBasedParams(N, attempt);
+        let c = getRandomC(N, attempt, maxC);
         console.log(`🎲 Worker が c を決定: ${c} (範囲: 1 ～ ${maxC * 2 - 1})`);
 
         let fxFunction;
@@ -22,18 +27,18 @@ self.onmessage = async function(event) {
         }
 
         let x = 2n;
-        let y = fxFunction(x, c, n);
+        let y = fxFunction(x, c, N);
         let d = 1n;
         let trialCount = 0n;
         let q = 1n;
         let m = 128n;
 
-        while (d === 1n && trialCount < maxTrials) {
+        while (d === 1n && trialCount < MAX_TRIALS) {
             let ys = y;
-            for (let i = 0n; i < m && trialCount < maxTrials; i++) {
-                y = fxFunction(fxFunction(y, c, n), c, n);
+            for (let i = 0n; i < m && trialCount < MAX_TRIALS; i++) {
+                y = fxFunction(fxFunction(y, c, N), c, N);
                 q *= abs(x - y);
-                if (q >= n) q %= n;
+                if (q >= N) q %= N;
                 trialCount++;
 
                 if (q === 0n) {
@@ -46,17 +51,17 @@ self.onmessage = async function(event) {
                     await new Promise(resolve => setTimeout(resolve, 0));
                 }
 
-                d = gcd(q, n);
-                if (d > 1n && d !== n) {
+                d = gcd(q, N);
+                if (d > 1n && d !== N) {
                     console.log(`🎯 Worker ${fxType} が因数 ${d} を発見！（試行回数: ${trialCount}）`);
-                    postMessage({ factor: d, trials: trialCount });
+                    postMessage({ factor: d.toString(), trials: trialCount.toString() });
                     return;
                 }
             }
             x = ys;
         }
 
-        console.log(`⏹️ Worker ${fxType} が試行上限 ${maxTrials} に達したため停止。`);
+        console.log(`⏹️ Worker ${fxType} が試行上限 ${MAX_TRIALS} に達したため停止。`);
         postMessage({ stopped: true });
 
     } catch (error) {
