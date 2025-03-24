@@ -1,5 +1,5 @@
 // ecmWorker.js
-import { ecm } from "./ecmUtils.js"; // `importScripts` の代わりに `import` を使用
+import { ecm } from "./Scripts/ecmUtils.js"; // `importScripts` の代わりに `import` を使用
 
 self.onmessage = async function(event) {
     console.log("📩 Worker がメッセージを受信しました！");
