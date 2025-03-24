@@ -49,7 +49,7 @@ export async function pollardsRho(n) {
 
         for (let i = 0; i < 4; i++) {
             try {
-                const worker = new Worker("./Scripts/worker.js");
+                const worker = new Worker("./Scripts/Worker.js");
                 workers.push(worker);
                 console.log(`✅ Worker ${i + 1} を作成しました。`);
 
