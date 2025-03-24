@@ -53,7 +53,7 @@ export async function pollardsRho(n) {
 
         console.log(`試行 ${attempt + 1} 回目: 使用中の f(x) = ${fxFunctionString}, MAX_TRIALS = ${MAX_TRIALS}`);
 
-        if (digitCount >= 21 && attempt >= 3) {
+        if (digitCount >= 21 && attempt >= 4) {
             console.log(`試行 ${attempt + 1} 回目: Pollard's Rho では因数を発見できませんでした。`);
             return null
         }
@@ -104,26 +104,21 @@ export function getDigitBasedParams(n, attempt = 0) {
     let digitCount = Math.floor(Math.log10(Number(n))) + 1;
 
     // `k` の値（GCD 計算頻度）
-    let k = digitCount <= 10 ? 5n 
-          : digitCount <= 20 ? 10n 
+    let k = digitCount <= 20 ? 10n 
           : digitCount <= 30 ? 15n 
           : 25n;
 
     // `maxC` の範囲（`c` の最大値）
-    let maxC = digitCount <= 10 ? 10
-             : digitCount <= 20 ? 30
+    let maxC = digitCount <= 20 ? 30
              : 50;
 
-    // `MAX_TRIALS` の設定（各関数ごとに異なる試行回数を設定）
+    // `MAX_TRIALS` の設定（試行回数）
     let MAX_TRIALS;
     let fxFunction;
     let fxFunctionString;
 
-    if (digitCount <= 10) {
-        fxFunction = (x, c, n) => (x * x + c) % n;
-        fxFunctionString = "(x² + c) % n";
-        MAX_TRIALS = 1000000;
-    } else if (digitCount <= 20) {
+    if (digitCount <= 20) {  
+        // ✅ 10桁以下のものは削除し、20桁以下と統合
         fxFunction = (x, c, n) => ((x + c) * (x + c) + c) % n;
         fxFunctionString = "((x + c)² + c) % n";
         MAX_TRIALS = 1000000;
@@ -135,11 +130,15 @@ export function getDigitBasedParams(n, attempt = 0) {
         } else if (attempt === 1) {
             fxFunction = (x, c, n) => ((x * x + c * x) % n);
             fxFunctionString = "(x² + c x) % n";
-            MAX_TRIALS = 3000000;
+            MAX_TRIALS = 10000000;
         } else if (attempt === 2) {
             fxFunction = (x, c, n) => ((x * x * x + 3n * x + c) % n);
             fxFunctionString = "(x³ + 3x + c) % n";
-            MAX_TRIALS = 1000000000;
+            MAX_TRIALS = 7000000;
+        } else if (attempt === 3) {
+            fxFunction = (x, c, n) => ((x * x + 7n * x + c) % n);
+            fxFunctionString = "(x² + 7x + c) % n";
+            MAX_TRIALS = 5000000;
         } else {
             fxFunction = null;
             fxFunctionString = "別の因数分解関数に移行";
