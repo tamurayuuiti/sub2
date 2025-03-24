@@ -21,6 +21,9 @@ async function ecm(n, logCallback = console.log) {
             logCallback(`❌ 最大試行回数 ${maxAttempts} に達したため終了`);
             return null;
         }
+
+        await new Promise(resolve => setTimeout(resolve, 0));
+        
     }
 }
 
