@@ -48,11 +48,12 @@ export async function pollardsRho(n) {
         let resolved = false;
 
         for (let i = 0; i < 4; i++) {
-            const worker = new Worker("./Scripts/worker.js");
+            const worker = new Worker("./Scripts/worker.js"); // ✅ Web Worker のパスを指定
+
             workers.push(worker);
 
             let x = 2n;
-            let c = getRandomC(n, i);
+            let c = getRandomC(n, i); // ✅ getDigitBasedParams を使わずに事前計算
 
             worker.postMessage({ x, c, n, fxType: fxTypes[i] });
 
@@ -70,6 +71,16 @@ export async function pollardsRho(n) {
     });
 }
 
+// ✅ getDigitBasedParams を追加（関数の定義を明示的に行う）
+export function getDigitBasedParams(n, attempt = 0) {
+    let digitCount = Math.floor(Math.log10(Number(n))) + 1;
+
+    let maxC = digitCount <= 20 ? 30 : 50;
+
+    return { maxC };
+}
+
+// ✅ getRandomC の計算を `pollardsRho.js` で事前計算
 export function getRandomC(n, attempt = 0) {
     let { maxC } = getDigitBasedParams(n, attempt);
     let c = BigInt((Math.floor(Math.random() * maxC) * 2) + 1);
