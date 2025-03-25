@@ -47,12 +47,12 @@ self.onmessage = async function(event) {
                     q = 1n;
                 }
 
-                if (trialCount % 200000n === 0n) { 
+                if (trialCount % 200000n === 0n) {
                     console.log(`🔄 Worker ${fxType}: ${trialCount} 回試行中...`);
                     await new Promise(resolve => setTimeout(resolve, 0));
                 }
 
-                if (i % (k + (m / 16n)) === 0n) { // gcd() の頻度を増やす
+                if (i % (k + (m / 16n)) === 0n) {
                     d = gcd(q, n);
                     if (d > 1n) break;
                 }
@@ -62,22 +62,16 @@ self.onmessage = async function(event) {
 
         if (d > 1n && d !== n) {
             console.log(`📤 [Worker ${fxType}] 因数 ${d} を送信！（試行回数: ${trialCount}）`);
-            setTimeout(() => {
-                postMessage({ factor: d.toString(), trials: trialCount.toString() });
-            }, 0);
+            postMessage({ factor: d.toString(), trials: trialCount.toString() });
             return;
         }
 
         console.log(`⏹️ Worker ${fxType} が試行上限 ${MAX_TRIALS[fxType]} に達したため停止。`);
-        setTimeout(() => {
-            postMessage({ stopped: true });
-        }, 0);
+        postMessage({ stopped: true });
 
     } catch (error) {
         console.error(`❌ Worker でエラー: ${error.stack}`);
-        setTimeout(() => {
-            postMessage({ error: error.stack });
-        }, 0);
+        postMessage({ error: error.stack });
     }
 };
 
