@@ -7,9 +7,9 @@ self.onmessage = async function(event) {
 
         // ✅ 各 `fxType` の試行上限を設定
         const MAX_TRIALS = {
-            fx1: 500000n,   // (x² + 7x + c) % n → 100万回
-            fx2: 3000000n,   // (x³ + 3x + c) % n → 500万回
-            fx3: 50000000n   // (x³ + 3x + c) % n → 1000万回
+            fx1: 1000000n,   // (x² + 7x + c) % n → 100万回
+            fx2: 5000000n,   // (x² + c x) % n → 500万回
+            fx3: 10000000n   // (x³ + c) % n → 1000万回
         };
 
         let { maxC } = getDigitBasedParams(n, attempt);
@@ -19,8 +19,10 @@ self.onmessage = async function(event) {
         let fxFunction;
         if (fxType === "fx1") {
             fxFunction = (x, c, n) => (x * x + 7n * x + c) % n;
-        } else if (fxType === "fx2" || fxType === "fx3") {
-            fxFunction = (x, c, n) => (x * x * x + 3n * x + c) % n;
+        } else if (fxType === "fx2") {
+            fxFunction = (x, c, n) => (x * x + c * x) % n;
+        } else if (fxType === "fx3") {
+            fxFunction = (x, c, n) => (x * x * x + c) % n;
         } else {
             throw new Error("❌ Unknown fxType");
         }
@@ -40,7 +42,7 @@ self.onmessage = async function(event) {
                 if (q >= n) q %= n;
                 trialCount++;
 
-                if (trialCount % 1000000n === 0n) {
+                if (trialCount % 100000n === 0n) {
                     console.log(`🔄 Worker ${fxType}: ${trialCount} 回試行中...`);
                     await new Promise(resolve => setTimeout(resolve, 0));
                 }
