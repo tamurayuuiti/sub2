@@ -79,7 +79,6 @@ export async function pollardsRho(n) {
                     // ✅ Worker の開始を確認するログ
                     if (event.data.status === "started") {
                         console.log(`✅ [メインスレッド] Worker ${fxTypes[i]} (attempt: ${event.data.attempt}) が正常に開始されました。`);
-                        return;
                     }
 
                     if (event.data.factor) {
