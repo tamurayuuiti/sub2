@@ -66,7 +66,7 @@ export async function pollardsRho(n) {
                 workers.push(worker);
                 console.log(`✅ Worker ${i + 1} (${fxTypes[i]}) を作成しました。`);
 
-                worker.postMessage({ n, fxType });
+                worker.postMessage({ n, fxType: fxTypes[i] });
 
                 worker.onmessage = function (event) {
                     console.log(`受信データ:`, event.data);
