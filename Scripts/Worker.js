@@ -5,6 +5,11 @@ self.onmessage = async function(event) {
         const { n, fxType, attempt } = event.data;
         console.log(`Worker がメッセージを受信: fxType = ${fxType}, attempt = ${attempt}`);
 
+        setTimeout(() => {
+            postMessage({ status: "started", fxType, attempt });
+        }, 0);
+        console.log(`📤 [Worker ${fxType}] 試験的な postMessage を送信 (attempt: ${attempt})`);
+
         const MAX_TRIALS = {
             fx1: 1000000n,  
             fx2: 5000000n,  
