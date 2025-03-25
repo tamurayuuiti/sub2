@@ -63,7 +63,7 @@ export async function pollardsRho(n) {
 
         for (let i = 0; i < fxTypes.length; i++) {
             try {
-                const worker = new Worker("./Scripts/worker.js");
+                const worker = new Worker("./Scripts/Worker.js");
                 workers.push(worker);
                 console.log(`✅ Worker ${i + 1} (${fxTypes[i]}) を作成しました。`);
 
