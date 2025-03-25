@@ -40,7 +40,7 @@ self.onmessage = async function(event) {
                 if (q >= n) q %= n;
                 trialCount++;
 
-                if (trialCount % 100000n === 0n) {
+                if (trialCount % 1000000n === 0n) {
                     console.log(`🔄 Worker ${fxType}: ${trialCount} 回試行中...`);
                     await new Promise(resolve => setTimeout(resolve, 0));
                 }
