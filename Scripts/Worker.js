@@ -51,7 +51,7 @@ self.onmessage = async function(event) {
                 d = gcd(q, n);
                 if (d > 1n && d !== n) {
                     console.log(`🎯 Worker ${fxType} が因数 ${d} を発見！（試行回数: ${trialCount}）`);
-                    postMessage({ factor: d, trials: trialCount });
+                    postMessage({ factor: d.toString(), trials: trialCount.toString() }); // ✅ `BigInt` を文字列に変換
                     return;
                 }
             }
