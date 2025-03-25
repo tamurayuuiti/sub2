@@ -69,7 +69,7 @@ export async function pollardsRho(n) {
                 worker.postMessage({ n, fxType: fxTypes[i], attempt: i });
 
                 worker.onmessage = function (event) {
-                    console.log(`受信データ:`, event.data);
+                    console.log(`📩 Worker ${i + 1} (${fxTypes[i]}) からのメッセージ受信:`, event.data);
 
                     if (event.data.error) {
                         console.error(`❌ Worker ${i + 1} (${fxTypes[i]}) でエラー発生: ${event.data.error}`);
@@ -88,12 +88,12 @@ export async function pollardsRho(n) {
                     }
 
                     if (event.data.stopped) {
-                        console.log(`⏹️ Worker ${i + 1} (${fxTypes[i]}) が試行上限に達し停止`);
+                        console.log(`Worker ${i + 1} (${fxTypes[i]}) が試行上限に達し停止`);
                         worker.terminate();
                         activeWorkers--;
 
                         if (activeWorkers === 0) {
-                            console.log(`❌ すべての Worker が停止しました。因数を発見できませんでした。`);
+                            console.log(`すべての Worker が停止しました。因数を発見できませんでした。`);
                             resolve(null);
                         }
                     }
