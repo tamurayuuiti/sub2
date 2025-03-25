@@ -3,12 +3,11 @@ self.onmessage = async function(event) {
         const { n, fxType, attempt } = event.data;
         console.log(`✅ Worker がメッセージを受信: fxType = ${fxType}, attempt = ${attempt}`);
 
-        // ✅ 各 `fxType` に対して個別の試行上限を設定
         const MAX_TRIALS = {
-            fx1: 1000000n,  // 100万回
-            fx2: 5000000n,  // 500万回
-            fx3: 10000000n, // 1000万回
-            fx4: 30000000n  // 3000万回
+            fx1: 1000000n,
+            fx2: 5000000n,
+            fx3: 10000000n,
+            fx4: 30000000n
         };
 
         let { maxC } = getDigitBasedParams(n, attempt);
@@ -43,11 +42,6 @@ self.onmessage = async function(event) {
                 q *= abs(x - y);
                 if (q >= n) q %= n;
                 trialCount++;
-
-                if (q === 0n) {
-                    console.error(`❌ Worker でエラー: q が 0 になりました。`);
-                    q = 1n;
-                }
 
                 if (trialCount % 100000n === 0n) {
                     console.log(`🔄 Worker ${fxType}: ${trialCount} 回試行中...`);
