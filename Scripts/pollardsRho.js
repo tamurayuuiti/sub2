@@ -3,10 +3,9 @@ import { isPrimeMillerRabin } from './millerRabin.js';
 
 // ✅ どの `f(x)` を使用するか制御するオブジェクト
 const ENABLE_FX = {
-    fx1: true,  // (x³ + c) % n
-    fx2: true,  // (x² + c x) % n
-    fx3: true,  // (x³ + 3x + c) % n
-    fx4: true   // (x² + 7x + c) % n
+    fx1: true,  // (x² + 7x + c) % n
+    fx2: true,  // (x³ + 3x + c) % n
+    fx3: true   // (x³ + 3x + c) % n
 };
 
 export async function pollardsRhoFactorization(number) {
@@ -76,7 +75,7 @@ export async function pollardsRho(n) {
                     }
 
                     if (event.data.factor) {
-                        let factor = BigInt(event.data.factor); // ✅ 受け取った `factor` を `BigInt` に変換
+                        let factor = BigInt(event.data.factor);
                         console.log(`🎯 Worker ${i + 1} (${fxTypes[i]}) が因数 ${factor} を発見！（試行回数: ${BigInt(event.data.trials)}）`);
                         workers.forEach((w) => w.terminate());
                         resolve(factor);
