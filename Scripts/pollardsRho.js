@@ -70,13 +70,7 @@ export async function pollardsRho(n) {
 
                 worker.onmessage = function (event) {
                     console.log(`受信データ:`, event.data);
-      
-                     // ✅ Worker の開始を確認するログ
-                     if (event.data.status === "started") {
-                         console.log(`✅ [メインスレッド] Worker ${fxTypes[i]} (attempt: ${event.data.attempt}) が正常に開始されました。`);
-                         return;
-                     }
-                    
+
                     if (event.data.error) {
                         console.error(`❌ Worker ${i + 1} (${fxTypes[i]}) でエラー発生: ${event.data.error}`);
                         return;
