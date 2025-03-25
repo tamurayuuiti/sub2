@@ -1,6 +1,14 @@
 // ミラー・ラビン素数判定法
 import { isPrimeMillerRabin } from './millerRabin.js';
 
+// ✅ どの `f(x)` を使用するか制御するオブジェクト
+const ENABLE_FX = {
+    fx1: true,  // (x³ + c) % n
+    fx2: true,  // (x² + c x) % n
+    fx3: true,  // (x³ + 3x + c) % n
+    fx4: true   // (x² + 7x + c) % n
+};
+
 export async function pollardsRhoFactorization(number) {
     if (typeof number !== "bigint") {
         throw new TypeError(`エラー: pollardsRhoFactorization() に渡された number (${number}) が BigInt ではありません。`);
@@ -44,8 +52,14 @@ export async function pollardsRhoFactorization(number) {
 export async function pollardsRho(n) {
     return new Promise((resolve, reject) => {
         const workers = [];
-        const fxTypes = ["fx1", "fx2", "fx3", "fx4"];
+        const fxTypes = Object.keys(ENABLE_FX).filter(fx => ENABLE_FX[fx]); // ✅ ON の fxType のみ使用
         let activeWorkers = fxTypes.length;
+
+        if (activeWorkers === 0) {
+            console.error(`❌ 全ての f(x) が無効です。少なくとも 1 つ有効にしてください。`);
+            resolve(null);
+            return;
+        }
 
         for (let i = 0; i < fxTypes.length; i++) {
             try {
@@ -91,4 +105,3 @@ export async function pollardsRho(n) {
         }
     });
 }
-
