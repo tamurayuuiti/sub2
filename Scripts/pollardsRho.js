@@ -45,7 +45,6 @@ export async function pollardsRho(n) {
     return new Promise((resolve, reject) => {
         const workers = [];
         const fxTypes = ["fx1", "fx2", "fx3", "fx4"];
-        const MAX_TRIALS = { fx1: 1000000n, fx2: 5000000n, fx3: 10000000n, fx4: 30000000n }; // ✅ 試行上限を統一変数に設定
         let activeWorkers = fxTypes.length;
 
         for (let i = 0; i < fxTypes.length; i++) {
@@ -54,8 +53,7 @@ export async function pollardsRho(n) {
                 workers.push(worker);
                 console.log(`✅ Worker ${i + 1} (${fxTypes[i]}) を作成しました。`);
 
-                // ✅ BigInt を String に変換して渡す
-                worker.postMessage({ n: n.toString(), fxType: fxTypes[i], attempt: i, maxTrials: MAX_TRIALS[fxTypes[i]].toString() });
+                worker.postMessage({ n, fxType: fxTypes[i], attempt: i });
 
                 worker.onmessage = function (event) {
                     if (event.data.error) {
@@ -63,11 +61,10 @@ export async function pollardsRho(n) {
                         return;
                     }
 
-                    if (event.data.factor) {
-                        let factor = BigInt(event.data.factor);
-                        console.log(`🎯 Worker ${i + 1} (${fxTypes[i]}) が因数 ${factor} を発見！（試行回数: ${event.data.trials}）`);
+                    if (event.data.factor && event.data.factor !== n) {
+                        console.log(`🎯 Worker ${i + 1} (${fxTypes[i]}) が因数 ${event.data.factor} を発見！（試行回数: ${event.data.trials}）`);
                         workers.forEach((w) => w.terminate());
-                        resolve(factor);
+                        resolve(event.data.factor);
                     }
 
                     if (event.data.stopped) {
@@ -81,12 +78,6 @@ export async function pollardsRho(n) {
                         }
                     }
                 };
-
-                worker.onerror = function (error) {
-                    console.error(`❌ Worker ${i + 1} でエラー発生: ${error.message}`);
-                    reject(error);
-                };
-
             } catch (error) {
                 console.error(`🚨 Worker ${i + 1} の作成に失敗しました: ${error.message}`);
                 reject(error);
