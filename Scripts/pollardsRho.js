@@ -77,12 +77,14 @@ export async function pollardsRho(n) {
                     }
 
                     if (event.data.factor) {
-                        let factor = BigInt(event.data.factor);
-                        console.log(`🎯 Worker ${i + 1} (${fxTypes[i]}) が因数 ${factor} を発見！（試行回数: ${BigInt(event.data.trials)}）`);
-                        workers.forEach((w) => w.terminate());
-                        resolve(factor);
-                    } catch (error) {
-                        console.error(`BigInt 変換エラー: ${error.message}`); // ✅ (3-1) BigInt 変換時のエラーハンドリング
+                        try {
+                            let factor = BigInt(event.data.factor); 
+                            console.log(`🎯 Worker ${i + 1} (${fxTypes[i]}) が因数 ${factor} を発見！（試行回数: ${BigInt(event.data.trials)}）`);
+                            workers.forEach((w) => w.terminate());
+                            resolve(factor);
+                        } catch (error) {
+                            console.error(`BigInt 変換エラー: ${error.message}`);
+                        }
                     }
 
                     if (event.data.stopped) {
