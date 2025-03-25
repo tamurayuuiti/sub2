@@ -116,7 +116,7 @@ async function startFactorization() {
 
         if (remainder > 1n) {
             console.log(`Pollard's rhoを開始: n = ${remainder}`);
-            let extraFactors = await pollardsRhoFactorization(remainder);
+            let extraFactors = await ecmFactorization(remainder);
 
             // **Pollard's Rho で因数分解できなかった場合**
             if (extraFactors.includes("FAIL")) {
