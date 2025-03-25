@@ -5,11 +5,10 @@ self.onmessage = async function(event) {
         const { n, fxType, attempt } = event.data;
         console.log(`✅ Worker がメッセージを受信: fxType = ${fxType}, attempt = ${attempt}`);
 
-        // ✅ 各 `fxType` の試行上限を設定
         const MAX_TRIALS = {
-            fx1: 1000000n,   // (x² + 7x + c) % n → 100万回
-            fx2: 5000000n,   // (x² + c x) % n → 500万回
-            fx3: 10000000n   // (x³ + c) % n → 1000万回
+            fx1: 1000000n,  
+            fx2: 5000000n,  
+            fx3: 10000000n  
         };
 
         let { maxC } = getDigitBasedParams(n, attempt);
@@ -27,14 +26,12 @@ self.onmessage = async function(event) {
             throw new Error("❌ Unknown fxType");
         }
 
-        // ✅ `x, y, d` の初期値を過去のものと同じにする
         let x = 2n, y = 2n, d = 1n;
         let trialCount = 0n;
         let q = 1n;
         let m = 128n;
-        let k = 10n; // `GCD` 計算の頻度を決める定数
+        let k = 10n; 
 
-        // ✅ `y` の初期値を `f(x)` によって決定
         x = fxFunction(x, c, n);
         y = fxFunction(fxFunction(y, c, n), c, n);
 
@@ -46,15 +43,19 @@ self.onmessage = async function(event) {
                 if (q >= n) q %= n;
                 trialCount++;
 
-                // ✅ 10万回ごとに UI を開放（過去のものにはなかったが継続）
+                if (q === 0n) {  // ✅ (4-2) `q` が 0 の場合リセット
+                    console.error(`❌ [Worker ${fxType}] q が 0 になったためリセット`);
+                    q = 1n;
+                }
+
                 if (trialCount % 100000n === 0n) {
                     console.log(`🔄 Worker ${fxType}: ${trialCount} 回試行中...`);
                     await new Promise(resolve => setTimeout(resolve, 0));
                 }
 
-                // ✅ `GCD` 計算のタイミングを過去のものと同じにする
                 if (i % (k + (m / 16n)) === 0n) {
                     d = gcd(q, n);
+                    console.log(`🔍 [Worker ${fxType}] GCD 計算: gcd(${q}, ${n}) = ${d}`);
                     if (d > 1n) break;
                 }
             }
@@ -62,7 +63,7 @@ self.onmessage = async function(event) {
         }
 
         if (d > 1n && d !== n) {
-            console.log(`🎯 Worker ${fxType} が因数 ${d} を発見！（試行回数: ${trialCount}）`);
+            console.log(`📤 [Worker ${fxType}] 因数 ${d} を送信！（試行回数: ${trialCount}）`);
             postMessage({ factor: d.toString(), trials: trialCount.toString() });
             return;
         }
