@@ -57,7 +57,7 @@ self.onmessage = async function(event) {
                 if (i % (k + (m / 16n)) === 0n) {
                     d = gcd(q, n);
     
-                    if (logCounter % 1000000n === 0n) { // ✅ ログの出力頻度を調整
+                    if (logCounter % 10000000n === 0n) { // ✅ ログの出力頻度を調整
                         console.log(`🔍 [Worker ${fxType}] GCD 計算: gcd(${q}, ${n}) = ${d}`);
                     }
                     logCounter++;
