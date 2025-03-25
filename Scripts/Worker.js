@@ -6,8 +6,8 @@ self.onmessage = async function(event) {
         console.log(`Worker がメッセージを受信: fxType = ${fxType}, attempt = ${attempt}`);
 
         const MAX_TRIALS = {
-            fx1: 1200000n,  
-            fx2: 5000000n,  
+            fx1: 500000n,  
+            fx2: 3000000n,  
             fx3: 100000000n  
         };
 
@@ -47,7 +47,7 @@ self.onmessage = async function(event) {
                     q = 1n;
                 }
 
-                if (trialCount % 500000n === 0n) {
+                if (trialCount % 10000000n === 0n) {
                     console.log(`🔄 Worker ${fxType}: ${trialCount} 回試行中...`);
                     await new Promise(resolve => setTimeout(resolve, 0));
                 }
