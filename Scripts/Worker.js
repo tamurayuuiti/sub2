@@ -63,11 +63,13 @@ self.onmessage = async function(event) {
         if (d > 1n && d !== n) {
             console.log(`📤 [Worker ${fxType}] 因数 ${d} を送信！（試行回数: ${trialCount}）`);
             postMessage({ factor: d.toString(), trials: trialCount.toString() });
+            console.log(`✅ [Worker ${fxType}] postMessage 実行済み`);
             return;
         }
 
         console.log(`⏹️ Worker ${fxType} が試行上限 ${MAX_TRIALS[fxType]} に達したため停止。`);
         postMessage({ stopped: true });
+        console.log(`✅ [Worker ${fxType}] postMessage（stopped） 実行済み`);
 
     } catch (error) {
         console.error(`❌ Worker でエラー: ${error.stack}`);
