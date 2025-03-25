@@ -37,7 +37,6 @@ self.onmessage = async function(event) {
 
         while (d === 1n && trialCount < MAX_TRIALS[fxType]) {
             let ys = y;
-            let logCounter = 0n;
             for (let i = 0n; i < m && trialCount < MAX_TRIALS[fxType]; i++) {
                 y = fxFunction(fxFunction(y, c, n), c, n);
                 q *= abs(x - y);
@@ -54,6 +53,7 @@ self.onmessage = async function(event) {
                     await new Promise(resolve => setTimeout(resolve, 0));
                 }
 
+                let logCounter = 0n;
                 if (i % (k + (m / 16n)) === 0n) {
                     d = gcd(q, n);
     
