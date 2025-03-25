@@ -7,9 +7,9 @@ self.onmessage = async function(event) {
 
         // ✅ 各 `fxType` の試行上限を設定
         const MAX_TRIALS = {
-            fx1: 1000000n,   // (x² + 7x + c) % n → 100万回
-            fx2: 5000000n,   // (x³ + 3x + c) % n → 500万回
-            fx3: 10000000n   // (x³ + 3x + c) % n → 1000万回
+            fx1: 500000n,   // (x² + 7x + c) % n → 100万回
+            fx2: 3000000n,   // (x³ + 3x + c) % n → 500万回
+            fx3: 50000000n   // (x³ + 3x + c) % n → 1000万回
         };
 
         let { maxC } = getDigitBasedParams(n, attempt);
