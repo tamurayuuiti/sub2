@@ -3,12 +3,12 @@ console.log("✅ Worker ロード成功");
 self.onmessage = async function(event) {
     try {
         const { n, fxType, attempt } = event.data;
-        console.log(`✅ Worker がメッセージを受信: fxType = ${fxType}, attempt = ${attempt}`);
+        console.log(`Worker がメッセージを受信: fxType = ${fxType}, attempt = ${attempt}`);
 
         const MAX_TRIALS = {
             fx1: 1000000n,  
             fx2: 5000000n,  
-            fx3: 10000000n  
+            fx3: 100000000n  
         };
 
         let { maxC } = getDigitBasedParams(n, attempt);
@@ -23,7 +23,7 @@ self.onmessage = async function(event) {
         } else if (fxType === "fx3") {
             fxFunction = (x, c, n) => (x * x * x + c) % n;
         } else {
-            throw new Error("❌ Unknown fxType");
+            throw new Error("Unknown fxType");
         }
 
         let x = 2n, y = 2n, d = 1n;
@@ -31,8 +31,7 @@ self.onmessage = async function(event) {
         let q = 1n;
         let m = 128n;
         let k = 10n; 
-        let logCounter = 0n; // ✅ 修正：ログカウンターをループの外に置く
-
+        let logCounter = 0n;
         x = fxFunction(x, c, n);
         y = fxFunction(fxFunction(y, c, n), c, n);
 
@@ -49,7 +48,7 @@ self.onmessage = async function(event) {
                     q = 1n;
                 }
 
-                if (trialCount % 100000n === 0n) {
+                if (trialCount % 200000n === 0n) {
                     console.log(`🔄 Worker ${fxType}: ${trialCount} 回試行中...`);
                     await new Promise(resolve => setTimeout(resolve, 0));
                 }
@@ -57,8 +56,8 @@ self.onmessage = async function(event) {
                 if (i % (k + (m / 16n)) === 0n) {
                     d = gcd(q, n);
 
-                    if (logCounter % 10000000n === 0n) { // ✅ ログの出力頻度を調整
-                        console.log(`🔍 [Worker ${fxType}] GCD 計算: gcd(${q}, ${n}) = ${d}`);
+                    if (logCounter % 100000n === 0n) { // ✅ ログの出力頻度を調整
+                        console.log(`[Worker ${fxType}] GCD 計算: gcd(${q}, ${n}) = ${d}`);
                     }
                     logCounter++;
 
@@ -83,7 +82,6 @@ self.onmessage = async function(event) {
     }
 };
 
-// ✅ Worker 内部で `getDigitBasedParams` を定義
 function getDigitBasedParams(n, attempt) {
     try {
         let digitCount = Math.floor(Math.log10(Number(n))) + 1;
@@ -94,7 +92,6 @@ function getDigitBasedParams(n, attempt) {
     }
 }
 
-// ✅ Worker 内部で `getRandomC` を定義
 function getRandomC(n, attempt, maxC) {
     try {
         return BigInt((Math.floor(Math.random() * maxC) * 2) + 1);
@@ -104,7 +101,6 @@ function getRandomC(n, attempt, maxC) {
     }
 }
 
-// ✅ gcd の計算を完全維持
 function gcd(a, b) {
     if (a === 0n) return b;
     if (b === 0n) return a;
@@ -127,7 +123,6 @@ function gcd(a, b) {
     return a << shift;
 }
 
-// ✅ abs の計算も完全維持
 function abs(n) {
     return n < 0n ? -n : n;
 }
