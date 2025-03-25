@@ -31,7 +31,6 @@ self.onmessage = async function(event) {
         let q = 1n;
         let m = 128n;
         let k = 10n; 
-        let logCounter = 0n;
         x = fxFunction(x, c, n);
         y = fxFunction(fxFunction(y, c, n), c, n);
 
@@ -55,12 +54,6 @@ self.onmessage = async function(event) {
 
                 if (i % (k + (m / 16n)) === 0n) {
                     d = gcd(q, n);
-
-                    if (logCounter % 10000000n === 0n) { // ✅ ログの出力頻度を調整
-                        console.log(`[Worker ${fxType}] GCD 計算: gcd(${q}, ${n}) = ${d}`);
-                    }
-                    logCounter++;
-
                     if (d > 1n) break;
                 }
             }
