@@ -27,12 +27,16 @@ self.onmessage = async function(event) {
             throw new Error("❌ Unknown fxType");
         }
 
-        let x = 2n;
-        let y = fxFunction(x, c, n);
-        let d = 1n;
+        // ✅ `x, y, d` の初期値を過去のものと同じにする
+        let x = 2n, y = 2n, d = 1n;
         let trialCount = 0n;
         let q = 1n;
         let m = 128n;
+        let k = 10n; // `GCD` 計算の頻度を決める定数
+
+        // ✅ `y` の初期値を `f(x)` によって決定
+        x = fxFunction(x, c, n);
+        y = fxFunction(fxFunction(y, c, n), c, n);
 
         while (d === 1n && trialCount < MAX_TRIALS[fxType]) {
             let ys = y;
@@ -42,19 +46,25 @@ self.onmessage = async function(event) {
                 if (q >= n) q %= n;
                 trialCount++;
 
+                // ✅ 10万回ごとに UI を開放（過去のものにはなかったが継続）
                 if (trialCount % 100000n === 0n) {
                     console.log(`🔄 Worker ${fxType}: ${trialCount} 回試行中...`);
                     await new Promise(resolve => setTimeout(resolve, 0));
                 }
 
-                d = gcd(q, n);
-                if (d > 1n && d !== n) {
-                    console.log(`🎯 Worker ${fxType} が因数 ${d} を発見！（試行回数: ${trialCount}）`);
-                    postMessage({ factor: d.toString(), trials: trialCount.toString() });
-                    return;
+                // ✅ `GCD` 計算のタイミングを過去のものと同じにする
+                if (i % (k + (m / 16n)) === 0n) {
+                    d = gcd(q, n);
+                    if (d > 1n) break;
                 }
             }
             x = ys;
+        }
+
+        if (d > 1n && d !== n) {
+            console.log(`🎯 Worker ${fxType} が因数 ${d} を発見！（試行回数: ${trialCount}）`);
+            postMessage({ factor: d.toString(), trials: trialCount.toString() });
+            return;
         }
 
         console.log(`⏹️ Worker ${fxType} が試行上限 ${MAX_TRIALS[fxType]} に達したため停止。`);
