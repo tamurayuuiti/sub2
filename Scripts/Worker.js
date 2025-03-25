@@ -13,7 +13,7 @@ self.onmessage = async function(event) {
 
         let { maxC } = getDigitBasedParams(n, attempt);
         let c = getRandomC(n, attempt, maxC);
-        console.log(`🎲 Worker が c を決定: ${c} (範囲: 1 ～ ${maxC * 2 - 1})`);
+        console.log(`Worker が c を決定: ${c} (範囲: 1 ～ ${maxC * 2 - 1})`);
 
         let fxFunction;
         if (fxType === "fx1") {
@@ -56,7 +56,7 @@ self.onmessage = async function(event) {
                 if (i % (k + (m / 16n)) === 0n) {
                     d = gcd(q, n);
 
-                    if (logCounter % 100000n === 0n) { // ✅ ログの出力頻度を調整
+                    if (logCounter % 10000000n === 0n) { // ✅ ログの出力頻度を調整
                         console.log(`[Worker ${fxType}] GCD 計算: gcd(${q}, ${n}) = ${d}`);
                     }
                     logCounter++;
