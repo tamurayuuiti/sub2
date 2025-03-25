@@ -2,8 +2,8 @@ console.log("✅ Worker ロード成功");
 
 self.onmessage = async function(event) {
     try {
-        const { n, fxType, attempt } = event.data;
-        console.log(`Worker がメッセージを受信: fxType = ${fxType}, attempt = ${attempt}`);
+        const { n, fxType} = event.data;
+        console.log(`Worker がメッセージを受信: fxType = ${fxType}`);
 
         const MAX_TRIALS = {
             fx1: 500000n,  
@@ -11,8 +11,8 @@ self.onmessage = async function(event) {
             fx3: 100000000n  
         };
 
-        let { maxC } = getDigitBasedParams(n, attempt);
-        let c = getRandomC(n, attempt, maxC);
+        let { maxC } = getDigitBasedParams(n);
+        let c = getRandomC(n, maxC);
         console.log(`Worker が c を決定: ${c} (範囲: 1 ～ ${maxC * 2 - 1})`);
 
         let fxFunction;
