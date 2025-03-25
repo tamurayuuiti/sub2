@@ -31,6 +31,7 @@ self.onmessage = async function(event) {
         let q = 1n;
         let m = 128n;
         let k = 10n; 
+        let logCounter = 0n; // ✅ 修正：ログカウンターをループの外に置く
 
         x = fxFunction(x, c, n);
         y = fxFunction(fxFunction(y, c, n), c, n);
@@ -43,7 +44,7 @@ self.onmessage = async function(event) {
                 if (q >= n) q %= n;
                 trialCount++;
 
-                if (q === 0n) {  // ✅ (4-2) `q` が 0 の場合リセット
+                if (q === 0n) {  
                     console.error(`❌ [Worker ${fxType}] q が 0 になったためリセット`);
                     q = 1n;
                 }
@@ -53,15 +54,14 @@ self.onmessage = async function(event) {
                     await new Promise(resolve => setTimeout(resolve, 0));
                 }
 
-                let logCounter = 0n;
                 if (i % (k + (m / 16n)) === 0n) {
                     d = gcd(q, n);
-    
+
                     if (logCounter % 10000000n === 0n) { // ✅ ログの出力頻度を調整
                         console.log(`🔍 [Worker ${fxType}] GCD 計算: gcd(${q}, ${n}) = ${d}`);
                     }
                     logCounter++;
-                    
+
                     if (d > 1n) break;
                 }
             }
