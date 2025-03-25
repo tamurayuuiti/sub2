@@ -85,7 +85,7 @@ function getDigitBasedParams(n, attempt) {
     }
 }
 
-function getRandomC(n, attempt, maxC) {
+function getRandomC(n, maxC) {
     try {
         return BigInt((Math.floor(Math.random() * maxC) * 2) + 1);
     } catch (error) {
