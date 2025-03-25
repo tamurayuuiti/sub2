@@ -1,37 +1,25 @@
-console.log("✅ Worker ロード成功"); // ✅ Worker が正しくロードされたか確認
+console.log("✅ Worker ロード成功"); // ✅ Worker のロード確認
 
 self.onmessage = async function(event) {
     try {
         const { n, fxType, attempt } = event.data;
         console.log(`✅ Worker がメッセージを受信: fxType = ${fxType}, attempt = ${attempt}`);
 
-        // ✅ エラー確認のための追加ログ
-        if (!n || !fxType) {
-            throw new Error("❌ 受信データに必要な情報が含まれていません");
-        }
-
         const MAX_TRIALS = {
-            fx1: 1000000n,
-            fx2: 5000000n,
-            fx3: 10000000n,
-            fx4: 30000000n
+            fx1: 1000000n,   // f(x) = (x² + 7x + c) mod n
+            fx2: 5000000n,   // f(x) = (x³ + 3x + c) mod n
+            fx3: 10000000n   // f(x) = (x³ + 3x + c) mod n
         };
 
         let { maxC } = getDigitBasedParams(n, attempt);
-        if (!maxC) throw new Error("❌ getDigitBasedParams() の戻り値が無効");
-
         let c = getRandomC(n, attempt, maxC);
         console.log(`🎲 Worker が c を決定: ${c} (範囲: 1 ～ ${maxC * 2 - 1})`);
 
         let fxFunction;
         if (fxType === "fx1") {
-            fxFunction = (x, c, n) => (x * x * x + c) % n;
-        } else if (fxType === "fx2") {
-            fxFunction = (x, c, n) => (x * x + c * x) % n;
-        } else if (fxType === "fx3") {
-            fxFunction = (x, c, n) => (x * x * x + 3n * x + c) % n;
-        } else if (fxType === "fx4") {
             fxFunction = (x, c, n) => (x * x + 7n * x + c) % n;
+        } else if (fxType === "fx2" || fxType === "fx3") {
+            fxFunction = (x, c, n) => (x * x * x + 3n * x + c) % n;
         } else {
             throw new Error("❌ Unknown fxType");
         }
@@ -71,7 +59,7 @@ self.onmessage = async function(event) {
 
     } catch (error) {
         console.error(`❌ Worker でエラー: ${error.stack}`);
-        postMessage({ error: error.stack }); // ✅ `stack` を送信し、エラーの詳細を確認
+        postMessage({ error: error.stack });
     }
 };
 
