@@ -3,14 +3,13 @@ self.onmessage = async function(event) {
         const { n, fxType, attempt } = event.data;
         console.log(`✅ Worker がメッセージを受信: fxType = ${fxType}, attempt = ${attempt}`);
 
-        // ✅ Worker 内で試行上限を設定
+        // ✅ 各 `fxType` に対して個別の試行上限を設定
         const MAX_TRIALS = {
-            fx1: 1000000n,    // 100万回
-            fx2: 5000000n,    // 500万回
-            fx3: 10000000n,   // 1000万回
-            fx4: 30000000n    // 3000万回
+            fx1: 1000000n,  // 100万回
+            fx2: 5000000n,  // 500万回
+            fx3: 10000000n, // 1000万回
+            fx4: 30000000n  // 3000万回
         };
-        let maxTrials = MAX_TRIALS[fxType];
 
         let { maxC } = getDigitBasedParams(n, attempt);
         let c = getRandomC(n, attempt, maxC);
@@ -37,9 +36,9 @@ self.onmessage = async function(event) {
         let q = 1n;
         let m = 128n;
 
-        while (d === 1n && trialCount < maxTrials) {
+        while (d === 1n && trialCount < MAX_TRIALS[fxType]) {
             let ys = y;
-            for (let i = 0n; i < m && trialCount < maxTrials; i++) {
+            for (let i = 0n; i < m && trialCount < MAX_TRIALS[fxType]; i++) {
                 y = fxFunction(fxFunction(y, c, n), c, n);
                 q *= abs(x - y);
                 if (q >= n) q %= n;
@@ -65,7 +64,7 @@ self.onmessage = async function(event) {
             x = ys;
         }
 
-        console.log(`⏹️ Worker ${fxType} が試行上限 ${maxTrials} に達したため停止。`);
+        console.log(`⏹️ Worker ${fxType} が試行上限 ${MAX_TRIALS[fxType]} に達したため停止。`);
         postMessage({ stopped: true });
 
     } catch (error) {
