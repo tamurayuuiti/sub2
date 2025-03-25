@@ -52,7 +52,7 @@ export async function pollardsRhoFactorization(number) {
 export async function pollardsRho(n) {
     return new Promise((resolve, reject) => {
         const workers = [];
-        const fxTypes = Object.keys(ENABLE_FX).filter(fx => ENABLE_FX[fx]); // ✅ ON の fxType のみ使用
+        const fxTypes = Object.keys(ENABLE_FX).filter(fx => ENABLE_FX[fx]); 
         let activeWorkers = fxTypes.length;
 
         if (activeWorkers === 0) {
@@ -75,10 +75,11 @@ export async function pollardsRho(n) {
                         return;
                     }
 
-                    if (event.data.factor && event.data.factor !== n) {
-                        console.log(`🎯 Worker ${i + 1} (${fxTypes[i]}) が因数 ${event.data.factor} を発見！（試行回数: ${event.data.trials}）`);
+                    if (event.data.factor) {
+                        let factor = BigInt(event.data.factor); // ✅ 受け取った `factor` を `BigInt` に変換
+                        console.log(`🎯 Worker ${i + 1} (${fxTypes[i]}) が因数 ${factor} を発見！（試行回数: ${BigInt(event.data.trials)}）`);
                         workers.forEach((w) => w.terminate());
-                        resolve(event.data.factor);
+                        resolve(factor);
                     }
 
                     if (event.data.stopped) {
