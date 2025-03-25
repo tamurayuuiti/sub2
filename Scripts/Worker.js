@@ -1,7 +1,14 @@
+console.log("✅ Worker ロード成功"); // ✅ Worker が正しくロードされたか確認
+
 self.onmessage = async function(event) {
     try {
         const { n, fxType, attempt } = event.data;
         console.log(`✅ Worker がメッセージを受信: fxType = ${fxType}, attempt = ${attempt}`);
+
+        // ✅ エラー確認のための追加ログ
+        if (!n || !fxType) {
+            throw new Error("❌ 受信データに必要な情報が含まれていません");
+        }
 
         const MAX_TRIALS = {
             fx1: 1000000n,
@@ -11,6 +18,8 @@ self.onmessage = async function(event) {
         };
 
         let { maxC } = getDigitBasedParams(n, attempt);
+        if (!maxC) throw new Error("❌ getDigitBasedParams() の戻り値が無効");
+
         let c = getRandomC(n, attempt, maxC);
         console.log(`🎲 Worker が c を決定: ${c} (範囲: 1 ～ ${maxC * 2 - 1})`);
 
@@ -24,8 +33,7 @@ self.onmessage = async function(event) {
         } else if (fxType === "fx4") {
             fxFunction = (x, c, n) => (x * x + 7n * x + c) % n;
         } else {
-            postMessage({ error: "Unknown fxType" });
-            return;
+            throw new Error("❌ Unknown fxType");
         }
 
         let x = 2n;
@@ -51,7 +59,7 @@ self.onmessage = async function(event) {
                 d = gcd(q, n);
                 if (d > 1n && d !== n) {
                     console.log(`🎯 Worker ${fxType} が因数 ${d} を発見！（試行回数: ${trialCount}）`);
-                    postMessage({ factor: d.toString(), trials: trialCount.toString() }); // ✅ `BigInt` を文字列に変換
+                    postMessage({ factor: d.toString(), trials: trialCount.toString() });
                     return;
                 }
             }
@@ -62,20 +70,30 @@ self.onmessage = async function(event) {
         postMessage({ stopped: true });
 
     } catch (error) {
-        console.error(`❌ Worker でエラー: ${error.message}`);
-        postMessage({ error: error.message });
+        console.error(`❌ Worker でエラー: ${error.stack}`);
+        postMessage({ error: error.stack }); // ✅ `stack` を送信し、エラーの詳細を確認
     }
 };
 
 // ✅ Worker 内部で `getDigitBasedParams` を定義
 function getDigitBasedParams(n, attempt) {
-    let digitCount = Math.floor(Math.log10(Number(n))) + 1;
-    return { maxC: digitCount <= 20 ? 30 : 50 };
+    try {
+        let digitCount = Math.floor(Math.log10(Number(n))) + 1;
+        return { maxC: digitCount <= 20 ? 30 : 50 };
+    } catch (error) {
+        console.error("❌ getDigitBasedParams() でエラー:", error.message);
+        return { maxC: 50 }; // ✅ デフォルト値を返す
+    }
 }
 
 // ✅ Worker 内部で `getRandomC` を定義
 function getRandomC(n, attempt, maxC) {
-    return BigInt((Math.floor(Math.random() * maxC) * 2) + 1);
+    try {
+        return BigInt((Math.floor(Math.random() * maxC) * 2) + 1);
+    } catch (error) {
+        console.error("❌ getRandomC() でエラー:", error.message);
+        return 1n; // ✅ デフォルト値
+    }
 }
 
 // ✅ gcd の計算を完全維持
