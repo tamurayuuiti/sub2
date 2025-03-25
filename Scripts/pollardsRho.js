@@ -69,6 +69,8 @@ export async function pollardsRho(n) {
                 worker.postMessage({ n, fxType: fxTypes[i], attempt: i });
 
                 worker.onmessage = function (event) {
+                    console.log(`受信データ:`, event.data);
+                    
                     if (event.data.error) {
                         console.error(`❌ Worker ${i + 1} (${fxTypes[i]}) でエラー発生: ${event.data.error}`);
                         return;
@@ -79,6 +81,8 @@ export async function pollardsRho(n) {
                         console.log(`🎯 Worker ${i + 1} (${fxTypes[i]}) が因数 ${factor} を発見！（試行回数: ${BigInt(event.data.trials)}）`);
                         workers.forEach((w) => w.terminate());
                         resolve(factor);
+                    } catch (error) {
+                        console.error(`BigInt 変換エラー: ${error.message}`); // ✅ (3-1) BigInt 変換時のエラーハンドリング
                     }
 
                     if (event.data.stopped) {
