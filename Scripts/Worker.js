@@ -1,14 +1,15 @@
-console.log("✅ Worker ロード成功"); // ✅ Worker のロード確認
+console.log("✅ Worker ロード成功");
 
 self.onmessage = async function(event) {
     try {
         const { n, fxType, attempt } = event.data;
         console.log(`✅ Worker がメッセージを受信: fxType = ${fxType}, attempt = ${attempt}`);
 
+        // ✅ 各 `fxType` の試行上限を設定
         const MAX_TRIALS = {
-            fx1: 1000000n,   // f(x) = (x² + 7x + c) mod n
-            fx2: 5000000n,   // f(x) = (x³ + 3x + c) mod n
-            fx3: 10000000n   // f(x) = (x³ + 3x + c) mod n
+            fx1: 1000000n,   // (x² + 7x + c) % n → 100万回
+            fx2: 5000000n,   // (x³ + 3x + c) % n → 500万回
+            fx3: 10000000n   // (x³ + 3x + c) % n → 1000万回
         };
 
         let { maxC } = getDigitBasedParams(n, attempt);
@@ -70,7 +71,7 @@ function getDigitBasedParams(n, attempt) {
         return { maxC: digitCount <= 20 ? 30 : 50 };
     } catch (error) {
         console.error("❌ getDigitBasedParams() でエラー:", error.message);
-        return { maxC: 50 }; // ✅ デフォルト値を返す
+        return { maxC: 50 };
     }
 }
 
@@ -80,7 +81,7 @@ function getRandomC(n, attempt, maxC) {
         return BigInt((Math.floor(Math.random() * maxC) * 2) + 1);
     } catch (error) {
         console.error("❌ getRandomC() でエラー:", error.message);
-        return 1n; // ✅ デフォルト値
+        return 1n;
     }
 }
 
