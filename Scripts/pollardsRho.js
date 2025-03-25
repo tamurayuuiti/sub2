@@ -80,9 +80,7 @@ export async function pollardsRho(n) {
                         try {
                             let factor = BigInt(event.data.factor); 
                             console.log(`🎯 Worker ${i + 1} (${fxTypes[i]}) が因数 ${factor} を発見！（試行回数: ${BigInt(event.data.trials)}）`);
-                            setTimeout(() => {
-                                workers.forEach((w) => w.terminate());
-                            }, 50); // 50ms 遅延
+                            workers.forEach(w => w.terminate());
                             resolve(factor);
                         } catch (error) {
                             console.error(`BigInt 変換エラー: ${error.message}`);
