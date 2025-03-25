@@ -1,25 +1,30 @@
 self.onmessage = async function(event) {
     try {
         const number = BigInt(event.data);
-        self.postMessage({ type: "log", message: `🔄 Worker: ECM 実行開始 (${number})` });
+        postLog(`🔄 Worker: ECM 実行開始 (${number})`);
 
-        const factor = await ecm(number, msg => self.postMessage({ type: "log", message: msg }));
+        const factor = await ecm(number, postLog);
 
-        self.postMessage({ type: "result", factor: factor ? factor.toString() : "null" });
+        postMessage({ type: "result", factor: factor ? factor.toString() : "null" });
 
     } catch (error) {
-        self.postMessage({ type: "log", message: `❌ Worker: エラー発生 - ${error.message}` });
-        self.postMessage({ type: "result", factor: "null" });
+        postLog(`❌ Worker: エラー発生 - ${error.message}`);
+        postMessage({ type: "result", factor: "null" });
     }
 };
 
+// ✅ ログをメインスレッドに送信する関数
+function postLog(message) {
+    self.postMessage({ type: "log", message });
+}
+
 // ✅ `ecm()` を Worker に統合！
-async function ecm(n, logCallback = console.log) {
+async function ecm(n, logCallback = postLog) {
     let attempt = 0;
-    logCallback(`getECMParams() 呼び出し: n=${n}, attempt=${attempt}`);
+    logCallback(`🟢 ECM を開始: n=${n}`);
 
     while (true) {
-        logCallback(`🔄 ECM: 試行 ${attempt + 1} を開始 (${n})`);
+        logCallback(`🔄 ECM: 試行 ${attempt + 1} を開始`);
 
         let { a, B1, maxAttempts } = getECMParams(n, attempt, logCallback);
         logCallback(`⚙️ ECMパラメータ: a=${a}, B1=${B1}, maxAttempts=${maxAttempts}`);
@@ -28,7 +33,7 @@ async function ecm(n, logCallback = console.log) {
         let y = ((x * x * x + a * x + getRandomX(n)) * getRandomX(n)) % n;
         let P = { x, y };
 
-        logCallback(`🟢 試行 ${attempt + 1}: a = ${a}, P = (${x}, ${y}), B1=${B1}`);
+        logCallback(`🟢 試行 ${attempt + 1}: P=(${x}, ${y}), B1=${B1}`);
 
         let factor = await ECM_step(n, P, a, B1, logCallback);
         logCallback(`📢 ECM_step() の返り値: ${factor}`);
@@ -49,8 +54,8 @@ async function ecm(n, logCallback = console.log) {
 }
 
 // ✅ Worker 内に `ECM_step()` を統合
-async function ECM_step(n, P, a, B1, logCallback = console.log) {
-    logCallback(`🚀 ECM_step() 開始: n=${n}, P=(${P.x}, ${P.y}), B1=${B1}`);
+async function ECM_step(n, P, a, B1, logCallback = postLog) {
+    logCallback(`🚀 ECM_step() 開始: n=${n}, B1=${B1}`);
 
     let x = P.x;
     let y = P.y;
@@ -82,7 +87,7 @@ async function ECM_step(n, P, a, B1, logCallback = console.log) {
 }
 
 // ✅ その他の関数も統合
-function getECMParams(n, attempt = 0, logCallback = console.log) {
+function getECMParams(n, attempt = 0, logCallback = postLog) {
     let logN = BigInt(n.toString().length);  
     let baseB1 = 10n ** (logN / 3n);
     let adaptiveB1 = baseB1 * (BigInt(attempt) + 1n);
@@ -93,7 +98,7 @@ function getECMParams(n, attempt = 0, logCallback = console.log) {
     let maxAttempts = 500;
 
     logCallback(`⚙️ ECMパラメータ: a=${a}, B1=${B1}, maxAttempts=${maxAttempts}`);
-    
+
     if (B1 === 0n) {
         throw new Error("🚨 B1 が 0 になっています！ECM が動きません！");
     }
