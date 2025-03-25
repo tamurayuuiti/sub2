@@ -69,38 +69,34 @@ export async function pollardsRho(n) {
                 worker.postMessage({ n, fxType: fxTypes[i], attempt: i });
 
                 worker.onmessage = function (event) {
-                    setTimeout(() => {
-                        console.log(`📩 Worker ${i + 1} (${fxTypes[i]}) からのメッセージ受信:`, event.data);
+                    console.log(`受信データ:`, event.data);
 
-                        if (event.data.error) {
-                            console.error(`❌ Worker ${i + 1} (${fxTypes[i]}) でエラー発生: ${event.data.error}`);
-                            return;
+                    if (event.data.error) {
+                        console.error(`❌ Worker ${i + 1} (${fxTypes[i]}) でエラー発生: ${event.data.error}`);
+                        return;
+                    }
+
+                    if (event.data.factor) {
+                        try {
+                            let factor = BigInt(event.data.factor); 
+                            console.log(`🎯 Worker ${i + 1} (${fxTypes[i]}) が因数 ${factor} を発見！（試行回数: ${BigInt(event.data.trials)}）`);
+                            workers.forEach((w) => w.terminate());
+                            resolve(factor);
+                        } catch (error) {
+                            console.error(`BigInt 変換エラー: ${error.message}`);
                         }
+                    }
 
-                        if (event.data.factor) {
-                            try {
-                                let factor = BigInt(event.data.factor); 
-                                console.log(`🎯 Worker ${i + 1} (${fxTypes[i]}) が因数 ${factor} を発見！`);
-                                setTimeout(() => {
-                                    workers.forEach((w) => w.terminate());
-                                }, 50);
-                                resolve(factor);
-                            } catch (error) {
-                                console.error(`BigInt 変換エラー: ${error.message}`);
-                            }
+                    if (event.data.stopped) {
+                        console.log(`⏹️ Worker ${i + 1} (${fxTypes[i]}) が試行上限に達し停止`);
+                        worker.terminate();
+                        activeWorkers--;
+
+                        if (activeWorkers === 0) {
+                            console.log(`❌ すべての Worker が停止しました。因数を発見できませんでした。`);
+                            resolve(null);
                         }
-
-                        if (event.data.stopped) {
-                            console.log(`⏹️ Worker ${i + 1} (${fxTypes[i]}) が試行上限に達し停止`);
-                            worker.terminate();
-                            activeWorkers--;
-
-                            if (activeWorkers === 0) {
-                                console.log(`❌ すべての Worker が停止しました。`);
-                                resolve(null);
-                            }
-                        }
-                    }, 0);
+                    }
                 };
 
                 worker.onerror = function (error) {
