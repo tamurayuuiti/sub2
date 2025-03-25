@@ -78,6 +78,12 @@ export async function pollardsRho(n) {
                         }
                     }
                 };
+
+                worker.onerror = function (error) {
+                    console.error(`❌ Worker ${i + 1} でエラー発生: ${error.message}`);
+                    reject(error);
+                };
+
             } catch (error) {
                 console.error(`🚨 Worker ${i + 1} の作成に失敗しました: ${error.message}`);
                 reject(error);
@@ -85,3 +91,4 @@ export async function pollardsRho(n) {
         }
     });
 }
+
