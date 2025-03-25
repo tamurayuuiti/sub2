@@ -53,7 +53,7 @@ export async function pollardsRho(n) {
 
         console.log(`試行 ${attempt + 1} 回目: 使用中の f(x) = ${fxFunctionString}, MAX_TRIALS = ${MAX_TRIALS}`);
 
-        if (digitCount >= 21 && attempt >= 4) {
+        if (digitCount >= 21 && attempt >= 3) {
             console.log(`試行 ${attempt + 1} 回目: Pollard's Rho では因数を発見できませんでした。`);
             return null
         }
@@ -124,21 +124,17 @@ export function getDigitBasedParams(n, attempt = 0) {
         MAX_TRIALS = 1000000;
     } else {
         if (attempt === 0) {
-            fxFunction = (x, c, n) => ((x * x * x + c) % n);
-            fxFunctionString = "(x³ + c) % n";
+            fxFunction = (x, c, n) => ((x * x + 7n * x + c) % n);
+            fxFunctionString = "(x² + 7x + c) % n";
             MAX_TRIALS = 500000;
         } else if (attempt === 1) {
             fxFunction = (x, c, n) => ((x * x + c * x) % n);
-            fxFunctionString = "(x² + c x) % n";
+            fxFunctionString = "(x² + cx) % n";
             MAX_TRIALS = 10000000;
         } else if (attempt === 2) {
-            fxFunction = (x, c, n) => ((x * x * x + 3n * x + c) % n);
-            fxFunctionString = "(x³ + 3x + c) % n";
-            MAX_TRIALS = 7000000;
-        } else if (attempt === 3) {
-            fxFunction = (x, c, n) => ((x * x + 7n * x + c) % n);
-            fxFunctionString = "(x² + 7x + c) % n";
-            MAX_TRIALS = 5000000;
+            fxFunction = (x, c, n) => ((x * x * x + c) % n);
+            fxFunctionString = "(x³ + c) % n";
+            MAX_TRIALS = 500000000;
         } else {
             fxFunction = null;
             fxFunctionString = "別の因数分解関数に移行";
