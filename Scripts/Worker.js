@@ -25,7 +25,7 @@ self.onmessage = async function(event) {
             throw new Error("Unknown fxType");
         }
 
-        console.log(`worker${workerId + 1} の実行成功: fx = ${fxEquation}, 試行上限 ${MAX_TRIALS[fxType]}, c = ${c} (範囲: 1 ～ ${maxC * 2 - 1})`);
+        console.log(`Worker ${workerId + 1} の実行成功: fx = ${fxEquation}, 試行上限 ${MAX_TRIALS[fxType]}, c = ${c} (範囲: 1 ～ ${maxC * 2 - 1})`);
 
         let x = 2n, y = 2n, d = 1n;
         let trialCount = 0n;
@@ -45,13 +45,13 @@ self.onmessage = async function(event) {
                 trialCount++;
 
                 if (q === 0n) {
-                    console.error(`worker${workerId + 1} q が 0 になりました。（リセット回数: ${resetCount}）`);
+                    console.error(`Worker ${workerId + 1} q が 0 になりました。（リセット回数: ${resetCount}）`);
                     q = 1n;
                     resetCount++;
                 }
 
                 if (trialCount % 2500000n === 0n) {
-                    console.log(`worker${workerId + 1} 試行 ${trialCount},　fx = ${fxType}, x=${x}, y=${y}, q=${q}, gcd=${d}`);
+                    console.log(`Worker ${workerId + 1} 試行 ${trialCount},　fx = ${fxType}, x=${x}, y=${y}, q=${q}, gcd=${d}`);
                     await new Promise(resolve => setTimeout(resolve, 0));
                 }
 
@@ -67,7 +67,7 @@ self.onmessage = async function(event) {
         }
 
         if (d > 1n && d !== n) {
-            console.log(`worker${workerId + 1} が因数 ${d} を送信（試行回数: ${trialCount}）`);
+            console.log(`Worker ${workerId + 1} が因数 ${d} を送信（試行回数: ${trialCount}）`);
             
             setTimeout(() => {
                 postMessage({ factor: d.toString(), trials: trialCount.toString() });
@@ -76,11 +76,11 @@ self.onmessage = async function(event) {
             return;
         }
 
-        console.log(`worker${workerId + 1} が試行上限 ${MAX_TRIALS[fxType]} に達したため停止。`);
+        console.log(`Worker ${workerId + 1} が試行上限 ${MAX_TRIALS[fxType]} に達したため停止。`);
         postMessage({ stopped: true });
 
     } catch (error) {
-        console.error(`worker${workerId + 1} でエラー: ${error.stack}`);
+        console.error(`Worker ${workerId + 1} でエラー: ${error.stack}`);
         postMessage({ error: error.stack });
     }
 };
