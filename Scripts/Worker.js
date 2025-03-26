@@ -22,7 +22,7 @@ self.onmessage = async function(event) {
         } else if (fxType === "fx2") {
             fxFunction = (x, c, n) => (x * x + c * x) % n;
         } else if (fxType === "fx3") {
-            fxFunction = (x, c, n) => (x * x * x + c) % n;
+            fxFunction = (x, c, n) => (x * x * x + 7n * x * x + c * x + c) % n;
         } else {
             throw new Error("Unknown fxType");
         }
