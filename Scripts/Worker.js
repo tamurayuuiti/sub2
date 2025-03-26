@@ -61,7 +61,7 @@ self.onmessage = async function(event) {
 
                 // ✅ `BigInt` の剰余計算が正しく行われているか確認
                 if (trialCount === 1n || trialCount % 5000000n === 0n) {
-                    console.log(`[Worker ${fxType}] BigInt mod テスト: ${(123456789123456789123456789n % 123456789n).toString()}`);
+                    console.log(`[Worker ${fxType}] BigInt mod テスト: ${(12345678912345678912345679n % 123456789n).toString()}`);
                 }
 
                 // 【実験用】
