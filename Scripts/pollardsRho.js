@@ -64,7 +64,6 @@ export async function pollardsRho(n) {
             try {
                 const worker = new Worker("./Scripts/Worker.js");
                 workers.push(worker);
-                console.log(`Worker ${i + 1} (${fxTypes[i]}) を作成しました。`);
 
                 setTimeout(() => {
                     console.log(`Worker ${i + 1} (${fxTypes[i]}) の実行を開始`);
