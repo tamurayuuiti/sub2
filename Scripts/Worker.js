@@ -41,13 +41,13 @@ self.onmessage = async function(event) {
                 trialCount++;
 
                 if (q === 0n) {
-                    console.error(`[Worker ${fxType}] q が 0 になった！（リセット回数: ${resetCount}）`);
+                    console.error(`[Worker ${workerId}](fx = ${fxType}) q が 0 になった！（リセット回数: ${resetCount}）`);
                     q = 1n;
                     resetCount++;
                 }
 
                 if (trialCount % 2500000n === 0n) {
-                    console.log(`[Worker ${fxType}] 試行 ${trialCount}, x=${x}, y=${y}, q=${q}, gcd=${d}`);
+                    console.log(`[Worker ${workerId}] 試行 ${trialCount},　fx = ${fxType}, x=${x}, y=${y}, q=${q}, gcd=${d}`);
                     await new Promise(resolve => setTimeout(resolve, 0));
                 }
 
@@ -63,7 +63,7 @@ self.onmessage = async function(event) {
         }
 
         if (d > 1n && d !== n) {
-            console.log(`[Worker ${fxType}] 因数 ${d} を送信！（試行回数: ${trialCount}）`);
+            console.log(`[Worker ${workerId}](fx = ${fxType}) が因数 ${d} を送信。（試行回数: ${trialCount}）`);
             
             setTimeout(() => {
                 postMessage({ factor: d.toString(), trials: trialCount.toString() });
@@ -72,7 +72,7 @@ self.onmessage = async function(event) {
             return;
         }
 
-        console.log(`Worker ${fxType} が試行上限 ${MAX_TRIALS[fxType]} に達したため停止。`);
+        console.log(`[Worker ${workerId}] が試行上限 ${MAX_TRIALS[fxType]} に達したため停止。`);
         postMessage({ stopped: true });
 
     } catch (error) {
