@@ -63,7 +63,7 @@ self.onmessage = async function(event) {
         }
 
         if (d > 1n && d !== n) {
-            console.log(`worker${workerId + 1} (${fxType}) が因数 ${d} を送信。（試行回数: ${trialCount}）`);
+            console.log(`worker${workerId + 1} (${fxType}) が因数 ${d} を送信（試行回数: ${trialCount}）`);
             
             setTimeout(() => {
                 postMessage({ factor: d.toString(), trials: trialCount.toString() });
@@ -76,7 +76,7 @@ self.onmessage = async function(event) {
         postMessage({ stopped: true });
 
     } catch (error) {
-        console.error(`worker${workerId + 1} (${fxType}) でエラー: ${error.stack}`);
+        console.error(`worker${workerId + 1} でエラー: ${error.stack}`);
         postMessage({ error: error.stack });
     }
 };
