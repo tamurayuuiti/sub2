@@ -42,7 +42,7 @@ self.onmessage = async function(event) {
             for (let i = 0n; i < m && trialCount < MAX_TRIALS[fxType]; i++) {
                 y = fxFunction(fxFunction(y, c, n), c, n);
                 q *= abs(x - y);
-                q = (q + 1n) % n + 1n;
+                q = (q + 1n) % n;
                 trialCount++;
 
                 if (q === 0n) {
@@ -73,6 +73,9 @@ self.onmessage = async function(event) {
                 }
             }
             x = ys;
+            if (d === 1n) {  
+                m = (m * 3n) >> 1n;
+            }
         }
 
         if (d > 1n && d !== n) {
