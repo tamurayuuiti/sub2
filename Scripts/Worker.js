@@ -5,11 +5,15 @@ self.onmessage = async function(event) {
     try {
         let { n, fxType } = event.data;
         
-        // ✅ `n` の型チェックと `BigInt` 変換
-        console.log(`[Worker ${fxType}] 受信時の n の型: ${typeof n}, 値: ${n}`);
-        if (typeof n === "string") {
-            console.log(`[Worker ${fxType}] n を BigInt に変換`);
-            n = BigInt(n);
+        let testN = 123456789123456789123456789n;
+        let testDivisor = 123456789n;
+
+        console.log(`[Worker ${fxType}] BigInt mod テスト: ${testN} % ${testDivisor} = ${testN % testDivisor}`);
+
+        console.log(`[Worker ${fxType}] 型チェック - testN: ${typeof testN}, testDivisor: ${typeof testDivisor}`);
+
+        if (typeof testN !== "bigint" || typeof testDivisor !== "bigint") {
+            console.error(`[Worker ${fxType}] BigInt 演算が正しく行われていません！`);
         }
 
         console.log(`Worker がメッセージを受信: fxType = ${fxType}`);
@@ -57,11 +61,6 @@ self.onmessage = async function(event) {
                     console.error(`[Worker ${fxType}] q が 0 になった！（リセット回数: ${resetCount}）`);
                     q = 1n;
                     resetCount++;
-                }
-
-                // ✅ `BigInt` の剰余計算が正しく行われているか確認
-                if (trialCount === 1n || trialCount % 5000000n === 0n) {
-                    console.log(`[Worker ${fxType}] BigInt mod テスト: ${(3n % 1n).toString()}`);
                 }
 
                 // 【実験用】
