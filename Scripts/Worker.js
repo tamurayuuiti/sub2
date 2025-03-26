@@ -13,13 +13,13 @@ self.onmessage = async function(event) {
         };
 
         if (fxType === "fx1") {
-            fxEquation = "(x² + 7x + c) / n";
+            fxEquation = "(x² + 7x + c) mod n";
             fxFunction = (x, c, n) => (x * x + 7n * x + c) % n;
         } else if (fxType === "fx2") {
-            fxEquation = "(x² + cx) / n";
+            fxEquation = "(x² + cx) mod n";
             fxFunction = (x, c, n) => (x * x + c * x) % n;
         } else if (fxType === "fx3") {
-            fxEquation = "(x³ + c) / n";
+            fxEquation = "(x³ + c) mod n";
             fxFunction = (x, c, n) => (x * x * x + c) % n;
         } else {
             throw new Error("Unknown fxType");
