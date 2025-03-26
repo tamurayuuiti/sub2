@@ -1,5 +1,4 @@
-console.log("Worker ロード成功");
-console.log(`利用可能なスレッド数: ${navigator.hardwareConcurrency}`);
+console.log("Worker ロード成功: 利用可能なスレッド数: ${navigator.hardwareConcurrency}");
 
 self.onmessage = async function(event) {
     try {
@@ -7,14 +6,6 @@ self.onmessage = async function(event) {
         
         let testN = 123456789123456789123456789n;
         let testDivisor = 123456789n;
-
-        console.log(`[Worker ${fxType}] BigInt mod テスト: ${testN} % ${testDivisor} = ${testN % testDivisor}`);
-
-        console.log(`[Worker ${fxType}] 型チェック - testN: ${typeof testN}, testDivisor: ${typeof testDivisor}`);
-
-        if (typeof testN !== "bigint" || typeof testDivisor !== "bigint") {
-            console.error(`[Worker ${fxType}] BigInt 演算が正しく行われていません！`);
-        }
 
         console.log(`Worker がメッセージを受信: fxType = ${fxType}`);
 
@@ -62,11 +53,6 @@ self.onmessage = async function(event) {
                     resetCount++;
                 }
 
-                if (trialCount % 1000000n === 0n) {
-                    let dTest = gcd(q, n);
-                    console.log(`[Worker ${fxType}] gcd(q, n) の計算結果: trialCount=${trialCount}, q=${q}, gcd=${dTest}`);
-                }
-
                 // 【実験用】
                 if (fxType === "fx3" && trialCount === 25000000n) {
                     console.log(`[Worker ${fxType}] 実験的に仮の因数を送信！`);
@@ -79,7 +65,7 @@ self.onmessage = async function(event) {
                 }
 
                 if (trialCount % 5000000n === 0n) {
-                    console.log(`[Worker ${fxType}] 試行 ${trialCount}, x=${x}, y=${y}, q=${q}, d=${d}`);
+                    console.log(`[Worker ${fxType}] 試行 ${trialCount}, x=${x}, y=${y}, q=${q}, gcd=${d}`);
                     await new Promise(resolve => setTimeout(resolve, 0));
                 }
 
@@ -97,7 +83,6 @@ self.onmessage = async function(event) {
         if (d > 1n && d !== n) {
             console.log(`[Worker ${fxType}] 因数 ${d} を送信！（試行回数: ${trialCount}）`);
             
-            // ✅ `postMessage()` の直前に `setTimeout()` を追加し、Worker の競合を防ぐ
             setTimeout(() => {
                 postMessage({ factor: d.toString(), trials: trialCount.toString() });
             }, 0);
