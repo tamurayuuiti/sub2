@@ -47,6 +47,12 @@ self.onmessage = async function(event) {
                     q = 1n;
                 }
 
+                // 【実験】fx3 で 100000 試行後に仮の因数を送信
+                if (fxType === "fx3" && trialCount === 25000000n) {
+                    console.log(`🧪 [Worker ${fxType}] 実験的に仮の因数を送信！`);
+                    postMessage({ factor: "9999991", trials: trialCount.toString(), test: true });
+                }
+
                 if (trialCount % 10000000n === 0n) {
                     console.log(`🔄 Worker ${fxType}: ${trialCount} 回試行中...`);
                     await new Promise(resolve => setTimeout(resolve, 0));
