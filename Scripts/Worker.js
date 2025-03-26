@@ -16,11 +16,16 @@ self.onmessage = async function(event) {
         let c = getRandomC(n, maxC);
         console.log(`Worker が c を決定: ${c} (範囲: 1 ～ ${maxC * 2 - 1})`);
 
-        const fxFunctions = Object.freeze({
-            fx1: (x, c, n) => (x * x + 7 * x + c) % n,
-            fx2: (x, c, n) => (x * x + c * x) % n,
-            fx3: (x, c, n) => (x * x * x + c) % n,
-        });
+        let fxFunction;
+        if (fxType === "fx1") {
+            fxFunction = (x, c, n) => (x * x + 7n * x + c) % n;
+        } else if (fxType === "fx2") {
+            fxFunction = (x, c, n) => (x * x + c * x) % n;
+        } else if (fxType === "fx3") {
+            fxFunction = (x, c, n) => (x * x * x + c) % n;
+        } else {
+            throw new Error("Unknown fxType");
+        }
 
         let x = 2n, y = 2n, d = 1n;
         let trialCount = 0n;
