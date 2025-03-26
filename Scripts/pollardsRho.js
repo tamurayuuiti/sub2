@@ -71,14 +71,14 @@ export async function pollardsRho(n) {
                     console.log(`受信データ:`, event.data);
 
                     if (event.data.error) {
-                        console.error(`Worker${i + 1} (${fxTypes[i]}) でエラー発生: ${event.data.error}`);
+                        console.error(`Worker ${i + 1} でエラー発生: ${event.data.error}`);
                         return;
                     }
 
                     if (event.data.factor) {
                         try {
                             let factor = BigInt(event.data.factor); 
-                            console.log(`Worker${i + 1} (${fxTypes[i]}) が因数 ${factor} を発見（試行回数: ${BigInt(event.data.trials)}）`);
+                            console.log(`Worker ${i + 1} が因数 ${factor} を発見（試行回数: ${BigInt(event.data.trials)}）`);
                             workers.forEach((w) => w.terminate());
                             resolve(factor);
                         } catch (error) {
@@ -87,7 +87,7 @@ export async function pollardsRho(n) {
                     }
 
                     if (event.data.stopped) {
-                        console.log(`Worker${i + 1} (${fxTypes[i]}) が試行上限に達し停止`);
+                        console.log(`Worker ${i + 1} が試行上限に達し停止`);
                         worker.terminate();
                         activeWorkers--;
 
@@ -99,12 +99,12 @@ export async function pollardsRho(n) {
                 };
 
                 worker.onerror = function (error) {
-                    console.error(`Worker${i + 1} でエラー発生: ${error.message}`);
+                    console.error(`Worker ${i + 1} でエラー発生: ${error.message}`);
                     reject(error);
                 };
 
             } catch (error) {
-                console.error(`Worker${i + 1} の作成に失敗しました: ${error.message}`);
+                console.error(`Worker ${i + 1} の作成に失敗しました: ${error.message}`);
                 reject(error);
             }
         }
