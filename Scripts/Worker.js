@@ -1,4 +1,4 @@
-console.log("✅ Worker ロード成功");
+console.log("Worker ロード成功");
 console.log(`利用可能なスレッド数: ${navigator.hardwareConcurrency}`);
 
 self.onmessage = async function(event) {
@@ -44,19 +44,19 @@ self.onmessage = async function(event) {
                 trialCount++;
 
                 if (q === 0n) {
-                    console.error(`❌ [Worker ${fxType}] q が 0 になった！（リセット回数: ${resetCount}）`);
+                    console.error(`[Worker ${fxType}] q が 0 になった！（リセット回数: ${resetCount}）`);
                     q = 1n;
                     resetCount++;
                 }
 
-                // 【実験】fx3 で 100000 試行後に仮の因数を送信
+                // 【実験用】
                 if (fxType === "fx3" && trialCount === 25000000n) {
-                    console.log(`🧪 [Worker ${fxType}] 実験的に仮の因数を送信！`);
+                    console.log(`[Worker ${fxType}] 実験的に仮の因数を送信！`);
                     postMessage({ factor: "9999991", trials: trialCount.toString(), test: true });
                 }
 
                 if (fxType === "fx1" && trialCount === 1n) {
-                    console.log(`🧪 [Worker ${fxType}] 実験的に仮の因数を送信！`);
+                    console.log(`[Worker ${fxType}] 実験的に仮の因数を送信！`);
                     postMessage({ factor: "9999991", trials: trialCount.toString(), test: true });
                 }
 
@@ -74,16 +74,16 @@ self.onmessage = async function(event) {
         }
 
         if (d > 1n && d !== n) {
-            console.log(`📤 [Worker ${fxType}] 因数 ${d} を送信！（試行回数: ${trialCount}）`);
+            console.log(`[Worker ${fxType}] 因数 ${d} を送信！（試行回数: ${trialCount}）`);
             postMessage({ factor: d.toString(), trials: trialCount.toString() });
             return;
         }
 
-        console.log(`⏹️ Worker ${fxType} が試行上限 ${MAX_TRIALS[fxType]} に達したため停止。`);
+        console.log(`Worker ${fxType} が試行上限 ${MAX_TRIALS[fxType]} に達したため停止。`);
         postMessage({ stopped: true });
 
     } catch (error) {
-        console.error(`❌ Worker でエラー: ${error.stack}`);
+        console.error(`Worker でエラー: ${error.stack}`);
         postMessage({ error: error.stack });
     }
 };
@@ -93,7 +93,7 @@ function getDigitBasedParams(n) {
         let digitCount = Math.floor(Math.log10(Number(n))) + 1;
         return { maxC: digitCount <= 20 ? 300 : 500 };
     } catch (error) {
-        console.error("❌ getDigitBasedParams() でエラー:", error.message);
+        console.error("getDigitBasedParams() でエラー:", error.message);
         return { maxC: 50 };
     }
 }
@@ -104,7 +104,7 @@ function getRandomC(n, maxC) {
         crypto.getRandomValues(buffer);
         return BigInt((buffer[0] % maxC) * 2 + 1);
     } catch (error) {
-        console.error("❌ getRandomC() でエラー:", error.message);
+        console.error("getRandomC() でエラー:", error.message);
         return 1n;
     }
 }
