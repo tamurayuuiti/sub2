@@ -1,8 +1,8 @@
-console.log("ロード成功: 利用可能なスレッド数: ${navigator.hardwareConcurrency}, fxType = ${fxType}");
-
 self.onmessage = async function(event) {
     try {
         let { n, fxType } = event.data;
+
+        console.log("ロード成功: 利用可能なスレッド数: ${navigator.hardwareConcurrency}, fxType = ${fxType}");
 
         const MAX_TRIALS = {
             fx1: 500000n,
