@@ -10,7 +10,7 @@ self.onmessage = async function(event) {
 
         let { maxC } = getDigitBasedParams(n);
         let c = getRandomC(n, maxC);
-        console.log(`[worker i + 1]実行成功: fx = ${fxType}, c = ${c} (範囲: 1 ～ ${maxC * 2 - 1})`);
+        console.log(`[worker ${i + 1}]実行成功: fx = ${fxType}, c = ${c} (範囲: 1 ～ ${maxC * 2 - 1})`);
 
         let fxFunction;
         if (fxType === "fx1") {
