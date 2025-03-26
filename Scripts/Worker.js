@@ -3,8 +3,8 @@ console.log(`利用可能なスレッド数: ${navigator.hardwareConcurrency}`);
 
 self.onmessage = async function(event) {
     try {
-        const { n, fxType } = event.data;
-        console.log(`Worker がメッセージを受信: fxType = ${fxType}`);
+        const { n, fxType, workerId } = event.data;
+        console.log(`Worker ${workerId} がメッセージを受信: fxType = ${fxType}`);
 
         const MAX_TRIALS = {
             fx1: 500000n,
@@ -13,8 +13,8 @@ self.onmessage = async function(event) {
         };
 
         let { maxC } = getDigitBasedParams(n);
-        let c = getRandomC(n, maxC);
-        console.log(`Worker が c を決定: ${c} (範囲: 1 ～ ${maxC * 2 - 1})`);
+        let c = getRandomC(n, maxC) + BigInt(workerId);
+        console.log(`Worker ${workerId} が c を決定: ${c} (範囲: 1 ～ ${maxC * 2 - 1})`);
 
         let fxFunction;
         if (fxType === "fx1") {
@@ -27,7 +27,9 @@ self.onmessage = async function(event) {
             throw new Error("Unknown fxType");
         }
 
-        let x = 2n, y = 2n, d = 1n;
+        let x = getRandomC(n, maxC);
+        let y = getRandomC(n, maxC);
+        let d = 1n;
         let trialCount = 0n;
         let q = 1n;
         let m = 128n;
@@ -45,47 +47,45 @@ self.onmessage = async function(event) {
                 q = (q + 1n) % n + 1n;
                 trialCount++;
 
-                if (q === 0n) {
-                    console.error(`[Worker ${fxType}] q が 0 になった！（リセット回数: ${resetCount}）`);
-                    q = 1n;
-                    resetCount++;
-                }
-
-                // 【実験用】
-                if (fxType === "fx3" && trialCount === 25000000n) {
-                    console.log(`[Worker ${fxType}] 実験的に仮の因数を送信！`);
-                    postMessage({ factor: "9999991", trials: trialCount.toString(), test: true });
-                }
-
-                if (fxType === "fx1" && trialCount === 1n) {
-                    console.log(`[Worker ${fxType}] 実験的に仮の因数を送信！`);
-                    postMessage({ factor: "9999991", trials: trialCount.toString(), test: true });
-                }
-
                 if (trialCount % 5000000n === 0n) {
-                    console.log(`[Worker ${fxType}] 試行 ${trialCount}, x=${x}, y=${y}, q=${q}, d=${d}`);
-                    await new Promise(resolve => setTimeout(resolve, 0));
+                    console.log(`[Worker ${workerId} ${fxType}] 試行 ${trialCount}, x=${x}, y=${y}, q=${q}, d=${d}`);
                 }
 
-                if (i % (k + (m / 16n)) === 0n) {
-                    d = gcd(q, n);
-                    if (d > 1n) break;
+                if (trialCount === 1n && fxType === "fx1") {
+                    console.log(`[Worker ${workerId} ${fxType}] 実験的に仮の因数を送信！`);
+                    postMessage({ factor: "9999991", trials: trialCount.toString(), test: true });
+                }
+
+                if (trialCount === 25000000n && fxType === "fx3") {
+                    console.log(`[Worker ${workerId} ${fxType}] 実験的に仮の因数を送信！`);
+                    postMessage({ factor: "9999991", trials: trialCount.toString(), test: true });
+                }
+
+                d = gcd(q, n);  // より頻繁に `gcd(q, n)` をチェック
+
+                if (d > 1n) {
+                    if (d === n) {
+                        console.log(`[Worker ${workerId}] d === n (${n}) なので c を変更して再試行`);
+                        c = getRandomC(n, maxC) + BigInt(workerId);
+                        x = getRandomC(n, maxC);
+                        y = getRandomC(n, maxC);
+                        d = 1n;
+                        q = 1n;
+                        continue; // `d === n` の場合はリセットして再試行
+                    }
+                    console.log(`[Worker ${workerId}] 因数 ${d} を発見！（試行回数: ${trialCount}）`);
+                    postMessage({ factor: d.toString(), trials: trialCount.toString() });
+                    return;
                 }
             }
             x = ys;
         }
 
-        if (d > 1n && d !== n) {
-            console.log(`[Worker ${fxType}] 因数 ${d} を送信！（試行回数: ${trialCount}）`);
-            postMessage({ factor: d.toString(), trials: trialCount.toString() });
-            return;
-        }
-
-        console.log(`Worker ${fxType} が試行上限 ${MAX_TRIALS[fxType]} に達したため停止。`);
+        console.log(`Worker ${workerId} ${fxType} が試行上限 ${MAX_TRIALS[fxType]} に達したため停止。`);
         postMessage({ stopped: true });
 
     } catch (error) {
-        console.error(`Worker でエラー: ${error.stack}`);
+        console.error(`Worker ${workerId} でエラー: ${error.stack}`);
         postMessage({ error: error.stack });
     }
 };
