@@ -124,7 +124,7 @@ export function getDigitBasedParams(n, attempt = 0) {
         MAX_TRIALS = 1000000;
     } else {
         if (attempt === 0) {
-            fxFunction = (x, c, n) => ((x * x + 7n * x + c) % n);
+            fxFunction = (x, c, n) => (x * x + 7n * x + c) % n;
             fxFunctionString = "(x² + 7x + c) % n";
             MAX_TRIALS = 500000;
         } else if (attempt === 1) {
