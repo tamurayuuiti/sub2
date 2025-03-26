@@ -115,7 +115,7 @@ async function startFactorization() {
         console.log(`試し割り法完了。残りの数: ${remainder}`);
 
         if (remainder > 1n) {
-            console.log(`Pollard's rhoを開始: n = ${remainder}`);
+            console.log(`Pollard's rhoを開始: 利用可能なスレッド数: ${navigator.hardwareConcurrency}, n = ${remainder}`);
             let extraFactors = await pollardsRhoFactorization(remainder);
 
             // **Pollard's Rho で因数分解できなかった場合**
