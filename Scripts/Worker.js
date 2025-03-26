@@ -26,6 +26,11 @@ self.onmessage = async function(event) {
         } else {
             throw new Error("Unknown fxType");
         }
+    
+    } catch (error) {  // `catch` を追加
+    console.error(`❌ Worker でエラー: ${error.stack}`);
+    postMessage({ error: error.stack });
+}
 
         let x = 2n, y = 2n, d = 1n;
         let trialCount = 0n;
