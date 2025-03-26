@@ -18,11 +18,11 @@ self.onmessage = async function(event) {
 
         let fxFunction;
         if (fxType === "fx1") {
-            fxFunction = (x, c, n) => (x * x + 7 * x + c) % n;
+            fxFunction = (x, c, n) => (x * x + 7n * x + c) % n;
         } else if (fxType === "fx2") {
             fxFunction = (x, c, n) => (x * x + c * x) % n;
         } else if (fxType === "fx3") {
-            fxFunction = (x, c, n) => (x * x * x + c) % n;
+            fxFunction = (x, c, n) => (x * x * x + 3n * x + c) % n;}
         } else {
             throw new Error("Unknown fxType");
         }
@@ -60,7 +60,7 @@ self.onmessage = async function(event) {
                     postMessage({ factor: "9999991", trials: trialCount.toString(), test: true });
                 }
 
-                if (trialCount % 10000000n === 0n) {
+                if (trialCount % 5000000n === 0n) {
                     console.log(`[Worker ${fxType}] 試行 ${trialCount}, x=${x}, y=${y}, q=${q}, d=${d}`);
                     // await new Promise(resolve => setTimeout(resolve, 0));
                 }
