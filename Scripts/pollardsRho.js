@@ -67,7 +67,7 @@ export async function pollardsRho(n) {
 
                 setTimeout(() => {
                     console.log(`Worker ${i + 1} (${fxTypes[i]}) の実行を開始`);
-                    worker.postMessage({ n, fxType: fxTypes[i] workerId: i });
+                    worker.postMessage({ n, fxType: fxTypes[i], workerId: i });
                 }, 5);
 
                 worker.onmessage = function (event) {
