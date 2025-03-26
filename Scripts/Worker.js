@@ -10,7 +10,7 @@ self.onmessage = async function(event) {
 
         let { maxC } = getDigitBasedParams(n);
         let c = getRandomC(n, maxC);
-        console.log(`${fxType}ロード成功: c = ${c} (範囲: 1 ～ ${maxC * 2 - 1})`);
+        console.log(`[worker 1]実行成功: fx = ${fxType}, c = ${c} (範囲: 1 ～ ${maxC * 2 - 1})`);
 
         let fxFunction;
         if (fxType === "fx1") {
@@ -46,7 +46,7 @@ self.onmessage = async function(event) {
                     resetCount++;
                 }
 
-                if (trialCount % 5000000n === 0n) {
+                if (trialCount % 2500000n === 0n) {
                     console.log(`[Worker ${fxType}] 試行 ${trialCount}, x=${x}, y=${y}, q=${q}, gcd=${d}`);
                     await new Promise(resolve => setTimeout(resolve, 0));
                 }
