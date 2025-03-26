@@ -1,11 +1,10 @@
 // ミラー・ラビン素数判定法
 import { isPrimeMillerRabin } from './millerRabin.js';
 
-// どの `f(x)` を使用するか制御するオブジェクト
 const ENABLE_FX = {
-    fx1: true,  // (x² + 7x + c) % n
-    fx2: true,  // (x² + c x) % n
-    fx3: true   // (x³ + c) % n
+    fx1: true,
+    fx2: true,
+    fx3: true
 };
 
 export async function pollardsRhoFactorization(number) {
@@ -24,7 +23,12 @@ export async function pollardsRhoFactorization(number) {
         let factor = null;
         while (!factor || factor === number) {
             console.log(`Pollard's rho を試行: ${number}`);
-            factor = await pollardsRho(number);
+            try {
+                factor = await pollardsRho(number);
+            } catch (error) {
+                console.error(`Pollard's Rho の実行中にエラー: ${error.message}`);
+                return ["FAIL"];
+            }
 
             if (factor === null) {
                 console.error(`Pollard's Rho では因数を発見できませんでした。`);
@@ -52,7 +56,7 @@ export async function pollardsRho(n) {
     return new Promise((resolve, reject) => {
         const workers = [];
         const fxTypes = Object.keys(ENABLE_FX).filter(fx => ENABLE_FX[fx]); 
-        let activeWorkers = fxTypes.length;
+        let activeWorkers = Math.min(fxTypes.length, navigator.hardwareConcurrency);
 
         if (activeWorkers === 0) {
             console.error(`全ての f(x) が無効です。少なくとも 1 つ有効にしてください。`);
@@ -63,22 +67,18 @@ export async function pollardsRho(n) {
         for (let i = 0; i < fxTypes.length; i++) {
             try {
                 const worker = new Worker("./Scripts/Worker.js");
-                workers.push(worker);
+                workers[i] = worker;
                 console.log(`Worker ${i + 1} (${fxTypes[i]}) を作成しました。`);
 
                 setTimeout(() => {
                     console.log(`Worker ${i + 1} (${fxTypes[i]}) の実行を開始`);
                     worker.postMessage({ n, fxType: fxTypes[i] });
-                }, 5); // 5ミリ秒待機
+                }, 5);
 
                 worker.onmessage = function (event) {
                     console.log(`受信データ:`, event.data);
 
-                    if (event.data.test) {
-                        console.log(`[実験成功] Worker ${fxTypes[i]} から仮の因数 ${event.data.factor} を受信！`);
-                        return;  // 実験用なので処理を続行
-                    }
-                    
+                    if (event.data.test) return;
                     if (event.data.error) {
                         console.error(`Worker ${i + 1} (${fxTypes[i]}) でエラー発生: ${event.data.error}`);
                         return;
@@ -86,9 +86,14 @@ export async function pollardsRho(n) {
 
                     if (event.data.factor) {
                         try {
-                            let factor = BigInt(event.data.factor); 
+                            let factor = BigInt(event.data.factor);
                             console.log(`Worker ${i + 1} (${fxTypes[i]}) が因数 ${factor} を発見！（試行回数: ${BigInt(event.data.trials)}）`);
-                            workers.forEach((w) => w.terminate());
+                            workers.forEach((w, index) => {
+                                if (w) {
+                                    w.terminate();
+                                    workers[index] = null;
+                                }
+                            });
                             resolve(factor);
                         } catch (error) {
                             console.error(`BigInt 変換エラー: ${error.message}`);
@@ -98,6 +103,7 @@ export async function pollardsRho(n) {
                     if (event.data.stopped) {
                         console.log(`Worker ${i + 1} (${fxTypes[i]}) が試行上限に達し停止`);
                         worker.terminate();
+                        workers[i] = null;
                         activeWorkers--;
 
                         if (activeWorkers === 0) {
@@ -109,12 +115,12 @@ export async function pollardsRho(n) {
 
                 worker.onerror = function (error) {
                     console.error(`Worker ${i + 1} でエラー発生: ${error.message}`);
-                    reject(error);
+                    resolve(null);
                 };
 
             } catch (error) {
                 console.error(`Worker ${i + 1} の作成に失敗しました: ${error.message}`);
-                reject(error);
+                resolve(null);
             }
         }
     });
