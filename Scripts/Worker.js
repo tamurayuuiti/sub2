@@ -76,7 +76,7 @@ self.onmessage = async function(event) {
             return;
         }
 
-        console.log(`Worker ${workerId + 1} が試行上限 ${MAX_TRIALS[fxType]} に達したため停止。`);
+        console.log(`Worker ${workerId + 1} が試行上限 ${MAX_TRIALS[fxType]} に達したため停止`);
         postMessage({ stopped: true });
 
     } catch (error) {
