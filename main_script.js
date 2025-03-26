@@ -115,10 +115,9 @@ async function startFactorization() {
         console.log(`試し割り法完了。残りの数: ${remainder}`);
 
         if (remainder > 1n) {
-            console.log(`Pollard's rhoを開始: 利用可能なスレッド数: ${navigator.hardwareConcurrency}, n = ${remainder}`);
+            console.log(`Pollard's rhoを開始。 利用可能なスレッド数: ${navigator.hardwareConcurrency}, n = ${remainder}`);
             let extraFactors = await pollardsRhoFactorization(remainder);
 
-            // **Pollard's Rho で因数分解できなかった場合**
             if (extraFactors.includes("FAIL")) {
                 console.error(`Pollard's Rho では因数を発見できませんでした。Quadratic Sieve に移行`);
                 extraFactors = await ecmFactorization(remainder);
@@ -161,7 +160,7 @@ async function trialDivisionFromFile(number) {
     
     try {
         for (let i = 0; i < limit; i++) {
-            if (primes[i] === undefined) break; // 万が一 undefined があれば停止
+            if (primes[i] === undefined) break;
             let prime = BigInt(primes[i]);
             if (prime * prime > number) break;
             while (number % prime === 0n) {
