@@ -1,10 +1,11 @@
 // ミラー・ラビン素数判定法
 import { isPrimeMillerRabin } from './millerRabin.js';
 
+// どの `f(x)` を使用するか制御するオブジェクト
 const ENABLE_FX = {
-    fx1: true,
-    fx2: true,
-    fx3: true
+    fx1: true,  // (x² + 7x + c) % n
+    fx2: true,  // (x² + c x) % n
+    fx3: true   // (x³ + c) % n
 };
 
 export async function pollardsRhoFactorization(number) {
@@ -23,12 +24,7 @@ export async function pollardsRhoFactorization(number) {
         let factor = null;
         while (!factor || factor === number) {
             console.log(`Pollard's rho を試行: ${number}`);
-            try {
-                factor = await pollardsRho(number);
-            } catch (error) {
-                console.error(`Pollard's Rho の実行中にエラー: ${error.message}`);
-                return ["FAIL"];
-            }
+            factor = await pollardsRho(number);
 
             if (factor === null) {
                 console.error(`Pollard's Rho では因数を発見できませんでした。`);
@@ -56,7 +52,7 @@ export async function pollardsRho(n) {
     return new Promise((resolve, reject) => {
         const workers = [];
         const fxTypes = Object.keys(ENABLE_FX).filter(fx => ENABLE_FX[fx]); 
-        let activeWorkers = Math.min(fxTypes.length, navigator.hardwareConcurrency);
+        let activeWorkers = fxTypes.length;
 
         if (activeWorkers === 0) {
             console.error(`全ての f(x) が無効です。少なくとも 1 つ有効にしてください。`);
@@ -67,13 +63,13 @@ export async function pollardsRho(n) {
         for (let i = 0; i < fxTypes.length; i++) {
             try {
                 const worker = new Worker("./Scripts/Worker.js");
-                workers[i] = worker;
+                workers.push(worker);
                 console.log(`Worker ${i + 1} (${fxTypes[i]}) を作成しました。`);
 
                 setTimeout(() => {
                     console.log(`Worker ${i + 1} (${fxTypes[i]}) の実行を開始`);
-                    worker.postMessage({ n });
-                }, 5);
+                    worker.postMessage({ n, fxType: fxTypes[i] });
+                }, 5); // 5ミリ秒待機
 
                 worker.onmessage = function (event) {
                     console.log(`受信データ:`, event.data);
@@ -90,9 +86,9 @@ export async function pollardsRho(n) {
 
                     if (event.data.factor) {
                         try {
-                            let factor = BigInt(event.data.factor);
-                            console.log(`Worker (${fxTypes[i]}) が因数 ${factor} を発見！（試行回数: ${event.data.trials}）`);
-                            workers.forEach(w => w?.terminate());
+                            let factor = BigInt(event.data.factor); 
+                            console.log(`Worker ${i + 1} (${fxTypes[i]}) が因数 ${factor} を発見！（試行回数: ${BigInt(event.data.trials)}）`);
+                            workers.forEach((w) => w.terminate());
                             resolve(factor);
                         } catch (error) {
                             console.error(`BigInt 変換エラー: ${error.message}`);
@@ -102,7 +98,6 @@ export async function pollardsRho(n) {
                     if (event.data.stopped) {
                         console.log(`Worker ${i + 1} (${fxTypes[i]}) が試行上限に達し停止`);
                         worker.terminate();
-                        workers[i] = null;
                         activeWorkers--;
 
                         if (activeWorkers === 0) {
@@ -114,12 +109,12 @@ export async function pollardsRho(n) {
 
                 worker.onerror = function (error) {
                     console.error(`Worker ${i + 1} でエラー発生: ${error.message}`);
-                    resolve(null);
+                    reject(error);
                 };
 
             } catch (error) {
                 console.error(`Worker ${i + 1} の作成に失敗しました: ${error.message}`);
-                resolve(null);
+                reject(error);
             }
         }
     });
