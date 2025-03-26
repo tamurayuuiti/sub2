@@ -1,3 +1,5 @@
+console.log(`利用可能なスレッド数: ${navigator.hardwareConcurrency}`);
+
 self.onmessage = async function(event) {
     try {
         const number = BigInt(event.data);
@@ -77,7 +79,7 @@ async function ECM_step(n, P, a, B1, logCallback = postLog) {
             return gcdValue;
         }
 
-        if (k % 1000n === 0n) {
+        if (k % 10000n === 0n) {
             await new Promise(resolve => setTimeout(resolve, 0));
         }
     }
