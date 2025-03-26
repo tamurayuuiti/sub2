@@ -1,24 +1,28 @@
 self.onmessage = async function(event) {
     try {
         let { n, fxType, workerId } = event.data;
+        let { maxC } = getDigitBasedParams(n);
+        let c = getRandomC(n, maxC);
+        let fxFunction;
+        let fxEquation;
 
         const MAX_TRIALS = {
             fx1: 500000n,
             fx2: 3000000n,
             fx3: 100000000n
         };
-
-        let { maxC } = getDigitBasedParams(n);
-        let c = getRandomC(n, maxC);
+        
         console.log(`worker${workerId + 1} (${fxType}) の実行成功: c = ${c} (範囲: 1 ～ ${maxC * 2 - 1})`);
 
-        let fxFunction;
         if (fxType === "fx1") {
+            fxEquation = "(x² + 7x + c) mod n";
             fxFunction = (x, c, n) => (x * x + 7n * x + c) % n;
         } else if (fxType === "fx2") {
+            fxEquation = "(x² + cx) mod n";
             fxFunction = (x, c, n) => (x * x + c * x) % n;
         } else if (fxType === "fx3") {
-            fxFunction = (x, c, n) => (x * x * x + 7n * x * x + c * x + c) % n;
+            fxEquation = "(x³ + c) mod n";
+            fxFunction = (x, c, n) => (x * x * x + c) % n;
         } else {
             throw new Error("Unknown fxType");
         }
