@@ -3,86 +3,18 @@ console.log(`利用可能なスレッド数: ${navigator.hardwareConcurrency}`);
 
 self.onmessage = async function(event) {
     try {
-        const { n, fxType, workerId } = event.data;
-        console.log(`Worker ${workerId} がメッセージを受信: fxType = ${fxType}`);
+        const { n, workerId } = event.data;
+        console.log(`Worker ${workerId} がメッセージを受信`);
 
-        const MAX_TRIALS = {
-            fx1: 500000n,
-            fx2: 3000000n,
-            fx3: 100000000n
-        };
+        let factor = await pollardsRho(n, workerId);
 
-        let { maxC } = getDigitBasedParams(n);
-        let c = getRandomC(n, maxC) + BigInt(workerId);
-        console.log(`Worker ${workerId} が c を決定: ${c} (範囲: 1 ～ ${maxC * 2 - 1})`);
-
-        let fxFunction;
-        if (fxType === "fx1") {
-            fxFunction = (x, c, n) => (x * x + 7n * x + c) % n;
-        } else if (fxType === "fx2") {
-            fxFunction = (x, c, n) => (x * x + c * x) % n;
-        } else if (fxType === "fx3") {
-            fxFunction = (x, c, n) => (x * x * x + 7n * x * x + c * x + c) % n;
+        if (factor) {
+            console.log(`[Worker ${workerId}] 因数 ${factor} を発見！`);
+            postMessage({ factor: factor.toString() });
         } else {
-            throw new Error("Unknown fxType");
+            console.log(`[Worker ${workerId}] 因数を発見できず。`);
+            postMessage({ stopped: true });
         }
-
-        let x = getRandomC(n, maxC);
-        let y = getRandomC(n, maxC);
-        let d = 1n;
-        let trialCount = 0n;
-        let q = 1n;
-        let m = 128n;
-        let k = 10n;
-        let resetCount = 0;
-
-        x = fxFunction(x, c, n);
-        y = fxFunction(fxFunction(y, c, n), c, n);
-
-        while (d === 1n && trialCount < MAX_TRIALS[fxType]) {
-            let ys = y;
-            for (let i = 0n; i < m && trialCount < MAX_TRIALS[fxType]; i++) {
-                y = fxFunction(fxFunction(y, c, n), c, n);
-                q *= abs(x - y);
-                q = (q + 1n) % n + 1n;
-                trialCount++;
-
-                if (trialCount % 5000000n === 0n) {
-                    console.log(`[Worker ${workerId} ${fxType}] 試行 ${trialCount}, x=${x}, y=${y}, q=${q}, d=${d}`);
-                }
-
-                if (trialCount === 1n && fxType === "fx1") {
-                    console.log(`[Worker ${workerId} ${fxType}] 実験的に仮の因数を送信！`);
-                    postMessage({ factor: "9999991", trials: trialCount.toString(), test: true });
-                }
-
-                if (trialCount === 25000000n && fxType === "fx3") {
-                    console.log(`[Worker ${workerId} ${fxType}] 実験的に仮の因数を送信！`);
-                    postMessage({ factor: "9999991", trials: trialCount.toString(), test: true });
-                }
-
-                d = gcd(q, n);  // より頻繁に `gcd(q, n)` をチェック
-
-                if (d > 1n) {
-                    if (d === n) {
-                        console.log(`[Worker ${workerId}] d === n (${n}) なので c を変更して再試行`);
-                        c = getRandomC(n, maxC) + BigInt(workerId);
-                        x = getRandomC(n, maxC);
-                        y = getRandomC(n, maxC);
-                        d = 1n;
-                        q = 1n;
-                        continue; // `d === n` の場合はリセットして再試行
-                    }
-                    console.log(`[Worker ${workerId}] 因数 ${d} を発見！（試行回数: ${trialCount}）`);
-                    postMessage({ factor: d.toString(), trials: trialCount.toString() });
-                    return;
-                }
-            }
-            x = ys;
-        }
-
-        console.log(`Worker ${workerId} ${fxType} が試行上限 ${MAX_TRIALS[fxType]} に達したため停止。`);
-        postMessage({ stopped: true });
 
     } catch (error) {
         console.error(`Worker ${workerId} でエラー: ${error.stack}`);
@@ -90,25 +22,105 @@ self.onmessage = async function(event) {
     }
 };
 
-function getDigitBasedParams(n) {
-    try {
-        let digitCount = n.toString().length;
-        return { maxC: digitCount <= 20 ? 30 : 50 };
-    } catch (error) {
-        console.error("getDigitBasedParams() でエラー:", error.message);
-        return { maxC: 50 };
+async function pollardsRho(n, workerId) {
+    let attempt = 0;
+
+    while (true) {
+        let { k, fxFunction, fxFunctionString, digitCount, MAX_TRIALS } = getDigitBasedParams(n, attempt);
+        let trialCount = 0n;
+        let x = 2n, y = 2n, d = 1n;
+        let m = 128n, q = 1n;
+        let c = getRandomC(n, attempt);
+
+        console.log(`[Worker ${workerId}] 試行 ${attempt + 1}: 使用中の f(x) = ${fxFunctionString}, MAX_TRIALS = ${MAX_TRIALS}`);
+
+        if (digitCount >= 21 && attempt >= 3) {
+            console.log(`[Worker ${workerId}] Pollard's Rho では因数を発見できませんでした。`);
+            return null;
+        }
+
+        x = fxFunction(x, c, n);
+        y = fxFunction(fxFunction(y, c, n), c, n);
+
+        while (d === 1n && trialCount < BigInt(MAX_TRIALS)) {
+            let ys = y;
+            for (let i = 0n; i < m && trialCount < BigInt(MAX_TRIALS); i++) {
+                y = fxFunction(fxFunction(y, c, n), c, n);
+                q *= abs(x - y);
+                if (q >= n) q %= n;
+                trialCount++;
+
+                if (q === 0n) {
+                    console.log(`[Worker ${workerId}] q が 0 になりました。リセットします。`);
+                    q = 1n;
+                }
+
+                if (i % (k + (m / 16n)) === 0n) {
+                    d = gcd(q, n);
+                    if (d > 1n) break;
+                }
+
+                if (i % 100000n === 0n) {
+                    await new Promise(resolve => setTimeout(resolve, 0));
+                }
+            }
+
+            x = ys;
+            if (d === 1n) {
+                m = (m * 3n) >> 1n;
+            }
+        }
+
+        if (d > 1n && d !== n) {
+            console.log(`[Worker ${workerId}] 因数を発見: ${d} (試行回数: ${trialCount})`);
+            return d;
+        }
+
+        console.log(`[Worker ${workerId}] 試行回数 ${MAX_TRIALS} を超過。c を変更して再試行 (${attempt + 1}回目)`);
+        attempt++;
     }
 }
 
-function getRandomC(n, maxC) {
-    try {
-        const buffer = new Uint32Array(1);
-        crypto.getRandomValues(buffer);
-        return BigInt((buffer[0] % maxC) * 2 + 1);
-    } catch (error) {
-        console.error("getRandomC() でエラー:", error.message);
-        return 1n;
+function getDigitBasedParams(n, attempt = 0) {
+    let digitCount = n.toString().length;
+
+    let k = digitCount <= 20 ? 10n : digitCount <= 30 ? 15n : 25n;
+    let maxC = digitCount <= 20 ? 30 : 50;
+    let MAX_TRIALS;
+    let fxFunction;
+    let fxFunctionString;
+
+    if (digitCount <= 20) {
+        fxFunction = (x, c, n) => ((x + c) * (x + c) + c) % n;
+        fxFunctionString = "((x + c)² + c) % n";
+        MAX_TRIALS = 1000000;
+    } else {
+        if (attempt === 0) {
+            fxFunction = (x, c, n) => ((x * x + 7n * x + c) % n);
+            fxFunctionString = "(x² + 7x + c) % n";
+            MAX_TRIALS = 500000;
+        } else if (attempt === 1) {
+            fxFunction = (x, c, n) => ((x * x + c * x) % n);
+            fxFunctionString = "(x² + cx) % n";
+            MAX_TRIALS = 3000000;
+        } else if (attempt === 2) {
+            fxFunction = (x, c, n) => ((x * x * x + c) % n);
+            fxFunctionString = "(x³ + c) % n";
+            MAX_TRIALS = 500000000;
+        } else {
+            fxFunction = null;
+            fxFunctionString = "別の因数分解関数に移行";
+            MAX_TRIALS = 0;
+        }
     }
+
+    return { digitCount, k, maxC, fxFunction, fxFunctionString, MAX_TRIALS };
+}
+
+function getRandomC(n, attempt = 0) {
+    let { maxC } = getDigitBasedParams(n, attempt);
+    let c = BigInt((Math.floor(Math.random() * maxC) * 2) + 1);
+    return c;
 }
 
 function gcd(a, b) {
