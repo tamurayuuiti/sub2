@@ -63,6 +63,10 @@ self.onmessage = async function(event) {
                     resetCount++;
                 }
 
+                if (trialCount % 1000000n === 0n) {
+                    console.log(`[Worker ${fxType}] q の成長確認: trialCount=${trialCount}, q=${q}`);
+                }
+
                 // 【実験用】
                 if (fxType === "fx3" && trialCount === 25000000n) {
                     console.log(`[Worker ${fxType}] 実験的に仮の因数を送信！`);
