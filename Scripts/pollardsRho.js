@@ -1,7 +1,7 @@
 // ミラー・ラビン素数判定法
 import { isPrimeMillerRabin } from './millerRabin.js';
 
-// どの `f(x)` を使用するか制御するオブジェクト
+// どの f(x) を使用するか制御するオブジェクト
 const ENABLE_FX = {
     fx1: true,  // (x² + 7x + c) % n
     fx2: true,  // (x² + c x) % n
@@ -104,7 +104,7 @@ export async function pollardsRho(n) {
                 };
 
             } catch (error) {
-                console.error(`Worker ${i + 1} の作成に失敗しました: ${error.message}`);
+                console.error(`Worker ${i + 1} の作成に失敗しました。 ${error.message}`);
                 reject(error);
             }
         }
