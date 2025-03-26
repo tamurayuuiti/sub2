@@ -22,7 +22,6 @@ function postLog(message) {
 
 async function ecm(n, seed, logCallback = postLog) {
     let attempt = 0;
-    logCallback(`🟢 ECM を開始: n=${n}, seed=${seed}`);
 
     while (true) {
         let { a, B1, maxAttempts } = getECMParams(n, attempt, seed, logCallback);
@@ -53,11 +52,13 @@ async function ECM_step(n, P, a, B1, logCallback = postLog) {
         P.x = x;
         P.y = y;
 
-        let z = abs(P.x);
-        gcdValue = gcd(z, n);
+        if (k % 1000n === 0n) {  // 1000 ステップごとに GCD を計算
+            let z = abs(P.x);
+            gcdValue = gcd(z, n);
 
-        if (gcdValue > 1n && gcdValue !== n) {
-            return gcdValue;
+            if (gcdValue > 1n && gcdValue !== n) {
+                return gcdValue;
+            }
         }
     }
 
@@ -66,11 +67,11 @@ async function ECM_step(n, P, a, B1, logCallback = postLog) {
 
 function getECMParams(n, attempt, seed, logCallback = postLog) {
     let logN = BigInt(n.toString().length);
-    let baseB1 = 10n ** (logN / 3n);
-    let adaptiveB1 = baseB1 * (BigInt(attempt + 1) ** 2n);
+    let baseB1 = 10n ** (logN / 4n);  // 増加率を緩やかに
+    let adaptiveB1 = baseB1 * (BigInt(attempt + 1) ** 1.5n);
     let B1 = adaptiveB1 > 10n ** 7n ? 10n ** 7n : adaptiveB1;
     let a = (getRandomX(n, seed) ** 2n + getRandomX(n, seed) + 1n) % n;
-    let maxAttempts = 500;
+    let maxAttempts = 300;
 
     return { a, B1, maxAttempts };
 }
