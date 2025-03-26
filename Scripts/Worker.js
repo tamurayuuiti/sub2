@@ -42,9 +42,10 @@ self.onmessage = async function(event) {
                 if (q >= n) q %= n;
                 trialCount++;
 
-                if (q === 0n) {  
-                    console.error(`❌ [Worker ${fxType}] q が 0 になったためリセット`);
+                if (q === 0n) {
+                    console.error(`❌ [Worker ${fxType}] q が 0 になった！（リセット回数: ${resetCount}）`);
                     q = 1n;
+                    resetCount++;
                 }
 
                 // 【実験】fx3 で 100000 試行後に仮の因数を送信
@@ -59,8 +60,8 @@ self.onmessage = async function(event) {
                 }
 
                 if (trialCount % 10000000n === 0n) {
-                    console.log(`🔄 Worker ${fxType}: ${trialCount} 回試行中...`);
-                    await new Promise(resolve => setTimeout(resolve, 0));
+                    console.log(`🔄 Worker ${fxType}: ${trialCount} 回試行中。gcd(q, n) を計算: ${d}`);
+                    // await new Promise(resolve => setTimeout(resolve, 0));
                 }
 
                 if (i % (k + (m / 16n)) === 0n) {
