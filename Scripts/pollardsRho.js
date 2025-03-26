@@ -74,6 +74,11 @@ export async function pollardsRho(n) {
                 worker.onmessage = function (event) {
                     console.log(`受信データ:`, event.data);
 
+                    if (event.data.test) {
+                        console.log(`✅ [実験成功] Worker ${fxTypes[i]} から仮の因数 ${event.data.factor} を受信！`);
+                        return;  // 実験用なので処理を続行
+                    }
+                    
                     if (event.data.error) {
                         console.error(`❌ Worker ${i + 1} (${fxTypes[i]}) でエラー発生: ${event.data.error}`);
                         return;
