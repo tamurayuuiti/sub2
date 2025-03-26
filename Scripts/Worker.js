@@ -3,9 +3,6 @@ console.log("Worker ロード成功: 利用可能なスレッド数: ${navigator
 self.onmessage = async function(event) {
     try {
         let { n, fxType } = event.data;
-        
-        let testN = 123456789123456789123456789n;
-        let testDivisor = 123456789n;
 
         console.log(`Worker がメッセージを受信: fxType = ${fxType}`);
 
@@ -51,17 +48,6 @@ self.onmessage = async function(event) {
                     console.error(`[Worker ${fxType}] q が 0 になった！（リセット回数: ${resetCount}）`);
                     q = 1n;
                     resetCount++;
-                }
-
-                // 【実験用】
-                if (fxType === "fx3" && trialCount === 25000000n) {
-                    console.log(`[Worker ${fxType}] 実験的に仮の因数を送信！`);
-                    postMessage({ factor: "9999991", trials: trialCount.toString(), test: true });
-                }
-
-                if (fxType === "fx1" && trialCount === 1n) {
-                    console.log(`[Worker ${fxType}] 実験的に仮の因数を送信！`);
-                    postMessage({ factor: "9999991", trials: trialCount.toString(), test: true });
                 }
 
                 if (trialCount % 5000000n === 0n) {
