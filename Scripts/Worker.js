@@ -4,13 +4,13 @@ console.log(`利用可能なスレッド数: ${navigator.hardwareConcurrency}`);
 self.onmessage = async function(event) {
     try {
         const { n, workerId } = event.data;
-        console.log(`Worker ${workerId} がメッセージを受信`);
+        console.log(`Worker がメッセージを受信: fxType = ${fxType}`);
 
         let factor = await pollardsRho(n, workerId);
 
         if (factor) {
             console.log(`[Worker ${workerId}] 因数 ${factor} を発見！`);
-            postMessage({ factor: factor.toString(), trials: "1" });
+            postMessage({ factor: factor.toString(), trials: trialCount.toString() });
         } else {
             console.log(`[Worker ${workerId}] 因数を発見できず。`);
             postMessage({ stopped: true });
