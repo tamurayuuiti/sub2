@@ -72,7 +72,7 @@ export async function pollardsRho(n) {
 
                 setTimeout(() => {
                     console.log(`Worker ${i + 1} (${fxTypes[i]}) の実行を開始`);
-                    worker.postMessage({ n, fxType: fxTypes[i] });
+                    worker.postMessage({ n, fxType });
                 }, 5);
 
                 worker.onmessage = function (event) {
@@ -91,13 +91,8 @@ export async function pollardsRho(n) {
                     if (event.data.factor) {
                         try {
                             let factor = BigInt(event.data.factor);
-                            console.log(`Worker ${i + 1} (${fxTypes[i]}) が因数 ${factor} を発見！（試行回数: ${BigInt(event.data.trials)}）`);
-                            workers.forEach((w, index) => {
-                                if (w) {
-                                    w.terminate();
-                                    workers[index] = null;
-                                }
-                            });
+                            console.log(`Worker (${fxTypes[i]}) が因数 ${factor} を発見！（試行回数: ${event.data.trials}）`);
+                            workers.forEach(w => w?.terminate());
                             resolve(factor);
                         } catch (error) {
                             console.error(`BigInt 変換エラー: ${error.message}`);
