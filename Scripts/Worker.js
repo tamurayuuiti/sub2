@@ -87,7 +87,9 @@ function getDigitBasedParams(n, attempt) {
 
 function getRandomC(n, maxC) {
     try {
-        return BigInt((Math.floor(Math.random() * maxC) * 2) + 1);
+        const buffer = new Uint32Array(1);
+        crypto.getRandomValues(buffer);
+        return BigInt((buffer[0] % maxC) * 2 + 1);
     } catch (error) {
         console.error("❌ getRandomC() でエラー:", error.message);
         return 1n;
