@@ -91,7 +91,7 @@ self.onmessage = async function(event) {
 function getDigitBasedParams(n) {
     try {
         let digitCount = Math.floor(Math.log10(Number(n))) + 1;
-        return { maxC: digitCount <= 20 ? 300 : 500 };
+        return { maxC: digitCount <= 20 ? 30 : 50 };
     } catch (error) {
         console.error("getDigitBasedParams() でエラー:", error.message);
         return { maxC: 50 };
