@@ -69,16 +69,11 @@ export async function pollardsRho(n) {
                 setTimeout(() => {
                     console.log(`Worker ${i + 1} (${fxTypes[i]}) の実行を開始`);
                     worker.postMessage({ n, fxType: fxTypes[i] });
-                }, 5); // 5ミリ秒待機
+                }, 5);
 
                 worker.onmessage = function (event) {
                     console.log(`受信データ:`, event.data);
 
-                    if (event.data.test) {
-                        console.log(`[実験成功] Worker ${fxTypes[i]} から仮の因数 ${event.data.factor} を受信！`);
-                        return;  // 実験用なので処理を続行
-                    }
-                    
                     if (event.data.error) {
                         console.error(`Worker ${i + 1} (${fxTypes[i]}) でエラー発生: ${event.data.error}`);
                         return;
