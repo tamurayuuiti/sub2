@@ -119,12 +119,12 @@ export function getDigitBasedParams(n, attempt = 0) {
 
     if (digitCount <= 20) {  
         // ✅ 10桁以下のものは削除し、20桁以下と統合
-        fxFunction = (x, c, n) => ((x + c) * (x + c) + c) % n;
+        fxFunction = (x, c, n) => (((x + c) * (x + c) + c) % n);
         fxFunctionString = "((x + c)² + c) % n";
         MAX_TRIALS = 1000000;
     } else {
         if (attempt === 0) {
-            fxFunction = (x, c, n) => (x * x + 7n * x + c) % n;
+            fxFunction = (x, c, n) => ((x * x + 7n * x + c)% n);
             fxFunctionString = "(x² + 7x + c) % n";
             MAX_TRIALS = 500000;
         } else if (attempt === 1) {
@@ -132,7 +132,7 @@ export function getDigitBasedParams(n, attempt = 0) {
             fxFunctionString = "(x² + cx) % n";
             MAX_TRIALS = 3000000;
         } else if (attempt === 2) {
-            fxFunction = (x, c, n) => ((x * x * x + x + c) % n);
+            fxFunction = (x, c, n) => (x * x * x + x + c) % n;
             fxFunctionString = "(x³ + c) % n";
             MAX_TRIALS = 500000000;
         } else {
