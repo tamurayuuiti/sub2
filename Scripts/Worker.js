@@ -3,13 +3,13 @@ console.log(`利用可能なスレッド数: ${navigator.hardwareConcurrency}`);
 
 self.onmessage = async function(event) {
     try {
-        const { n, fxType} = event.data;
+        const { n, fxType } = event.data;
         console.log(`Worker がメッセージを受信: fxType = ${fxType}`);
 
         const MAX_TRIALS = {
-            fx1: 500000n,  
-            fx2: 3000000n,  
-            fx3: 100000000n  
+            fx1: 500000n,
+            fx2: 3000000n,
+            fx3: 100000000n
         };
 
         let { maxC } = getDigitBasedParams(n);
@@ -31,7 +31,9 @@ self.onmessage = async function(event) {
         let trialCount = 0n;
         let q = 1n;
         let m = 128n;
-        let k = 10n; 
+        let k = 10n;
+        let resetCount = 0;
+
         x = fxFunction(x, c, n);
         y = fxFunction(fxFunction(y, c, n), c, n);
 
@@ -40,7 +42,7 @@ self.onmessage = async function(event) {
             for (let i = 0n; i < m && trialCount < MAX_TRIALS[fxType]; i++) {
                 y = fxFunction(fxFunction(y, c, n), c, n);
                 q *= abs(x - y);
-                if (q >= n) q %= n;
+                q = (q + 1n) % n + 1n;
                 trialCount++;
 
                 if (q === 0n) {
@@ -62,7 +64,7 @@ self.onmessage = async function(event) {
 
                 if (trialCount % 5000000n === 0n) {
                     console.log(`[Worker ${fxType}] 試行 ${trialCount}, x=${x}, y=${y}, q=${q}, d=${d}`);
-                    // await new Promise(resolve => setTimeout(resolve, 0));
+                    await new Promise(resolve => setTimeout(resolve, 0));
                 }
 
                 if (i % (k + (m / 16n)) === 0n) {
@@ -90,7 +92,7 @@ self.onmessage = async function(event) {
 
 function getDigitBasedParams(n) {
     try {
-        let digitCount = Math.floor(Math.log10(Number(n))) + 1;
+        let digitCount = n.toString().length;
         return { maxC: digitCount <= 20 ? 30 : 50 };
     } catch (error) {
         console.error("getDigitBasedParams() でエラー:", error.message);
@@ -114,16 +116,16 @@ function gcd(a, b) {
     if (b === 0n) return a;
 
     let shift = 0n;
-    while (((a | b) & 1n) === 0n) {  
+    while (((a | b) & 1n) === 0n) {
         a >>= 1n;
         b >>= 1n;
         shift++;
     }
 
-    while ((a & 1n) === 0n) a >>= 1n;  
+    while ((a & 1n) === 0n) a >>= 1n;
     while (b !== 0n) {
         while ((b & 1n) === 0n) b >>= 1n;
-        if (a > b) [a, b] = [b, a];  
+        if (a > b) [a, b] = [b, a];
         b -= a;
         if (b === 0n) break;
     }
