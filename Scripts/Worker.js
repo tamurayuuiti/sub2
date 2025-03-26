@@ -2,8 +2,6 @@ self.onmessage = async function(event) {
     try {
         let { n, fxType } = event.data;
 
-        console.log(`ロード成功: 利用可能なスレッド数: ${navigator.hardwareConcurrency}, fxType = ${fxType}`);
-
         const MAX_TRIALS = {
             fx1: 500000n,
             fx2: 3000000n,
@@ -12,7 +10,7 @@ self.onmessage = async function(event) {
 
         let { maxC } = getDigitBasedParams(n);
         let c = getRandomC(n, maxC);
-        console.log(`[Worker ${fxType}] が c を決定: ${c} (範囲: 1 ～ ${maxC * 2 - 1})`);
+        console.log(`${fxType}ロード成功: c = ${c} (範囲: 1 ～ ${maxC * 2 - 1})`);
 
         let fxFunction;
         if (fxType === "fx1") {
