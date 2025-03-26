@@ -3,7 +3,15 @@ console.log(`利用可能なスレッド数: ${navigator.hardwareConcurrency}`);
 
 self.onmessage = async function(event) {
     try {
-        const { n, fxType } = event.data;
+        let { n, fxType } = event.data;
+        
+        // ✅ `n` の型チェックと `BigInt` 変換
+        console.log(`[Worker ${fxType}] 受信時の n の型: ${typeof n}, 値: ${n}`);
+        if (typeof n === "string") {
+            console.log(`[Worker ${fxType}] n を BigInt に変換`);
+            n = BigInt(n);
+        }
+
         console.log(`Worker がメッセージを受信: fxType = ${fxType}`);
 
         const MAX_TRIALS = {
@@ -51,6 +59,11 @@ self.onmessage = async function(event) {
                     resetCount++;
                 }
 
+                // ✅ `BigInt` の剰余計算が正しく行われているか確認
+                if (trialCount === 1n || trialCount % 5000000n === 0n) {
+                    console.log(`[Worker ${fxType}] BigInt mod テスト: ${(123456789123456789123456789n % 123456789n).toString()}`);
+                }
+
                 // 【実験用】
                 if (fxType === "fx3" && trialCount === 25000000n) {
                     console.log(`[Worker ${fxType}] 実験的に仮の因数を送信！`);
@@ -80,7 +93,12 @@ self.onmessage = async function(event) {
 
         if (d > 1n && d !== n) {
             console.log(`[Worker ${fxType}] 因数 ${d} を送信！（試行回数: ${trialCount}）`);
-            postMessage({ factor: d.toString(), trials: trialCount.toString() });
+            
+            // ✅ `postMessage()` の直前に `setTimeout()` を追加し、Worker の競合を防ぐ
+            setTimeout(() => {
+                postMessage({ factor: d.toString(), trials: trialCount.toString() });
+            }, 0);
+            
             return;
         }
 
