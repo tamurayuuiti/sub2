@@ -53,7 +53,7 @@ self.onmessage = async function(event) {
                     postMessage({ factor: "9999991", trials: trialCount.toString(), test: true });
                 }
 
-                if (fxType === "fx1" && trialCount === 20n) {
+                if (fxType === "fx1" && trialCount === 1n) {
                     console.log(`🧪 [Worker ${fxType}] 実験的に仮の因数を送信！`);
                     postMessage({ factor: "9999991", trials: trialCount.toString(), test: true });
                 }
