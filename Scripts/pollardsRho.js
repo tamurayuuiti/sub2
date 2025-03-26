@@ -66,11 +66,10 @@ export async function pollardsRho(n) {
                 workers.push(worker);
                 console.log(`✅ Worker ${i + 1} (${fxTypes[i]}) を作成しました。`);
 
-                // ここで一定時間（例: 500ms）待ってから Worker を開始
                 setTimeout(() => {
                     console.log(`▶️ Worker ${i + 1} (${fxTypes[i]}) の実行を開始`);
                     worker.postMessage({ n, fxType: fxTypes[i] });
-                }, 500); // 500ミリ秒（0.5秒）待機
+                }, 5000); // 5000ミリ秒（5.0秒）待機
 
                 worker.onmessage = function (event) {
                     console.log(`受信データ:`, event.data);
