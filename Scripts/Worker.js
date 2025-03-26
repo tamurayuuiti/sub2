@@ -10,7 +10,7 @@ self.onmessage = async function(event) {
 
         if (factor) {
             console.log(`[Worker ${workerId}] 因数 ${factor} を発見！`);
-            postMessage({ factor: factor.toString() });
+            postMessage({ factor: factor.toString(), trials: "1" });
         } else {
             console.log(`[Worker ${workerId}] 因数を発見できず。`);
             postMessage({ stopped: true });
