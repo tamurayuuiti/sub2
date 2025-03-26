@@ -53,8 +53,7 @@ self.onmessage = async function(event) {
             let ys = y;
             for (let i = 0n; i < m && trialCount < MAX_TRIALS[fxType]; i++) {
                 y = fxFunction(fxFunction(y, c, n), c, n);
-                q *= abs(x - y);
-                q = (q + 1n) % n;
+                q = abs(x - y) * q % n;
                 trialCount++;
 
                 if (q === 0n) {
@@ -64,7 +63,8 @@ self.onmessage = async function(event) {
                 }
 
                 if (trialCount % 1000000n === 0n) {
-                    console.log(`[Worker ${fxType}] q の成長確認: trialCount=${trialCount}, q=${q}`);
+                    let dTest = gcd(q, n);
+                    console.log(`[Worker ${fxType}] gcd(q, n) の計算結果: trialCount=${trialCount}, q=${q}, gcd=${dTest}`);
                 }
 
                 // 【実験用】
