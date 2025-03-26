@@ -3,7 +3,7 @@ console.log(`利用可能なスレッド数: ${navigator.hardwareConcurrency}`);
 
 self.onmessage = async function(event) {
     try {
-        const { n, fxType } = event.data;
+        const { n } = event.data;
         console.log(`Worker がメッセージを受信: fxType = ${fxType}`);
 
         let attempt = 0;
