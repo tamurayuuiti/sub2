@@ -1,13 +1,8 @@
-// testProgram.js
 import { trialDivision } from './Scripts/trialDivision.js';
 import { pollardsRhoFactorization } from './Scripts/pollardsRho.js';
 
 let primes = [];
 
-// --- 設定 ---
-const MAX_DIGITS = 30;
-
-// --- 素数リスト読み込み ---
 async function loadPrimes() {
     const response = await fetch("https://tamurayuuiti.github.io/sub2/data/primes.txt");
     const text = await response.text();
@@ -15,9 +10,8 @@ async function loadPrimes() {
     if (primes.length === 0) throw new Error("素数リストが空");
 }
 
-// --- ランダムn生成 ---
-function generateRandomBigInt() {
-    const digits = Math.floor(Math.random() * MAX_DIGITS) + 1;
+function generateRandomBigInt(minDigits, maxDigits) {
+    const digits = Math.floor(Math.random() * (maxDigits - minDigits + 1)) + minDigits;
     let n = '';
     for (let i = 0; i < digits; i++) {
         n += (i === 0) ? (Math.floor(Math.random() * 9) + 1) : Math.floor(Math.random() * 10);
@@ -25,7 +19,6 @@ function generateRandomBigInt() {
     return BigInt(n);
 }
 
-// --- テーブル出力 ---
 function appendResultRow(index, n, factors, status, time) {
     const table = document.getElementById('resultTable');
     const row = table.insertRow();
@@ -36,17 +29,42 @@ function appendResultRow(index, n, factors, status, time) {
     row.insertCell().textContent = time;
 }
 
-// --- メイン処理 ---
-async function startTest(trialCount) {
+function showSummary(results) {
+    const times = results.map(r => parseFloat(r.elapsedTime));
+    const avg = (times.reduce((a, b) => a + b, 0) / times.length).toFixed(3);
+    const maxTime = Math.max(...times);
+    const maxRecord = results[times.indexOf(maxTime)];
+
+    const summary = `
+        平均タイム: ${avg} 秒<br>
+        最大タイム: ${maxTime} 秒<br>
+        最大タイムの試行:<br>
+        n = ${maxRecord.n}<br>
+        因数 = ${maxRecord.factors.join(' × ')}<br>
+        状態 = ${maxRecord.status}
+    `;
+    document.getElementById('summary').innerHTML = summary;
+}
+
+async function startTest(trialCount, minDigits, maxDigits) {
+    if (minDigits > maxDigits || minDigits < 1 || maxDigits > 30) {
+        alert("最小桁数・最大桁数の指定が不正です");
+        return;
+    }
+
     document.getElementById('resultTable').innerHTML = `
         <tr><th>#</th><th>n</th><th>因数</th><th>状態</th><th>計算時間(s)</th></tr>
     `;
+    document.getElementById('summary').innerHTML = "";
+    console.clear();
 
     const results = [];
     await loadPrimes();
 
     for (let i = 0; i < trialCount; i++) {
-        const n = generateRandomBigInt();
+        if (i % 5 === 0) console.clear();
+
+        const n = generateRandomBigInt(minDigits, maxDigits);
         const start = performance.now();
         let factors = [];
         let status = "SUCCESS";
@@ -74,13 +92,15 @@ async function startTest(trialCount) {
         console.log(`[${i + 1}/${trialCount}] n=${n} status=${status} time=${elapsed}s`);
     }
 
-    window.testResults = results; // 保存用
+    window.testResults = results;
+    showSummary(results);
 }
 
-// --- ボタンイベント ---
 document.getElementById('startButton').addEventListener('click', () => {
     const count = parseInt(document.getElementById('trialCount').value);
-    if (count > 0) startTest(count);
+    const minDigits = parseInt(document.getElementById('minDigits').value);
+    const maxDigits = parseInt(document.getElementById('maxDigits').value);
+    if (count > 0) startTest(count, minDigits, maxDigits);
 });
 
 document.getElementById('saveButton').addEventListener('click', () => {
