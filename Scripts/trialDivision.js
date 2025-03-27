@@ -1,4 +1,4 @@
-export async function trialDivision(number) {
+export async function trialDivision(number, primes) {
     let factors = [];
 
     const MAX_PRIME = number >= 10n ** 10n ? 100000n : 499979n;
