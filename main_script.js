@@ -111,7 +111,9 @@ async function startFactorization() {
         }
 
         console.log("試し割り法を実行します");
-        let { factors, remainder } = await trialDivision(num);
+        let { factors, remainder } = await trialDivision(num, primes, msg => {
+            document.getElementById("result").textContent = msg;
+        });
         console.log(`試し割り法完了。残りの数: ${remainder}`);
 
         if (remainder > 1n) {
