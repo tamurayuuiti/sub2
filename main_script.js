@@ -36,32 +36,33 @@ function isPrime(n) {
 function showSummary(results) {
     const totalTimes = results.map(r => parseFloat(r.elapsedTime));
     const totalSuccesses = results.filter(r => r.status === "SUCCESS");
-    const totalSuccessRate = ((totalSuccesses.length / results.length) * 100).toFixed(2);
-    const totalFactors = totalSuccesses.reduce((sum, r) => sum + r.factors.length, 0);
-    const totalPrimeFactors = totalSuccesses.reduce((sum, r) => sum + r.factors.filter(f => isPrime(BigInt(f))).length, 0);
     const totalTimeSum = totalTimes.reduce((a, b) => a + b, 0);
-    const factorCounts = totalSuccesses.map(r => r.factors.length).sort((a, b) => a - b);
-    const totalFactorAvg = (totalFactors / totalSuccesses.length).toFixed(2);
-    const totalPrimeRate = ((totalPrimeFactors / totalFactors) * 100).toFixed(2);
+    const avgTime = (totalTimeSum / results.length).toFixed(3);
+    const medianTime = totalTimes.sort((a, b) => a - b)[Math.floor(results.length / 2)];
     const maxTime = Math.max(...totalTimes);
     const maxRecord = results[totalTimes.indexOf(maxTime)];
-    const twoFactorCount = totalSuccesses.filter(r => r.factors.length === 2).length;
-    const mid = Math.floor(factorCounts.length / 2);
-    const medianFactors = factorCounts.length % 2 === 0
-        ? ((factorCounts[mid - 1] + factorCounts[mid]) / 2).toFixed(1)
-        : factorCounts[mid];
+
+    const totalFactors = totalSuccesses.reduce((sum, r) => sum + r.factors.length, 0);
+    const factorCounts = totalSuccesses.map(r => r.factors.length).sort((a, b) => a - b);
+    const avgFactors = (totalFactors / totalSuccesses.length).toFixed(2);
+    const twoFactors = totalSuccesses.filter(r => r.factors.length === 2).length;
+    const primeCount = totalSuccesses.filter(r => r.factors.length === 1).length;
+    const primeRate = ((primeCount / totalSuccesses.length) * 100).toFixed(2);
+    const successRate = ((totalSuccesses.length / results.length) * 100).toFixed(2);
 
     let summaryHTML = `<h3>【全体統計】</h3>
         総試行: ${results.length} 回<br>
-        平均タイム: ${(totalTimeSum / results.length).toFixed(3)} 秒<br>
-        最大タイム: ${maxTime} 秒<br>
         総計算時間: ${totalTimeSum.toFixed(3)} 秒<br>
-        成功率: ${totalSuccessRate} %<br>
-        平均因数個数: ${totalFactorAvg}<br>
-        中央因数個数: ${medianFactors}<br>
-        因数2個だった試行数: ${twoFactorCount} 回<br>
-        素因数数: ${totalPrimeFactors}<br>
-        素数率: ${totalPrimeRate} %<br><br>`;
+        平均タイム: ${avgTime} 秒<br>
+        中央値タイム: ${medianTime.toFixed(3)} 秒<br>
+        最大タイム: ${maxTime} 秒<br>
+        最大タイム時の n: ${maxRecord.n}<br>
+        最大タイム時の因数: ${maxRecord.factors.join(' × ')}<br>
+        平均因数個数: ${avgFactors}<br>
+        因数2個だった試行数: ${twoFactors} 回<br>
+        素数(因数1個): ${primeCount} 回<br>
+        素数率: ${primeRate} %<br>
+        成功率: ${successRate} %<br><br>`;
 
     const grouped = {};
 
@@ -73,36 +74,33 @@ function showSummary(results) {
 
     for (const [digits, group] of Object.entries(grouped)) {
         const times = group.map(r => parseFloat(r.elapsedTime));
+        const groupTimeSum = times.reduce((a, b) => a + b, 0);
         const successes = group.filter(r => r.status === "SUCCESS");
-        const successRate = ((successes.length / group.length) * 100).toFixed(2);
+        const avgTime = (groupTimeSum / group.length).toFixed(3);
+        const medianTime = times.sort((a, b) => a - b)[Math.floor(group.length / 2)];
+        const maxTime = Math.max(...times);
+        const maxRecord = group[times.indexOf(maxTime)];
         const factorsCount = successes.reduce((sum, r) => sum + r.factors.length, 0);
-        const primeCount = successes.reduce((sum, r) => sum + r.factors.filter(f => isPrime(BigInt(f))).length, 0);
-        const factorAvg = successes.length ? (factorsCount / successes.length).toFixed(2) : 0;
-        const primeRate = factorsCount ? ((primeCount / factorsCount) * 100).toFixed(2) : 0;
-        const twoFactor = successes.filter(r => r.factors.length === 2).length;
-        const digitFactorCounts = successes.map(r => r.factors.length).sort((a, b) => a - b);
-        const midDigit = Math.floor(digitFactorCounts.length / 2);
-        const medianDigitFactors = digitFactorCounts.length % 2 === 0
-            ? ((digitFactorCounts[midDigit - 1] + digitFactorCounts[midDigit]) / 2).toFixed(1)
-            : digitFactorCounts[midDigit];
-
-        const timeAvg = (times.reduce((a, b) => a + b, 0) / group.length).toFixed(3);
+        const avgFactors = successes.length ? (factorsCount / successes.length).toFixed(2) : 0;
+        const twoFactors = successes.filter(r => r.factors.length === 2).length;
+        const primeCount = successes.filter(r => r.factors.length === 1).length;
+        const primeRate = successes.length ? ((primeCount / successes.length) * 100).toFixed(2) : 0;
+        const successRate = ((successes.length / group.length) * 100).toFixed(2);
 
         summaryHTML += `<h4>【${digits}桁】</h4>
             試行: ${group.length} 回<br>
-            平均タイム: ${timeAvg} 秒<br>
-            成功率: ${successRate} %<br>
-            平均因数個数: ${factorAvg}<br>
-            中央因数個数: ${medianDigitFactors}<br>
-            因数2個だった試行数: ${twoFactor} 回<br>
-            素因数数: ${primeCount}<br>
-            素数率: ${primeRate} %<br><br>`;
+            総計算時間: ${groupTimeSum.toFixed(3)} 秒<br>
+            平均タイム: ${avgTime} 秒<br>
+            中央値タイム: ${medianTime.toFixed(3)} 秒<br>
+            最大タイム: ${maxTime} 秒<br>
+            最大タイム時の n: ${maxRecord.n}<br>
+            最大タイム時の因数: ${maxRecord.factors.join(' × ')}<br>
+            平均因数個数: ${avgFactors}<br>
+            因数2個だった試行数: ${twoFactors} 回<br>
+            素数(因数1個): ${primeCount} 回<br>
+            素数率: ${primeRate} %<br>
+            成功率: ${successRate} %<br><br>`;
     }
-
-    summaryHTML += `<h4>【最大タイムの試行】</h4>
-        n = ${maxRecord.n}<br>
-        因数 = ${maxRecord.factors.join(' × ')}<br>
-        状態 = ${maxRecord.status}`;
 
     document.getElementById('summary').innerHTML = summaryHTML;
 }
