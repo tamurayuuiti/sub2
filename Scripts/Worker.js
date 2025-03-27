@@ -19,8 +19,8 @@ self.onmessage = async function(event) {
             fxEquation = "(x² + cx) mod n";
             fxFunction = (x, c, n) => (x * x + c * x) % n;
         } else if (fxType === "fx3") {
-            fxEquation = "(x³ + c) mod n";
-            fxFunction = (x, c, n) => (x * x * x + c) % n;
+            fxEquation = "(x³ + x + c) mod n";
+            fxFunction = (x, c, n) => (x * x * x + x + c) % n;
         } else {
             throw new Error("Unknown fxType");
         }
