@@ -140,21 +140,19 @@ async function startFactorization() {
 // 外部ファイルを使った試し割り法
 async function trialDivisionFromFile(number) {
     let factors = [];
-    let lastLoggedPrime = 0n;
     let limit;
-    
+
+    // 素数範囲の決定
     if (number >= 10n ** 10n) {
-        // nが10桁以上なら、10万以下の素数のみ
         limit = 0;
         for (let i = 0; i < primes.length; i++) {
             if (BigInt(primes[i]) > 100000n) break;
             limit = i + 1;
         }
     } else {
-        // nが10桁未満なら、最大499979まで試す
         limit = Math.min(primes.length, 499979);
     }
-    
+
     try {
         for (let i = 0; i < limit; i++) {
             if (primes[i] === undefined) break;
@@ -164,13 +162,13 @@ async function trialDivisionFromFile(number) {
                 factors.push(prime);
                 number /= prime;
             }
-            
+
             if (i % 500 === 0) {
                 console.log(`現在の素数: ${prime}`);
-                await new Promise(resolve => setTimeout(resolve, 0)); // 100はとりあえず固定
+                await new Promise(resolve => setTimeout(resolve, 0));
             }
         }
-        
+
     } catch (error) {
         console.error("試し割りエラー:", error);
         document.getElementById("result").textContent = "試し割り中にエラーが発生しました";
