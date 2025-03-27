@@ -40,10 +40,16 @@ function showSummary(results) {
     const totalFactors = totalSuccesses.reduce((sum, r) => sum + r.factors.length, 0);
     const totalPrimeFactors = totalSuccesses.reduce((sum, r) => sum + r.factors.filter(f => isPrime(BigInt(f))).length, 0);
     const totalTimeSum = totalTimes.reduce((a, b) => a + b, 0);
+    const factorCounts = totalSuccesses.map(r => r.factors.length).sort((a, b) => a - b);
     const totalFactorAvg = (totalFactors / totalSuccesses.length).toFixed(2);
     const totalPrimeRate = ((totalPrimeFactors / totalFactors) * 100).toFixed(2);
     const maxTime = Math.max(...totalTimes);
     const maxRecord = results[totalTimes.indexOf(maxTime)];
+    const twoFactorCount = totalSuccesses.filter(r => r.factors.length === 2).length;
+    const mid = Math.floor(factorCounts.length / 2);
+    const medianFactors = factorCounts.length % 2 === 0
+        ? ((factorCounts[mid - 1] + factorCounts[mid]) / 2).toFixed(1)
+        : factorCounts[mid];
 
     let summaryHTML = `<h3>【全体統計】</h3>
         総試行: ${results.length} 回<br>
@@ -52,6 +58,8 @@ function showSummary(results) {
         総計算時間: ${totalTimeSum.toFixed(3)} 秒<br>
         成功率: ${totalSuccessRate} %<br>
         平均因数個数: ${totalFactorAvg}<br>
+        中央因数個数: ${medianFactors}<br>
+        因数2個だった試行数: ${twoFactorCount} 回<br>
         素因数数: ${totalPrimeFactors}<br>
         素数率: ${totalPrimeRate} %<br><br>`;
 
@@ -71,6 +79,13 @@ function showSummary(results) {
         const primeCount = successes.reduce((sum, r) => sum + r.factors.filter(f => isPrime(BigInt(f))).length, 0);
         const factorAvg = successes.length ? (factorsCount / successes.length).toFixed(2) : 0;
         const primeRate = factorsCount ? ((primeCount / factorsCount) * 100).toFixed(2) : 0;
+        const twoFactor = successes.filter(r => r.factors.length === 2).length;
+        const digitFactorCounts = successes.map(r => r.factors.length).sort((a, b) => a - b);
+        const midDigit = Math.floor(digitFactorCounts.length / 2);
+        const medianDigitFactors = digitFactorCounts.length % 2 === 0
+            ? ((digitFactorCounts[midDigit - 1] + digitFactorCounts[midDigit]) / 2).toFixed(1)
+            : digitFactorCounts[midDigit];
+
         const timeAvg = (times.reduce((a, b) => a + b, 0) / group.length).toFixed(3);
 
         summaryHTML += `<h4>【${digits}桁】</h4>
@@ -78,6 +93,8 @@ function showSummary(results) {
             平均タイム: ${timeAvg} 秒<br>
             成功率: ${successRate} %<br>
             平均因数個数: ${factorAvg}<br>
+            中央因数個数: ${medianDigitFactors}<br>
+            因数2個だった試行数: ${twoFactor} 回<br>
             素因数数: ${primeCount}<br>
             素数率: ${primeRate} %<br><br>`;
     }
