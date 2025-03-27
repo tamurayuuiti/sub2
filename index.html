@@ -1,29 +1,34 @@
 <!DOCTYPE html>
 <html lang="ja">
+
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>素因数分解計算機</title>
-    <link rel="stylesheet" href="styles.css">
+    <title>素因数分解 自動テスト</title>
+    <script type="module" src="./testProgram.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/file-saver@2.0.5/dist/FileSaver.min.js"></script>
+    <style>
+        body { font-family: Arial; padding: 20px; }
+        table, th, td { border: 1px solid black; border-collapse: collapse; padding: 5px; }
+    </style>
 </head>
+
 <body>
-    <div class="container">
-        <h2>素因数分解計算機</h2>
-        <div class="input-container">
-            <input type="number" id="numberInput" placeholder="数値を入力" min="2">
-            <div class="char-counter" id="charCounter">現在の桁数: 0 (最大30桁)</div>
-            <div class="error-message" id="errorMessage" style="display: none;">30桁に達しました。これ以上の入力はできません。</div>
-        </div>
-        <div class="loading" id="loading" style="display: none;">
-            計算中...
-            <div class="spinner" id="spinner"></div>
-        </div>
-        <button id="calculateButton">計算</button>
-        <div class="time" id="time"></div>
-        <div class="progress" id="progress"></div>
-        <div class="result" id="result"></div>
-        <div class="limits">※ 2以上の整数を入力してください</div>
-    </div>
-    <script type="module" src="main_script.js"></script>
+    <h1>素因数分解 自動テスト</h1>
+
+    <label>試行回数: <input type="number" id="trialCount" value="10" min="1"></label>
+    <button id="startButton">テスト開始</button>
+    <button id="saveButton">結果を保存</button>
+
+    <h2>結果</h2>
+    <table id="resultTable">
+        <tr>
+            <th>#</th>
+            <th>n</th>
+            <th>因数</th>
+            <th>状態</th>
+            <th>計算時間(s)</th>
+        </tr>
+    </table>
 </body>
+
 </html>
