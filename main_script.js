@@ -166,7 +166,7 @@ async function trialDivisionFromFile(number) {
             }
             
             if (i % 500 === 0) {
-                console.log(`現在の素数: ${prime}, 計算時間: ${elapsedTime} 秒`);
+                console.log(`現在の素数: ${prime}`);
                 await new Promise(resolve => setTimeout(resolve, 0)); // 100はとりあえず固定
             }
         }
