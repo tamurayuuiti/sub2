@@ -76,7 +76,7 @@ async function loadPrimes() {
 
 function updateProgress() {
     if (!startTime) return;
-    const elapsedTime = ((performance.now() - startTime) / 1000).toFixed(3);
+    const elapsedTime = ((performance.now() - startTime) / 1000).toFixed(1);
     document.getElementById("progress").textContent = `経過時間: ${elapsedTime} 秒`;
 }
 
