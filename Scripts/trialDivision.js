@@ -14,11 +14,6 @@ export async function trialDivision(number, primes) {
                 factors.push(prime);
                 number /= prime;
             }
-
-            if (i % 5000 === 0) {
-                console.log(`現在の素数: ${prime}`);
-                await new Promise(resolve => setTimeout(resolve, 0));
-            }
         }
 
     } catch (error) {
