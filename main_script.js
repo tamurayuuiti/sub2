@@ -75,7 +75,8 @@ async function loadPrimes() {
 }
 
 function updateProgress() {
-    let elapsedTime = ((performance.now() - startTime) / 1000).toFixed(3);
+    if (!startTime) return;
+    const elapsedTime = ((performance.now() - startTime) / 1000).toFixed(3);
     document.getElementById("progress").textContent = `経過時間: ${elapsedTime} 秒`;
 }
 
@@ -96,12 +97,15 @@ async function startFactorization() {
 
         document.getElementById("result").textContent = "";
         document.getElementById("time").textContent = "";
+        document.getElementById("progress").textContent = ""; // ← reset
         document.getElementById("spinner").style.display = "block";
         document.getElementById("loading").style.display = "flex";
         await new Promise(resolve => setTimeout(resolve, 10));
 
         isCalculating = true;
         startTime = performance.now();
+
+        progressInterval = setInterval(updateProgress, 100);
 
         if (primes.length === 0) {
             await loadPrimes();
@@ -123,9 +127,6 @@ async function startFactorization() {
             if (extraFactors.includes("FAIL")) {
                 console.error(`Pollard's Rho では因数を発見できませんでした。素因数分解を中断します。`);
                 document.getElementById("result").textContent = "素因数分解失敗";
-                isCalculating = false;
-                document.getElementById("spinner").style.display = "none";
-                document.getElementById("loading").style.display = "none";
                 return;
             }
 
@@ -141,6 +142,7 @@ async function startFactorization() {
         document.getElementById("result").textContent = "計算中にエラーが発生しました";
     } finally {
         isCalculating = false;
+        clearInterval(progressInterval); // ← ここだけ追加
         document.getElementById("spinner").style.display = "none";
         document.getElementById("loading").style.display = "none";
     }
