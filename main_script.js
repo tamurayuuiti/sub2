@@ -29,7 +29,7 @@ function appendResultRow(index, n, factors, status, time) {
     row.insertCell().textContent = time;
 }
 
-function showSummary(results) {
+function showSummary(results, totalElapsed) {
     const times = results.map(r => parseFloat(r.elapsedTime));
     const avg = (times.reduce((a, b) => a + b, 0) / times.length).toFixed(3);
     const maxTime = Math.max(...times);
@@ -41,7 +41,8 @@ function showSummary(results) {
         最大タイムの試行:<br>
         n = ${maxRecord.n}<br>
         因数 = ${maxRecord.factors.join(' × ')}<br>
-        状態 = ${maxRecord.status}
+        状態 = ${maxRecord.status}<br><br>
+        総計算時間: ${totalElapsed} 秒
     `;
     document.getElementById('summary').innerHTML = summary;
 }
@@ -60,6 +61,7 @@ async function startTest(trialCount, minDigits, maxDigits) {
 
     const results = [];
     await loadPrimes();
+    const totalStart = performance.now(); // --- 総計測開始
 
     for (let i = 0; i < trialCount; i++) {
         if (i % 5 === 0) {
@@ -95,8 +97,9 @@ async function startTest(trialCount, minDigits, maxDigits) {
         console.log(`[${i + 1}/${trialCount}] n=${n} status=${status} time=${elapsed}s`);
     }
 
+    const totalElapsed = ((performance.now() - totalStart) / 1000).toFixed(3); // --- 総計算時間
     window.testResults = results;
-    showSummary(results);
+    showSummary(results, totalElapsed); // --- 渡す
 }
 
 document.getElementById('startButton').addEventListener('click', () => {
