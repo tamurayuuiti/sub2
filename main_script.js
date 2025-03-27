@@ -156,7 +156,7 @@ async function trialDivisionFromFile(number) {
                 number /= prime;
             }
 
-            if (i % 500 === 0) {
+            if (i % 5000 === 0) {
                 console.log(`現在の素数: ${prime}`);
                 await new Promise(resolve => setTimeout(resolve, 0));
             }
