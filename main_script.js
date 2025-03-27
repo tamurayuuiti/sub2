@@ -108,7 +108,7 @@ async function startFactorization() {
         }
 
         console.log("試し割り法を実行します");
-        let { factors, remainder } = await trialDivisionFromFile(num);
+        let { factors, remainder } = await trialDivision(num);
         console.log(`試し割り法完了。残りの数: ${remainder}`);
 
         if (remainder > 1n) {
@@ -138,7 +138,7 @@ async function startFactorization() {
 }
 
 // 外部ファイルを使った試し割り法
-async function trialDivisionFromFile(number) {
+async function trialDivision(number) {
     let factors = [];
 
     // 最大素数の設定
