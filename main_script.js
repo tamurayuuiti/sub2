@@ -29,20 +29,24 @@ function appendResultRow(index, n, factors, status, time) {
     row.insertCell().textContent = time;
 }
 
-function showSummary(results, totalElapsed) {
+function showSummary(results) {
     const times = results.map(r => parseFloat(r.elapsedTime));
     const avg = (times.reduce((a, b) => a + b, 0) / times.length).toFixed(3);
     const maxTime = Math.max(...times);
     const maxRecord = results[times.indexOf(maxTime)];
+    const totalTime = times.reduce((a, b) => a + b, 0).toFixed(3);
+    const successCount = results.filter(r => r.status === "SUCCESS").length;
+    const successRate = ((successCount / results.length) * 100).toFixed(2);
 
     const summary = `
         平均タイム: ${avg} 秒<br>
         最大タイム: ${maxTime} 秒<br>
+        総計算時間: ${totalTime} 秒<br>
+        成功率: ${successRate} %<br>
         最大タイムの試行:<br>
         n = ${maxRecord.n}<br>
         因数 = ${maxRecord.factors.join(' × ')}<br>
         状態 = ${maxRecord.status}<br><br>
-        総計算時間: ${totalElapsed} 秒
     `;
     document.getElementById('summary').innerHTML = summary;
 }
