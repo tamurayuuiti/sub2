@@ -75,9 +75,8 @@ async function loadPrimes() {
 }
 
 function updateProgress() {
-    if (!startTime) return;
-    const elapsedTime = ((performance.now() - startTime) / 1000).toFixed(1);
-    document.getElementById("progress").textContent = `経過時間: ${elapsedTime} 秒`;
+    let elapsedTime = ((performance.now() - startTime) / 1000).toFixed(1);
+    document.getElementById("time").textContent = `経過時間: ${elapsedTime} 秒`;
 }
 
 async function startFactorization() {
@@ -105,7 +104,7 @@ async function startFactorization() {
         isCalculating = true;
         startTime = performance.now();
 
-        progressInterval = setInterval(updateProgress, 1000);
+        progressInterval = setInterval(updateProgress, 100);
 
         if (primes.length === 0) {
             await loadPrimes();
