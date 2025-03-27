@@ -1,7 +1,6 @@
 export async function trialDivision(number) {
     let factors = [];
 
-    // 最大素数の設定
     const MAX_PRIME = number >= 10n ** 10n ? 100000n : 499979n;
 
     try {
