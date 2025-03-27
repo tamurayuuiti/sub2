@@ -117,12 +117,16 @@ async function startFactorization() {
         console.log(`試し割り法完了。残りの数: ${remainder}`);
 
         if (remainder > 1n) {
-            console.log(`Pollard's rhoを開始。 利用可能なスレッド数: ${navigator.hardwareConcurrency}, n = ${remainder}`);
+            console.log(`Pollard's rho を開始。利用可能なスレッド数: ${navigator.hardwareConcurrency}, n = ${remainder}`);
             let extraFactors = await pollardsRhoFactorization(remainder);
 
             if (extraFactors.includes("FAIL")) {
-                console.error(`Pollard's Rho では因数を発見できませんでした。Quadratic Sieve に移行`);
-                extraFactors = await ecmFactorization(remainder);
+                console.error(`Pollard's Rho では因数を発見できませんでした。素因数分解を中断します。`);
+                document.getElementById("result").textContent = "素因数分解失敗";
+                isCalculating = false;
+                document.getElementById("spinner").style.display = "none";
+                document.getElementById("loading").style.display = "none";
+                return;
             }
 
             factors = factors.concat(extraFactors);
