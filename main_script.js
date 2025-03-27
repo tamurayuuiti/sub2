@@ -142,7 +142,8 @@ async function startFactorization() {
         document.getElementById("result").textContent = "計算中にエラーが発生しました";
     } finally {
         isCalculating = false;
-        clearInterval(progressInterval); // ← ここだけ追加
+        clearInterval(progressInterval);
+        document.getElementById("progress").textContent = ""; // ← これを追加
         document.getElementById("spinner").style.display = "none";
         document.getElementById("loading").style.display = "none";
     }
