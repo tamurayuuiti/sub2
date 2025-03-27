@@ -62,7 +62,10 @@ async function startTest(trialCount, minDigits, maxDigits) {
     await loadPrimes();
 
     for (let i = 0; i < trialCount; i++) {
-        if (i % 5 === 0) console.clear();
+        if (i % 5 === 0) {
+            console.clear();
+            await new Promise(resolve => setTimeout(resolve, 0));
+        }
 
         const n = generateRandomBigInt(minDigits, maxDigits);
         const start = performance.now();
