@@ -64,7 +64,7 @@ async function startTest(trialCount, minDigits, maxDigits) {
     const totalStart = performance.now(); // --- 総計測開始
 
     for (let i = 0; i < trialCount; i++) {
-        if (i % 5 === 0) {
+        if (i % 10 === 0) {
             console.clear();
             await new Promise(resolve => setTimeout(resolve, 0));
         }
