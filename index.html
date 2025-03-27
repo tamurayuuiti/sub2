@@ -15,7 +15,9 @@
 <body>
     <h1>素因数分解 自動テスト</h1>
 
-    <label>試行回数: <input type="number" id="trialCount" value="10" min="1"></label>
+    <label>試行回数: <input type="number" id="trialCount" value="10" min="1"></label><br>
+    <label>最小桁数: <input type="number" id="minDigits" value="10" min="1" max="30"></label><br>
+    <label>最大桁数: <input type="number" id="maxDigits" value="30" min="1" max="30"></label><br>
     <button id="startButton">テスト開始</button>
     <button id="saveButton">結果を保存</button>
 
@@ -29,6 +31,9 @@
             <th>計算時間(s)</th>
         </tr>
     </table>
+
+    <h3>統計</h3>
+    <div id="summary"></div>
 </body>
 
 </html>
