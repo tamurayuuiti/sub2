@@ -4,9 +4,6 @@ import { isPrimeMillerRabin } from './Scripts/millerRabin.js';
 // Pollard’s rho 法
 import { pollardsRhoFactorization } from './Scripts/pollardsRho.js';
 
-// ECM 法
-import { ecmFactorization } from './Scripts/ecmFactorization.js';
-
 let startTime = null;
 let isCalculating = false;
 let progressInterval = null;
