@@ -5,15 +5,15 @@ self.onmessage = async function(event) {
         let resetCount = 0;
 
         const MAX_TRIALS = {
-            fx1: 500000n,
-            fx2: 3000000n,
-            fx3: 100000000n
+            fx1: 50000n,
+            fx2: 200000n,
+            fx3: 1500000n
         };
 
         const MAX_RESET_COUNT = {
-            fx1: 3,
-            fx2: 5,
-            fx3: 10
+            fx1: 10,
+            fx2: 30,
+            fx3: 100
         };
 
         while (resetCount < MAX_RESET_COUNT[fxType]) {
