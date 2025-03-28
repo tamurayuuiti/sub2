@@ -2,81 +2,92 @@ self.onmessage = async function(event) {
     try {
         let { n, fxType, workerId } = event.data;
         let { maxC } = getDigitBasedParams(n);
-        let c = getRandomC(n, maxC);
-        let fxFunction;
-        let fxEquation;
+        let resetCount = 0;
 
         const MAX_TRIALS = {
             fx1: 500000n,
-            fx2: 3000000n,
-            fx3: 100000000n
+            fx2: 1000000n,
+            fx3: 20000000n
         };
 
-        if (fxType === "fx1") {
-            fxEquation = "(x² + 7x + c) mod n";
-            fxFunction = (x, c, n) => (x * x + 7n * x + c) % n;
-        } else if (fxType === "fx2") {
-            fxEquation = "(x² + cx) mod n";
-            fxFunction = (x, c, n) => (x * x + c * x) % n;
-        } else if (fxType === "fx3") {
-            fxEquation = "(x³ + 5x + c) mod n";
-            fxFunction = (x, c, n) => (x * x * x　+ 5n * x + c) % n;
-        } else {
-            throw new Error("Unknown fxType");
-        }
+        const MAX_RESET_COUNT = {
+            fx1: 1,
+            fx2: 3,
+            fx3: 5
+        };
 
-        console.log(`Worker ${workerId + 1} の実行成功: fx = ${fxEquation}, 試行上限 ${MAX_TRIALS[fxType]}, c = ${c} (範囲: 1 ～ ${maxC * 2 - 1})`);
+        while (resetCount < MAX_RESET_COUNT[fxType]) {
+            let c = getRandomC(n, maxC);
+            let fxFunction;
+            let fxEquation;
 
-        let x = 2n, y = 2n, d = 1n;
-        let trialCount = 0n;
-        let q = 1n;
-        let m = 128n;
-        let k = 10n;
-        let resetCount = 0;
+            if (fxType === "fx1") {
+                fxEquation = "(x² + 7x + c) mod n";
+                fxFunction = (x, c, n) => (x * x + 7n * x + c) % n;
+            } else if (fxType === "fx2") {
+                fxEquation = "(4x² + 11x + c) mod n";
+                fxFunction = (x, c, n) => (4n * x * x + 11n * x + c) % n;
+            } else if (fxType === "fx3") {
+                fxEquation = "(x³ + 5x + c) mod n";
+                fxFunction = (x, c, n) => (x * x * x + 5n * x + c) % n;
+            } else {
+                throw new Error("Unknown fxType");
+            }
 
-        x = fxFunction(x, c, n);
-        y = fxFunction(fxFunction(y, c, n), c, n);
+            console.log(`Worker ${workerId + 1} 実行開始: fx = ${fxEquation}, c = ${c} (変更回数: ${resetCount}/${MAX_RESET_COUNT[fxType]})`);
 
-        while (d === 1n && trialCount < MAX_TRIALS[fxType]) {
-            let ys = y;
-            for (let i = 0n; i < m && trialCount < MAX_TRIALS[fxType]; i++) {
-                y = fxFunction(fxFunction(y, c, n), c, n);
-                q = abs(x - y) * q % n;
-                trialCount++;
+            let x = 2n, y = 2n, d = 1n;
+            let trialCount = 0n;
+            let q = 1n;
+            let m = 128n;
+            let k = 10n;
 
-                if (q === 0n) {
-                    console.error(`Worker ${workerId + 1} q が 0 になりました。（リセット回数: ${resetCount}）`);
-                    q = 1n;
-                    resetCount++;
+            x = fxFunction(x, c, n);
+            y = fxFunction(fxFunction(y, c, n), c, n);
+
+            while (d === 1n && trialCount < MAX_TRIALS[fxType]) {
+                let ys = y;
+                for (let i = 0n; i < m && trialCount < MAX_TRIALS[fxType]; i++) {
+                    y = fxFunction(fxFunction(y, c, n), c, n);
+                    q = abs(x - y) * q % n;
+                    trialCount++;
+
+                    if (q === 0n) {
+                        console.error(`Worker ${workerId + 1} q が 0 になりました。（変更回数: ${resetCount}）`);
+                        q = 1n;
+                    }
+
+                    if (trialCount % 2500000n === 0n) {
+                        console.log(`Worker ${workerId + 1} 試行 ${trialCount}, fx = ${fxType}, x=${x}, y=${y}, q=${q}, gcd=${d}`);
+                        await new Promise(resolve => setTimeout(resolve, 0));
+                    }
+
+                    if (i % (k + (m / 16n)) === 0n) {
+                        d = gcd(q, n);
+                        if (d > 1n) break;
+                    }
                 }
-
-                if (trialCount % 2500000n === 0n) {
-                    console.log(`Worker ${workerId + 1} 試行 ${trialCount},　fx = ${fxType}, x=${x}, y=${y}, q=${q}, gcd=${d}`);
-                    await new Promise(resolve => setTimeout(resolve, 0));
-                }
-
-                if (i % (k + (m / 16n)) === 0n) {
-                    d = gcd(q, n);
-                    if (d > 1n) break;
+                x = ys;
+                if (d === 1n) {  
+                    m = (m * 3n) >> 1n;
                 }
             }
-            x = ys;
-            if (d === 1n) {  
-                m = (m * 3n) >> 1n;
+
+            if (d > 1n && d !== n) {
+                console.log(`Worker ${workerId + 1} 因数 ${d} を発見（試行回数: ${trialCount}）`);
+                
+                setTimeout(() => {
+                    postMessage({ factor: d.toString(), trials: trialCount.toString() });
+                }, 0);
+                
+                return;
             }
+
+            console.log(`Worker ${workerId + 1} 試行上限 ${MAX_TRIALS[fxType]} に達したため c を変更`);
+            resetCount++;
         }
 
-        if (d > 1n && d !== n) {
-            console.log(`Worker ${workerId + 1} が因数 ${d} を送信（試行回数: ${trialCount}）`);
-            
-            setTimeout(() => {
-                postMessage({ factor: d.toString(), trials: trialCount.toString() });
-            }, 0);
-            
-            return;
-        }
-
-        console.log(`Worker ${workerId + 1} が試行上限 ${MAX_TRIALS[fxType]} に達したため停止`);
+        console.log(`Worker ${workerId + 1} が c 変更上限 ${MAX_RESET_COUNT[fxType]} に達したため停止`);
         postMessage({ stopped: true });
 
     } catch (error) {
