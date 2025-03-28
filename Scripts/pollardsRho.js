@@ -59,58 +59,52 @@ export async function pollardsRho(n) {
             return;
         }
 
-        const numWorkers = Math.max(1, (navigator.hardwareConcurrency || 4) - 1);
-        const workersPerFx = Math.floor(numWorkers / fxTypes.length);
-        let extraWorkers = numWorkers % fxTypes.length;
-        let workerIndex = 0;
-
         for (let i = 0; i < fxTypes.length; i++) {
-            const fxWorkerCount = workersPerFx + (extraWorkers > 0 ? 1 : 0);
-            extraWorkers--;
+            try {
+                const worker = new Worker("./Scripts/worker.js");
+                workers.push(worker);
 
-            for (let j = 0; j < fxWorkerCount; j++) {
-                try {
-                    const worker = new Worker("./Scripts/worker.js");
-                    workers.push(worker);
-                    worker.postMessage({ n, fxType: fxTypes[i], workerId: workerIndex++ });
+                worker.postMessage({ n, fxType: fxTypes[i], workerId: i });
 
-                    worker.onmessage = function (event) {
-                        if (event.data.error) {
-                            console.error(`worker ${workerIndex} でエラー発生: ${event.data.error}`);
-                            return;
+                worker.onmessage = function (event) {
+                    console.log(`受信データ:`, event.data);
+
+                    if (event.data.error) {
+                        console.error(`worker ${i + 1} でエラー発生: ${event.data.error}`);
+                        return;
+                    }
+
+                    if (event.data.factor) {
+                        try {
+                            let factor = BigInt(event.data.factor); 
+                            console.log(`worker ${i + 1} が因数 ${factor} を発見（試行回数: ${BigInt(event.data.trials)}）`);
+                            workers.forEach((w) => w.terminate());
+                            resolve(factor);
+                        } catch (error) {
+                            console.error(`BigInt 変換エラー: ${error.message}`);
                         }
+                    }
 
-                        if (event.data.factor) {
-                            try {
-                                let factor = BigInt(event.data.factor); 
-                                console.log(`worker ${workerIndex} が因数 ${factor} を発見（試行回数: ${BigInt(event.data.trials)}）`);
-                                workers.forEach((w) => w.terminate());
-                                resolve(factor);
-                            } catch (error) {
-                                console.error(`BigInt 変換エラー: ${error.message}`);
-                            }
+                    if (event.data.stopped) {
+                        console.log(`worker ${i + 1} が試行上限に達し停止`);
+                        worker.terminate();
+                        activeWorkers--;
+
+                        if (activeWorkers === 0) {
+                            console.log(`すべての worker が停止しました。因数を発見できませんでした。`);
+                            resolve(null);
                         }
+                    }
+                };
 
-                        if (event.data.stopped) {
-                            console.log(`worker ${workerIndex} が試行上限に達し停止`);
-                            worker.terminate();
-                            activeWorkers--;
-
-                            if (activeWorkers === 0) {
-                                console.log(`すべての worker が停止しました。因数を発見できませんでした。`);
-                                resolve(null);
-                            }
-                        }
-                    };
-
-                    worker.onerror = function (error) {
-                        console.error(`worker ${workerIndex} でエラー発生: ${error.message}`);
-                        reject(error);
-                    };
-                } catch (error) {
-                    console.error(`worker ${workerIndex} の作成に失敗しました。 ${error.message}`);
+                worker.onerror = function (error) {
+                    console.error(`worker ${i + 1} でエラー発生: ${error.message}`);
                     reject(error);
-                }
+                };
+
+            } catch (error) {
+                console.error(`worker ${i + 1} の作成に失敗しました。 ${error.message}`);
+                reject(error);
             }
         }
     });
