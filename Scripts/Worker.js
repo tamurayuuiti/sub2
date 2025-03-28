@@ -5,7 +5,7 @@ self.onmessage = async function(event) {
         let resetCount = 0;
 
         const MAX_TRIALS = {
-            fx1: 1000000n,
+            fx1: 300000n,
             fx2: 100000000n
         };
 
