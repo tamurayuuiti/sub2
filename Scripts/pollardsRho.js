@@ -4,7 +4,7 @@ import { isPrimeMillerRabin } from './millerRabin.js';
 // どの f(x) を使用するか制御するオブジェクト
 const ENABLE_FX = {
     fx1: true,  // (x² + 7x + c) % n
-    fx2: true,  // (x² + c x) % n
+    fx2: false,  // (x² + c x) % n
     fx3: true   // (x³ + c) % n
 };
 
