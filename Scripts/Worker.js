@@ -6,12 +6,12 @@ self.onmessage = async function(event) {
 
         const MAX_TRIALS = {
             fx1: 500000n,
-            fx2: 20000000n
+            fx2: 100000000n
         };
 
         const MAX_RESET_COUNT = {
             fx1: 1,
-            fx2: 5
+            fx2: 1
         };
 
         while (resetCount < MAX_RESET_COUNT[fxType]) {
@@ -24,7 +24,7 @@ self.onmessage = async function(event) {
                 fxFunction = (x, c, n) => (3n * x * x + 7n * x + c) % n;
             } else if (fxType === "fx2") {
                 fxEquation = "(x³ + 5x + c) mod n";
-                fxFunction = (x, c, n) => (x * x * x + 5n * x +  c) % n;
+                fxFunction = (x, c, n) => (x * x * x + 5n * x + c) % n;
             } else {
                 throw new Error("Unknown fxType");
             }
