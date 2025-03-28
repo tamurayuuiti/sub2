@@ -10,8 +10,8 @@ self.onmessage = async function(event) {
         };
 
         const MAX_RESET_COUNT = {
-            fx1: 0,
-            fx2: 0
+            fx1: 1,
+            fx2: 1
         };
 
         while (resetCount < MAX_RESET_COUNT[fxType]) {
