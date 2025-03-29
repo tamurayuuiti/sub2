@@ -53,22 +53,22 @@ export async function pollardsRho(n) {
         const workers = [];
         let activeWorkers = numWorkers;
 
-        const rangeSize = n / BigInt(numWorkers);
-        
+        const rangeSize = n / BigInt(numWorkers); // 修正: numWorkers を BigInt に変換
+
         for (let i = 0; i < numWorkers; i++) {
             try {
                 const worker = new Worker("./Scripts/worker.js");
                 workers.push(worker);
 
-                const xStart = i * rangeSize;
-                const xEnd = (i + 1) * rangeSize;
+                const xStart = BigInt(i) * rangeSize; // 修正: i を BigInt に変換
+                const xEnd = BigInt(i + 1) * rangeSize;
 
                 worker.postMessage({
-                    n,
+                    n: n.toString(), // 修正: BigInt を文字列化
                     fxType: 'fx2',
                     workerId: i,
-                    xStart: xStart.toString(),
-                    xEnd: xEnd.toString(),
+                    xStart: xStart.toString(), // 修正: BigInt を文字列化
+                    xEnd: xEnd.toString(), // 修正: BigInt を文字列化
                 });
 
                 worker.onmessage = function (event) {
