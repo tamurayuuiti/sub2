@@ -45,7 +45,7 @@ export async function pollardsRho(n) {
     return new Promise((resolve, reject) => {
         const numCores = navigator.hardwareConcurrency || 4; 
         const numWorkers = numCores;
-        const xEnd = 10n ** 15n;
+        const xEnd = 10n ** 10n;
         const xMid = xEnd / 2n;
 
         const xRanges = [];
