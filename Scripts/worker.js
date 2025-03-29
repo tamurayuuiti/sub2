@@ -66,7 +66,7 @@ self.onmessage = async function(event) {
             console.log(`worker ${workerId + 1} が因数 ${d} を送信（試行回数: ${trialCount}）`);
             
             setTimeout(() => {
-                postMessage({ factor: d.toString(), trials: trialCount.toString() });
+                postMessage({ factor: d.toString(), trials: trialCount.toString(), workerId });
             }, 0);
             
             return;
