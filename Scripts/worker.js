@@ -2,9 +2,11 @@ self.onmessage = async function(event) {
     try {
         let { n, fxType, workerId, xRange, c } = event.data;
         let { maxC } = getDigitBasedParams(n);
+        
         if (!c) {
-            c = getRandomC(n, maxC);
+            throw new Error("c is required and should be provided by the main thread.");
         }
+        
         let fxFunction;
         let fxEquation;
 
@@ -23,8 +25,6 @@ self.onmessage = async function(event) {
             throw new Error("Unknown fxType");
         }
 
-        console.log(`Worker ${workerId + 1} を実行: fx = ${fxEquation}, 試行上限 ${MAX_TRIALS[fxType]}, c = ${c} (範囲: 1 ～ ${maxC * 2 - 1})`);
-
         let x = 2n, y = 2n, d = 1n;
         let trialCount = 0n;
         let q = 1n;
@@ -32,12 +32,13 @@ self.onmessage = async function(event) {
         let k = 10n;
         let resetCount = 0;
 
-        // x の範囲を考慮
         if (xRange) {
             x = xRange.xMin;
             y = xRange.xMin;
         }
 
+        console.log(`Worker ${workerId + 1} を実行: fx = ${fxEquation}, 試行上限 ${MAX_TRIALS[fxType]}, c = ${c} (範囲: 1 ～ ${maxC * 2 - 1}), x範囲: ${xRange ? xRange.xMin + ' ～ ' + xRange.xMax : '未指定'}`);
+        
         x = fxFunction(x, c, n);
         y = fxFunction(fxFunction(y, c, n), c, n);
 
