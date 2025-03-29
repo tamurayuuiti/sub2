@@ -32,8 +32,8 @@ self.onmessage = async function(event) {
 
         console.log(`Worker ${workerId + 1} の実行開始: fx = ${fxEquation}, 範囲 [${xStart}, ${xEnd}]`);
 
-        let x = xStart;
-        let y = xStart;
+        let x = xStart + 2n;
+        let y = xStart + 2n;
         let d = 1n;
         let trialCount = 0n;
         let q = 1n;
