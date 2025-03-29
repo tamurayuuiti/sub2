@@ -46,7 +46,7 @@ self.onmessage = async function(event) {
                     resetCount++;
                 }
 
-                if (trialCount % 2500000n === 0n) {
+                if (trialCount % 1000000n === 0n) {
                     console.log(`worker ${workerId + 1} 試行 ${trialCount},　fx = ${fxType}, x=${x}, y=${y}, q=${q}, gcd=${d}`);
                     await new Promise(resolve => setTimeout(resolve, 0));
                 }
