@@ -46,28 +46,27 @@ export async function pollardsRho(n) {
         const numCores = navigator.hardwareConcurrency || 4; 
         const numWorkers = numCores;
         const xEnd = 10n ** 10n;
-        const xMid = xEnd / 2n;
 
-        const xRanges = [];
+        // 1つのワーカーを fx1 に割り当てる
+        const fx1Workers = 1;
+        const fx2Workers = numWorkers - fx1Workers;
 
-        xRanges.push({ fxType: "fx1" });
-        xRanges.push({ fxType: "fx2", xMin: 0n, xMax: xMid });
+        // fx2 の x 範囲を均等に分割
+        const stepSize = xEnd / BigInt(fx2Workers);
+        const xRanges = [{ fxType: "fx1" }];
 
-        const remainingWorkers = numWorkers - 2;
-        const stepSize = (xEnd - xMid) / BigInt(remainingWorkers);
-
-        for (let i = 0; i < remainingWorkers; i++) {
-            let xMin = xMid + stepSize * BigInt(i);
+        for (let i = 0; i < fx2Workers; i++) {
+            let xMin = stepSize * BigInt(i);
             let xMax = xMin + stepSize;
             xRanges.push({ fxType: "fx2", xMin, xMax });
         }
 
         const workers = [];
         const commonC = getRandomC(n, getDigitBasedParams(n).maxC);
-        let activeWorkers = numWorkers; // 🔹 修正: worker のカウントを管理
+        let activeWorkers = numWorkers;
 
         for (let i = 0; i < numWorkers; i++) {
-            const workerId = i; // 🔹 修正: `i` の値を固定
+            const workerId = i;
             const worker = new Worker("./Scripts/worker.js");
             workers.push(worker);
 
