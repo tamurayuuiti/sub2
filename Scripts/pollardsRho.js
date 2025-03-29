@@ -63,7 +63,7 @@ export async function pollardsRho(n) {
         }
 
         const workers = [];
-        const commonC = 1n;
+        const commonC = getRandomC(n, getDigitBasedParams(n).maxC);
         let activeWorkers = numWorkers; // 🔹 修正: worker のカウントを管理
 
         for (let i = 0; i < numWorkers; i++) {
@@ -75,7 +75,7 @@ export async function pollardsRho(n) {
                 n, 
                 fxType: xRanges[workerId].fxType, 
                 xRange: xRanges[workerId].xMin !== undefined ? { xMin: xRanges[workerId].xMin, xMax: xRanges[workerId].xMax } : undefined, 
-                c: xRanges[workerId].fxType === "fx2" ? commonC : undefined, 
+                c: commonC, 
                 workerId 
             });
 
