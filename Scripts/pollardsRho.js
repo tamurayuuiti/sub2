@@ -43,7 +43,7 @@ export async function pollardsRhoFactorization(number) {
 
 export async function pollardsRho(n) {
     return new Promise((resolve, reject) => {
-        const totalWorkers = navigator.hardwareConcurrency || 4; // デフォルト4
+        const totalWorkers = navigator.hardwareConcurrency - 1|| 4; // デフォルト4
         const numFx1Workers = 1; // fx1用 workerは1つ
         const numFx2Workers = totalWorkers - 1; // 残りを fx2 に割り当てる
 
