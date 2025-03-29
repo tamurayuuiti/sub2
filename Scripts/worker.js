@@ -25,7 +25,7 @@ self.onmessage = async function(event) {
             throw new Error("Unknown fxType");
         }
 
-        console.log(`Worker ${workerId + 1} の実行開始: fx = ${fxEquation}, 範囲 [${xStart}, ${xEnd}]`);
+        console.log(`Worker ${i + 1} の実行開始: fx = ${fxEquation}, 範囲 [${xStart}, ${xEnd}]`);
 
         let x = BigInt(xStart);
         let y = BigInt(xStart);
