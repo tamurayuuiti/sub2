@@ -1,6 +1,6 @@
 self.onmessage = async function(event) {
     try {
-        let { n, fxType, workerId } = event.data;
+        let { n, fxType, workerId, xStart, xEnd } = event.data;
         let { maxC } = getDigitBasedParams(n);
         let c = getRandomC(n, maxC);
         let fxFunction;
@@ -23,7 +23,9 @@ self.onmessage = async function(event) {
 
         console.log(`Worker ${workerId + 1} の実行成功: fx = ${fxEquation}, 試行上限 ${MAX_TRIALS[fxType]}, c = ${c} (範囲: 1 ～ ${maxC * 2 - 1})`);
 
-        let x = 2n, y = 2n, d = 1n;
+        let x = BigInt(xStart);
+        let y = BigInt(xStart);
+        let d = 1n;
         let trialCount = 0n;
         let q = 1n;
         let m = 128n;
@@ -33,12 +35,13 @@ self.onmessage = async function(event) {
         x = fxFunction(x, c, n);
         y = fxFunction(fxFunction(y, c, n), c, n);
 
-        while (d === 1n && trialCount < MAX_TRIALS[fxType]) {
+        while (d === 1n && trialCount < MAX_TRIALS[fxType] && x < BigInt(xEnd)) {
             let ys = y;
-            for (let i = 0n; i < m && trialCount < MAX_TRIALS[fxType]; i++) {
+            for (let i = 0n; i < m && trialCount < MAX_TRIALS[fxType] && x < BigInt(xEnd); i++) {
                 y = fxFunction(fxFunction(y, c, n), c, n);
                 q = abs(x - y) * q % n;
                 trialCount++;
+                x++;
 
                 if (q === 0n) {
                     console.error(`worker ${workerId + 1} q が 0 になりました。（リセット回数: ${resetCount}）`);
