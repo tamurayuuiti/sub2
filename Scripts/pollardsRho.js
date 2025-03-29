@@ -120,3 +120,24 @@ export async function pollardsRho(n) {
         }
     });
 }
+
+export function getDigitBasedParams(n) {
+    try {
+        let digitCount = n.toString().length;
+        return { maxC: digitCount <= 20 ? 30 : 50 };
+    } catch (error) {
+        console.error("getDigitBasedParams() でエラー:", error.message);
+        return { maxC: 50 };
+    }
+}
+
+export function getRandomC(n, maxC) {
+    try {
+        const buffer = new Uint32Array(1);
+        crypto.getRandomValues(buffer);
+        return BigInt((buffer[0] % maxC) * 2 + 1);
+    } catch (error) {
+        console.error("getRandomC() でエラー:", error.message);
+        return 1n;
+    }
+}
