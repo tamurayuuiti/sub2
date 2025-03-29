@@ -49,7 +49,7 @@ export async function pollardsRhoFactorization(number) {
 // pollardsRho.js
 export async function pollardsRho(n) {
     return new Promise((resolve, reject) => {
-        const numWorkers = navigator.hardwareConcurrency || 4; // CPU コア数
+        const numWorkers = navigator.hardwareConcurrency || 4;
         const workers = [];
         let activeWorkers = numWorkers;
 
@@ -60,15 +60,15 @@ export async function pollardsRho(n) {
                 const worker = new Worker("./Scripts/worker.js");
                 workers.push(worker);
 
-                const xStart = BigInt(i) * rangeSize; // 修正: i を BigInt に変換
+                const xStart = BigInt(i) * rangeSize;
                 const xEnd = BigInt(i + 1) * rangeSize;
 
                 worker.postMessage({
                     n: n.toString(), // 修正: BigInt を文字列化
                     fxType: 'fx2',
-                    workerId: i,
-                    xStart: xStart.toString(), // 修正: BigInt を文字列化
-                    xEnd: xEnd.toString(), // 修正: BigInt を文字列化
+                    workerId: i, // 修正: workerId を確実に渡す
+                    xStart: xStart.toString(),
+                    xEnd: xEnd.toString(),
                 });
 
                 worker.onmessage = function (event) {
