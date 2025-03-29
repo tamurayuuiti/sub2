@@ -1,6 +1,7 @@
 self.onmessage = async function(event) {
     try {
-        let { n, fxType, workerId } = event.data;
+        let { n, fxType, workerId, sharedBuffer } = event.data;
+        let sharedView = new Int32Array(sharedBuffer);
         let { maxC } = getDigitBasedParams(n);
         let c = getRandomC(n, maxC);
         let fxFunction;
