@@ -1,6 +1,6 @@
 self.onmessage = async function(event) {
     try {
-        let { n, fxType, workerId } = event.data;
+        let { n, fxType, workerId, xStart } = event.data;
         let { maxC } = getDigitBasedParams(n);
         let c = getRandomC(n, maxC);
         let fxFunction;
@@ -16,14 +16,14 @@ self.onmessage = async function(event) {
             fxFunction = (x, c, n) => (3n * x * x + 7n * x + c) % n;
         } else if (fxType === "fx2") {
             fxEquation = "(x³ + 5x + c) mod n";
-            fxFunction = (x, c, n) => (x * x * x + 5n * x + c) % n; 
+            fxFunction = (x, c, n) => (x * x * x + 5n * x + c) % n;
         } else {
             throw new Error("Unknown fxType");
         }
 
-        console.log(`Worker ${workerId + 1} を実行: fx = ${fxEquation}, 試行上限 ${MAX_TRIALS[fxType]}, c = ${c} (範囲: 1 ～ ${maxC * 2 - 1})`);
+        console.log(`Worker ${workerId} 実行: fxType=${fxType}, xStart=${xStart}`);
 
-        let x = 2n, y = 2n, d = 1n;
+        let x = xStart, y = xStart, d = 1n;
         let trialCount = 0n;
         let q = 1n;
         let m = 128n;
@@ -64,11 +64,9 @@ self.onmessage = async function(event) {
 
         if (d > 1n && d !== n) {
             console.log(`worker ${workerId + 1} が因数 ${d} を送信（試行回数: ${trialCount}）`);
-            
             setTimeout(() => {
                 postMessage({ factor: d.toString(), trials: trialCount.toString() });
             }, 0);
-            
             return;
         }
 
@@ -82,37 +80,25 @@ self.onmessage = async function(event) {
 };
 
 function getDigitBasedParams(n) {
-    try {
-        let digitCount = n.toString().length;
-        return { maxC: digitCount <= 20 ? 30 : 50 };
-    } catch (error) {
-        console.error("getDigitBasedParams() でエラー:", error.message);
-        return { maxC: 50 };
-    }
+    let digitCount = n.toString().length;
+    return { maxC: digitCount <= 20 ? 30 : 50 };
 }
 
 function getRandomC(n, maxC) {
-    try {
-        const buffer = new Uint32Array(1);
-        crypto.getRandomValues(buffer);
-        return BigInt((buffer[0] % maxC) * 2 + 1);
-    } catch (error) {
-        console.error("getRandomC() でエラー:", error.message);
-        return 1n;
-    }
+    const buffer = new Uint32Array(1);
+    crypto.getRandomValues(buffer);
+    return BigInt((buffer[0] % maxC) * 2 + 1);
 }
 
 function gcd(a, b) {
     if (a === 0n) return b;
     if (b === 0n) return a;
-
     let shift = 0n;
     while (((a | b) & 1n) === 0n) {
         a >>= 1n;
         b >>= 1n;
         shift++;
     }
-
     while ((a & 1n) === 0n) a >>= 1n;
     while (b !== 0n) {
         while ((b & 1n) === 0n) b >>= 1n;
@@ -120,7 +106,6 @@ function gcd(a, b) {
         b -= a;
         if (b === 0n) break;
     }
-
     return a << shift;
 }
 
