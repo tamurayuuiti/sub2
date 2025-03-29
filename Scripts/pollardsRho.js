@@ -98,7 +98,7 @@ export async function pollardsRho(n) {
             if (event.data.factor) {
                 try {
                     let factor = BigInt(event.data.factor);
-                    console.log(`worker ${i + 1} が因数 ${factor} を発見（試行回数: ${BigInt(event.data.trials)}）`);
+                    console.log(`worker ${workerId + 1} が因数 ${factor} を発見（試行回数: ${BigInt(event.data.trials)}）`);
                     
                     // すべての worker を停止
                     workerFx1?.terminate();
@@ -111,7 +111,7 @@ export async function pollardsRho(n) {
             }
 
             if (event.data.stopped) {
-                console.log(`worker ${i + 1} が試行上限に達し停止`);
+                console.log(`worker ${workerId + 1} が試行上限に達し停止`);
                 worker.terminate();
                 activeWorkers--;
 
