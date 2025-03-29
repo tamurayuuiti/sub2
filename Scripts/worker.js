@@ -17,10 +17,10 @@ self.onmessage = async function(event) {
 
         if (fxType === "fx1") {
             fxEquation = "(3x² + 7x + c) mod n";
-            fxFunction = (x, c, n) => (3n * x * x + 7n * x + c) % n;
+            fxFunction = (x, c, n) => (3n * BigInt(x) * BigInt(x) + 7n * BigInt(x) + BigInt(c)) % BigInt(n);
         } else if (fxType === "fx2") {
             fxEquation = "(x³ + 5x + c) mod n";
-            fxFunction = (x, c, n) => (x * x * x + 5n * x + c) % n;
+            fxFunction = (x, c, n) => (BigInt(x) * BigInt(x) * BigInt(x) + 5n * BigInt(x) + BigInt(c)) % BigInt(n);
         } else {
             throw new Error("Unknown fxType");
         }
