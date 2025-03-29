@@ -1,12 +1,6 @@
 // ミラー・ラビン素数判定法
 import { isPrimeMillerRabin } from './millerRabin.js';
 
-// どの f(x) を使用するか制御するオブジェクト
-const ENABLE_FX = {
-    fx1: true,  // (3x² + 7x + c) % n
-    fx2: true   // (x³ + 5x + c) % n
-};
-
 export async function pollardsRhoFactorization(number) {
     if (typeof number !== "bigint") {
         throw new TypeError(`エラー: pollardsRhoFactorization() に渡された number (${number}) が BigInt ではありません。`);
@@ -49,63 +43,80 @@ export async function pollardsRhoFactorization(number) {
 
 export async function pollardsRho(n) {
     return new Promise((resolve, reject) => {
-        const workers = [];
-        const fxTypes = Object.keys(ENABLE_FX).filter(fx => ENABLE_FX[fx]); 
-        let activeWorkers = fxTypes.length;
+        const numCores = navigator.hardwareConcurrency || 4; 
+        const numWorkers = numCores;
+        const xEnd = 10n ** 9n;
+        const xMid = xEnd / 2n;
 
-        if (activeWorkers === 0) {
-            console.error(`全ての f(x) が無効です。少なくとも 1 つ有効にしてください。`);
-            resolve(null);
-            return;
+        const xRanges = [];
+
+        xRanges.push({ fxType: "fx1" });
+        xRanges.push({ fxType: "fx2", xMin: 0n, xMax: xMid });
+
+        const remainingWorkers = numWorkers - 2;
+        const stepSize = (xEnd - xMid) / BigInt(remainingWorkers);
+
+        for (let i = 0; i < remainingWorkers; i++) {
+            let xMin = xMid + stepSize * BigInt(i);
+            let xMax = xMin + stepSize;
+            xRanges.push({ fxType: "fx2", xMin, xMax });
         }
 
-        for (let i = 0; i < fxTypes.length; i++) {
-            try {
-                const worker = new Worker("./Scripts/worker.js");
-                workers.push(worker);
+        const workers = [];
+        const commonC = 1n;
+        let activeWorkers = numWorkers; // 🔹 修正: worker のカウントを管理
 
-                worker.postMessage({ n, fxType: fxTypes[i], workerId: i });
+        for (let i = 0; i < numWorkers; i++) {
+            const workerId = i; // 🔹 修正: `i` の値を固定
+            const worker = new Worker("./Scripts/worker.js");
+            workers.push(worker);
 
-                worker.onmessage = function (event) {
-                    console.log(`受信データ:`, event.data);
+            worker.postMessage({ 
+                n, 
+                fxType: xRanges[workerId].fxType, 
+                xRange: xRanges[workerId].xMin !== undefined ? { xMin: xRanges[workerId].xMin, xMax: xRanges[workerId].xMax } : undefined, 
+                c: xRanges[workerId].fxType === "fx2" ? commonC : undefined, 
+                workerId 
+            });
 
-                    if (event.data.error) {
-                        console.error(`worker ${i + 1} でエラー発生: ${event.data.error}`);
-                        return;
+            worker.onmessage = function (event) {
+                console.log(`worker ${workerId + 1} 受信データ:`, event.data);
+
+                if (event.data.error) {
+                    console.error(`worker ${workerId + 1} でエラー発生: ${event.data.error}`);
+                    return;
+                }
+
+                if (event.data.factor) {
+                    try {
+                        let factor = BigInt(event.data.factor);
+                        console.log(`worker ${workerId + 1} が因数 ${factor} を発見（試行回数: ${BigInt(event.data.trials)}）`);
+                        workers.forEach((w) => w.terminate());
+                        resolve(factor);
+                    } catch (error) {
+                        console.error(`BigInt 変換エラー: ${error.message}`);
                     }
+                }
 
-                    if (event.data.factor) {
-                        try {
-                            let factor = BigInt(event.data.factor); 
-                            console.log(`worker ${i + 1} が因数 ${factor} を発見（試行回数: ${BigInt(event.data.trials)}）`);
-                            workers.forEach((w) => w.terminate());
-                            resolve(factor);
-                        } catch (error) {
-                            console.error(`BigInt 変換エラー: ${error.message}`);
-                        }
+                if (event.data.stopped) {
+                    console.log(`worker ${workerId + 1} が試行上限に達し停止`);
+                    worker.terminate();
+                    activeWorkers--;
+
+                    if (activeWorkers === 0) {
+                        console.log(`すべての worker が停止しました。因数を発見できませんでした。`);
+                        resolve(null);
                     }
+                }
+            };
 
-                    if (event.data.stopped) {
-                        console.log(`worker ${i + 1} が試行上限に達し停止`);
-                        worker.terminate();
-                        activeWorkers--;
-
-                        if (activeWorkers === 0) {
-                            console.log(`すべての worker が停止しました。因数を発見できませんでした。`);
-                            resolve(null);
-                        }
-                    }
-                };
-
-                worker.onerror = function (error) {
-                    console.error(`worker ${i + 1} でエラー発生: ${error.message}`);
+            worker.onerror = function (error) {
+                console.error(`worker ${workerId + 1} でエラー発生: ${error.message}`);
+                activeWorkers--;
+                if (activeWorkers === 0) {
                     reject(error);
-                };
-
-            } catch (error) {
-                console.error(`worker ${i + 1} の作成に失敗しました。 ${error.message}`);
-                reject(error);
-            }
+                }
+            };
         }
     });
 }
