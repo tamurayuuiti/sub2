@@ -47,26 +47,27 @@ export async function pollardsRhoFactorization(number) {
 }
 
 // pollardsRho.js
+// pollardsRho.js
 export async function pollardsRho(n) {
     return new Promise((resolve, reject) => {
-        const numWorkers = navigator.hardwareConcurrency || 4;
+        const numWorkers = navigator.hardwareConcurrency || 4; // CPU コア数
         const workers = [];
         let activeWorkers = numWorkers;
 
-        const rangeSize = n / BigInt(numWorkers); // 修正: numWorkers を BigInt に変換
-
+        const rangeSize = n / BigInt(numWorkers);
+        
         for (let i = 0; i < numWorkers; i++) {
             try {
                 const worker = new Worker("./Scripts/worker.js");
                 workers.push(worker);
 
-                const xStart = BigInt(i) * rangeSize;
-                const xEnd = BigInt(i + 1) * rangeSize;
+                const xStart = i * rangeSize;
+                const xEnd = (i + 1) * rangeSize;
 
                 worker.postMessage({
-                    n: n.toString(), // 修正: BigInt を文字列化
+                    n,
                     fxType: 'fx2',
-                    workerId: i, // 修正: workerId を確実に渡す
+                    workerId: i,
                     xStart: xStart.toString(),
                     xEnd: xEnd.toString(),
                 });
