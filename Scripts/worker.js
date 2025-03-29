@@ -1,34 +1,39 @@
 self.onmessage = async function(event) {
     try {
-        let { n, fxType, workerId, xStart, xEnd } = event.data; // 修正: workerId を確実に取得
+        let { n, fxType, workerId, xStart, xEnd } = event.data;
         if (typeof workerId === "undefined") {
             throw new Error("workerId が undefined です");
         }
 
+        n = BigInt(n);
+        xStart = BigInt(xStart);
+        xEnd = BigInt(xEnd);
+        
         let { maxC } = getDigitBasedParams(n);
         let c = getRandomC(n, maxC);
-        let fxFunction;
-        let fxEquation;
 
         const MAX_TRIALS = {
             fx1: 500000n,
             fx2: 100000000n
         };
 
+        let fxFunction;
+        let fxEquation;
+
         if (fxType === "fx1") {
             fxEquation = "(3x² + 7x + c) mod n";
-            fxFunction = (x, c, n) => (3n * BigInt(x) * BigInt(x) + 7n * BigInt(x) + BigInt(c)) % BigInt(n);
+            fxFunction = (x, c, n) => (3n * x * x + 7n * x + c) % n;
         } else if (fxType === "fx2") {
             fxEquation = "(x³ + 5x + c) mod n";
-            fxFunction = (x, c, n) => (BigInt(x) * BigInt(x) * BigInt(x) + 5n * BigInt(x) + BigInt(c)) % BigInt(n);
+            fxFunction = (x, c, n) => (x * x * x + 5n * x + c) % n;
         } else {
             throw new Error("Unknown fxType");
         }
 
         console.log(`Worker ${workerId + 1} の実行開始: fx = ${fxEquation}, 範囲 [${xStart}, ${xEnd}]`);
 
-        let x = BigInt(xStart);
-        let y = BigInt(xStart);
+        let x = xStart;
+        let y = xStart;
         let d = 1n;
         let trialCount = 0n;
         let q = 1n;
@@ -39,9 +44,9 @@ self.onmessage = async function(event) {
         x = fxFunction(x, c, n);
         y = fxFunction(fxFunction(y, c, n), c, n);
 
-        while (d === 1n && trialCount < MAX_TRIALS[fxType] && x < BigInt(xEnd)) {
+        while (d === 1n && trialCount < MAX_TRIALS[fxType] && x < xEnd) {
             let ys = y;
-            for (let i = 0n; i < m && trialCount < MAX_TRIALS[fxType] && x < BigInt(xEnd); i++) {
+            for (let i = 0n; i < m && trialCount < MAX_TRIALS[fxType] && x < xEnd; i++) {
                 y = fxFunction(fxFunction(y, c, n), c, n);
                 q = abs(x - y) * q % n;
                 trialCount++;
@@ -54,7 +59,7 @@ self.onmessage = async function(event) {
                 }
 
                 if (trialCount % 1000000n === 0n) {
-                    console.log(`worker ${workerId + 1} 試行 ${trialCount},　fx = ${fxType}, x=${x}, y=${y}, q=${q}, gcd=${d}`);
+                    console.log(`worker ${workerId + 1} 試行 ${trialCount}, fx = ${fxType}, x=${x}, y=${y}, q=${q}, gcd=${d}`);
                     await new Promise(resolve => setTimeout(resolve, 0));
                 }
 
@@ -87,10 +92,10 @@ self.onmessage = async function(event) {
 function getDigitBasedParams(n) {
     try {
         let digitCount = n.toString().length;
-        return { maxC: digitCount <= 20 ? 30 : 50 };
+        return { maxC: digitCount <= 20 ? 30n : 50n };
     } catch (error) {
         console.error("getDigitBasedParams() でエラー:", error.message);
-        return { maxC: 50 };
+        return { maxC: 50n };
     }
 }
 
@@ -98,7 +103,7 @@ function getRandomC(n, maxC) {
     try {
         const buffer = new Uint32Array(1);
         crypto.getRandomValues(buffer);
-        return BigInt((buffer[0] % maxC) * 2 + 1);
+        return BigInt((buffer[0] % Number(maxC)) * 2 + 1);
     } catch (error) {
         console.error("getRandomC() でエラー:", error.message);
         return 1n;
