@@ -1,151 +1,177 @@
-// ミラー・ラビン素数判定法
-import { isPrimeMillerRabin } from './Scripts/millerRabin.js';
-
-// 試し割り法
 import { trialDivision } from './Scripts/trialDivision.js';
-
-// Pollard’s rho 法
 import { pollardsRhoFactorization } from './Scripts/pollardsRho.js';
 
-let startTime = null;
-let isCalculating = false;
-let progressInterval = null;
 let primes = [];
 
-document.getElementById("calculateButton").addEventListener("click", startFactorization);
-document.getElementById("numberInput").addEventListener("keypress", function(event) {
-    if (event.key === "Enter") {
-        startFactorization();
-    }
-});
-
-// 入力の桁数制限（30桁まで）
-const inputField = document.getElementById("numberInput");
-const charCounter = document.getElementById("charCounter");
-const errorMessage = document.getElementById("errorMessage");
-
-// 入力制御 & カウンター更新
-function updateCounter() {
-    charCounter.textContent = `現在の桁数: ${inputField.value.length} (最大30桁)`;
-
-    if (inputField.value.length >= 30) {
-        charCounter.classList.add("limit-reached");
-        errorMessage.style.display = "block";
-    } else {
-        charCounter.classList.remove("limit-reached");
-        errorMessage.style.display = "none";
-    }
-}
-
-inputField.addEventListener("input", function() {
-    const sanitized = this.value.replace(/[^0-9]/g, '').slice(0, 30);
-    if (this.value !== sanitized) {
-        console.log(`無効な文字を削除: ${this.value} → ${sanitized}`);
-        this.value = sanitized;
-    }
-    updateCounter();
-});
-
-// 入力制限（記号・30桁超え防止）
-inputField.addEventListener("keydown", function(event) {
-    if (["e", "E", "+", "-", "."].includes(event.key) || 
-        (this.value.length >= 30 && event.key >= "0" && event.key <= "9")) {
-        event.preventDefault();
-    }
-});
-
-// 外部の素数リスト読み込み
 async function loadPrimes() {
-    try {
-        console.log("素数リストの読み込みを開始します");
-        const response = await fetch("https://tamurayuuiti.github.io/sub2/data/primes.txt");
-        if (!response.ok) {
-            throw new Error(`素数リストの読み込みに失敗しました (HTTP ${response.status})`);
-        }
-        const text = await response.text();
-        primes = text.split(/\s+/).filter(n => n).map(n => BigInt(n));
-        if (primes.length === 0) {
-            throw new Error("素数リストが空です");
-        }
-        console.log(`素数リストの読み込みが完了しました。${primes.length} 個の素数を取得しました。`);
-    } catch (error) {
-        console.error("素数リストの取得エラー:", error);
-        alert("素数リストの読み込みに失敗しました。ページを更新して再試行してください。");
+    const response = await fetch("https://tamurayuuiti.github.io/sub2/data/primes.txt");
+    const text = await response.text();
+    primes = text.split(/\s+/).filter(n => n).map(n => BigInt(n));
+    if (primes.length === 0) throw new Error("素数リストが空");
+}
+
+function generateRandomBigInt(minDigits, maxDigits) {
+    const digits = Math.floor(Math.random() * (maxDigits - minDigits + 1)) + minDigits;
+    let n = '';
+    for (let i = 0; i < digits; i++) {
+        n += (i === 0) ? (Math.floor(Math.random() * 9) + 1) : Math.floor(Math.random() * 10);
     }
+    return BigInt(n);
 }
 
-function updateProgress() {
-    let elapsedTime = ((performance.now() - startTime) / 1000).toFixed(1);
-    document.getElementById("time").textContent = `経過時間: ${elapsedTime} 秒`;
+function appendResultRow(index, n, factors, status, time) {
+    const table = document.getElementById('resultTable');
+    const row = table.insertRow();
+    row.insertCell().textContent = index;
+    row.insertCell().textContent = n;
+    row.insertCell().textContent = factors.length > 0 ? factors.join(' × ') : '-';
+    row.insertCell().textContent = status;
+    row.insertCell().textContent = time;
 }
 
-async function startFactorization() {
-    try {
-        if (isCalculating) return;
-        let inputValue = document.getElementById("numberInput").value.trim();
-        if (!inputValue) return;
+function isPrime(n) {
+    return n > 1n && primes.includes(n);
+}
 
-        let num = BigInt(inputValue);
-        console.clear();
-        console.log(`素因数分解を開始: ${num}`);
+function showSummary(results) {
+    const totalTimes = results.map(r => parseFloat(r.elapsedTime));
+    const totalSuccesses = results.filter(r => r.status === "SUCCESS");
+    const totalTimeSum = totalTimes.reduce((a, b) => a + b, 0);
+    const avgTime = (totalTimeSum / results.length).toFixed(3);
+    const medianTime = totalTimes.sort((a, b) => a - b)[Math.floor(results.length / 2)];
+    const maxTime = Math.max(...totalTimes);
+    const maxRecord = results[totalTimes.indexOf(maxTime)];
 
-        if (num < 2n) {
-            document.getElementById("result").textContent = "有効な整数を入力してください";
-            return;
-        }
+    const totalFactors = totalSuccesses.reduce((sum, r) => sum + r.factors.length, 0);
+    const factorCounts = totalSuccesses.map(r => r.factors.length).sort((a, b) => a - b);
+    const avgFactors = (totalFactors / totalSuccesses.length).toFixed(2);
+    const twoFactors = totalSuccesses.filter(r => r.factors.length === 2).length;
+    const primeCount = totalSuccesses.filter(r => r.factors.length === 1).length;
+    const primeRate = ((primeCount / totalSuccesses.length) * 100).toFixed(2);
+    const successRate = ((totalSuccesses.length / results.length) * 100).toFixed(2);
 
-        document.getElementById("result").textContent = "";
-        document.getElementById("time").textContent = "";
-        document.getElementById("progress").textContent = ""; // ← reset
-        document.getElementById("spinner").style.display = "block";
-        document.getElementById("loading").style.display = "flex";
-        await new Promise(resolve => setTimeout(resolve, 10));
+    let summaryHTML = `<h3>【全体統計】</h3>
+        総試行: ${results.length} 回<br>
+        総計算時間: ${totalTimeSum.toFixed(3)} 秒<br>
+        平均タイム: ${avgTime} 秒<br>
+        中央値タイム: ${medianTime.toFixed(3)} 秒<br>
+        最大タイム: ${maxTime} 秒<br>
+        最大タイム時の n: ${maxRecord.n}<br>
+        最大タイム時の因数: ${maxRecord.factors.join(' × ')}<br>
+        平均因数個数: ${avgFactors}<br>
+        因数2個だった試行数: ${twoFactors} 回<br>
+        素数(因数1個): ${primeCount} 回<br>
+        素数率: ${primeRate} %<br>
+        成功率: ${successRate} %<br><br>`;
 
-        isCalculating = true;
-        startTime = performance.now();
+    const grouped = {};
 
-        progressInterval = setInterval(updateProgress, 100);
+    results.forEach(r => {
+        const digits = r.n.length;
+        if (!grouped[digits]) grouped[digits] = [];
+        grouped[digits].push(r);
+    });
 
-        if (primes.length === 0) {
-            await loadPrimes();
-            if (primes.length === 0) {
-                throw new Error("素数リストが空のため、計算できません");
-            }
-        }
+    for (const [digits, group] of Object.entries(grouped)) {
+        const times = group.map(r => parseFloat(r.elapsedTime));
+        const groupTimeSum = times.reduce((a, b) => a + b, 0);
+        const successes = group.filter(r => r.status === "SUCCESS");
+        const avgTime = (groupTimeSum / group.length).toFixed(3);
+        const medianTime = times.sort((a, b) => a - b)[Math.floor(group.length / 2)];
+        const maxTime = Math.max(...times);
+        const maxRecord = group[times.indexOf(maxTime)];
+        const factorsCount = successes.reduce((sum, r) => sum + r.factors.length, 0);
+        const avgFactors = successes.length ? (factorsCount / successes.length).toFixed(2) : 0;
+        const twoFactors = successes.filter(r => r.factors.length === 2).length;
+        const primeCount = successes.filter(r => r.factors.length === 1).length;
+        const primeRate = successes.length ? ((primeCount / successes.length) * 100).toFixed(2) : 0;
+        const successRate = ((successes.length / group.length) * 100).toFixed(2);
 
-        console.log("試し割り法を実行します");
-        let { factors, remainder } = await trialDivision(num, primes, msg => {
-            document.getElementById("result").textContent = msg;
-        });
-        console.log(`試し割り法完了。残りの数: ${remainder}`);
-
-        if (remainder > 1n) {
-            console.log(`Pollard's rho を開始。利用可能なスレッド数: ${navigator.hardwareConcurrency}, n = ${remainder}`);
-            let extraFactors = await pollardsRhoFactorization(remainder);
-
-            if (extraFactors.includes("FAIL")) {
-                console.error(`Pollard's Rho では因数を発見できませんでした。素因数分解を中断します。`);
-                document.getElementById("result").textContent = "素因数分解失敗";
-                return;
-            }
-
-            factors = factors.concat(extraFactors);
-        }
-
-        let elapsedTime = ((performance.now() - startTime) / 1000).toFixed(3);
-        document.getElementById("result").textContent = `素因数:\n${factors.sort((a, b) => (a < b ? -1 : 1)).join(" × ")}`;
-        document.getElementById("time").textContent = `計算時間: ${elapsedTime} 秒`;
-        console.log(`素因数分解完了: ${factors.join(" × ")}, 計算時間: ${elapsedTime} 秒`);
-    } catch (error) {
-        console.error("計算エラー:", error);
-        document.getElementById("result").textContent = "計算中にエラーが発生しました";
-    } finally {
-        isCalculating = false;
-        clearInterval(progressInterval);
-        document.getElementById("progress").textContent = ""; // ← これを追加
-        document.getElementById("spinner").style.display = "none";
-        document.getElementById("loading").style.display = "none";
+        summaryHTML += `<h4>【${digits}桁】</h4>
+            試行: ${group.length} 回<br>
+            総計算時間: ${groupTimeSum.toFixed(3)} 秒<br>
+            平均タイム: ${avgTime} 秒<br>
+            中央値タイム: ${medianTime.toFixed(3)} 秒<br>
+            最大タイム: ${maxTime} 秒<br>
+            最大タイム時の n: ${maxRecord.n}<br>
+            最大タイム時の因数: ${maxRecord.factors.join(' × ')}<br>
+            平均因数個数: ${avgFactors}<br>
+            因数2個だった試行数: ${twoFactors} 回<br>
+            素数(因数1個): ${primeCount} 回<br>
+            素数率: ${primeRate} %<br>
+            成功率: ${successRate} %<br><br>`;
     }
+
+    document.getElementById('summary').innerHTML = summaryHTML;
 }
 
-loadPrimes();
+async function startTest(trialCount, minDigits, maxDigits) {
+    if (minDigits > maxDigits || minDigits < 1 || maxDigits > 30) {
+        alert("最小桁数・最大桁数の指定が不正です");
+        return;
+    }
+
+    document.getElementById('resultTable').innerHTML = `
+        <tr><th>#</th><th>n</th><th>因数</th><th>状態</th><th>計算時間(s)</th></tr>
+    `;
+    document.getElementById('summary').innerHTML = "";
+    console.clear();
+
+    const results = [];
+    await loadPrimes();
+    const totalStart = performance.now(); // --- 総計測開始
+
+    for (let i = 0; i < trialCount; i++) {
+        if (i % 5 === 0) {
+            console.clear();
+            await new Promise(resolve => setTimeout(resolve, 0));
+        }
+
+        const n = generateRandomBigInt(minDigits, maxDigits);
+        const start = performance.now();
+        let factors = [];
+        let status = "SUCCESS";
+
+        try {
+            let { factors: trialFactors, remainder } = await trialDivision(n, primes, () => {});
+            factors = trialFactors;
+
+            if (remainder > 1n) {
+                const extraFactors = await pollardsRhoFactorization(remainder);
+                if (extraFactors.includes("FAIL")) {
+                    status = "FAIL";
+                } else {
+                    factors = factors.concat(extraFactors);
+                }
+            }
+        } catch {
+            status = "ERROR";
+        }
+
+        const elapsed = ((performance.now() - start) / 1000).toFixed(3);
+        results.push({ n: n.toString(), factors: factors.map(f => f.toString()), status, elapsedTime: elapsed });
+
+        appendResultRow(i + 1, n, factors.map(f => f.toString()), status, elapsed);
+        console.log(`[${i + 1}/${trialCount}] n=${n} status=${status} time=${elapsed}s`);
+    }
+
+    const totalElapsed = ((performance.now() - totalStart) / 1000).toFixed(3); // --- 総計算時間
+    window.testResults = results;
+    showSummary(results, totalElapsed); // --- 渡す
+}
+
+document.getElementById('startButton').addEventListener('click', () => {
+    const count = parseInt(document.getElementById('trialCount').value);
+    const minDigits = parseInt(document.getElementById('minDigits').value);
+    const maxDigits = parseInt(document.getElementById('maxDigits').value);
+    if (count > 0) startTest(count, minDigits, maxDigits);
+});
+
+document.getElementById('saveButton').addEventListener('click', () => {
+    if (!window.testResults || window.testResults.length === 0) {
+        alert("結果がありません");
+        return;
+    }
+    const blob = new Blob([JSON.stringify(window.testResults, null, 2)], { type: "application/json" });
+    saveAs(blob, "factorization_results.json");
+});
