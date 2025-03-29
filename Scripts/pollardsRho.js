@@ -46,22 +46,30 @@ export async function pollardsRhoFactorization(number) {
     return factors;
 }
 
+// pollardsRho.js
 export async function pollardsRho(n) {
     return new Promise((resolve, reject) => {
-        const numWorkers = navigator.hardwareConcurrency || 4; // CPU コア数を取得
+        const numWorkers = navigator.hardwareConcurrency || 4; // CPU コア数
         const workers = [];
         let activeWorkers = numWorkers;
 
+        const rangeSize = n / BigInt(numWorkers);
+        
         for (let i = 0; i < numWorkers; i++) {
             try {
                 const worker = new Worker("./Scripts/worker.js");
                 workers.push(worker);
 
-                if (i === 0) {
-                    worker.postMessage({ n, fxType: 'fx1', workerId: i });
-                } else {
-                    worker.postMessage({ n, fxType: 'fx2', workerId: i, totalWorkers: numWorkers - 1 });
-                }
+                const xStart = i * rangeSize;
+                const xEnd = (i + 1) * rangeSize;
+
+                worker.postMessage({
+                    n,
+                    fxType: 'fx2',
+                    workerId: i,
+                    xStart: xStart.toString(),
+                    xEnd: xEnd.toString(),
+                });
 
                 worker.onmessage = function (event) {
                     if (event.data.error) {
