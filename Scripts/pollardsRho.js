@@ -78,7 +78,7 @@ export async function pollardsRho(n) {
                 const worker = new Worker("./Scripts/worker.js");
                 workers.push(worker);
 
-                worker.postMessage({ n, fxType, x, workerId: i });
+                worker.postMessage({ n, fxType, xStart: x, workerId: i });
 
                 worker.onmessage = function (event) {
                     console.log(`受信データ:`, event.data);
