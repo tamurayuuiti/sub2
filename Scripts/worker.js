@@ -79,7 +79,7 @@ self.onmessage = async function(event) {
         postMessage({ stopped: true });
 
     } catch (error) {
-        console.error(`worker ${workerId + 1} でエラー: ${error.stack}`);
+        console.error(`worker でエラー: ${error.stack}`);
         postMessage({ error: error.stack });
     }
 };
