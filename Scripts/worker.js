@@ -1,3 +1,4 @@
+// worker.js
 self.onmessage = async function(event) {
     try {
         let { n, fxType, workerId, xStart, xEnd } = event.data;
@@ -21,7 +22,7 @@ self.onmessage = async function(event) {
             throw new Error("Unknown fxType");
         }
 
-        console.log(`Worker ${workerId + 1} の実行成功: fx = ${fxEquation}, 試行上限 ${MAX_TRIALS[fxType]}, c = ${c} (範囲: 1 ～ ${maxC * 2 - 1})`);
+        console.log(`Worker ${workerId + 1} の実行成功: fx = ${fxEquation}, 試行上限 ${MAX_TRIALS[fxType]}, c = ${c}`);
 
         let x = BigInt(xStart);
         let y = BigInt(xStart);
@@ -31,9 +32,6 @@ self.onmessage = async function(event) {
         let m = 128n;
         let k = 10n;
         let resetCount = 0;
-
-        x = fxFunction(x, c, n);
-        y = fxFunction(fxFunction(y, c, n), c, n);
 
         while (d === 1n && trialCount < MAX_TRIALS[fxType] && x < BigInt(xEnd)) {
             let ys = y;
@@ -50,7 +48,7 @@ self.onmessage = async function(event) {
                 }
 
                 if (trialCount % 1000000n === 0n) {
-                    console.log(`worker ${workerId + 1} 試行 ${trialCount},　fx = ${fxType}, x=${x}, y=${y}, q=${q}, gcd=${d}`);
+                    console.log(`worker ${workerId + 1} 試行 ${trialCount}, fx = ${fxType}, x=${x}, y=${y}, q=${q}, gcd=${d}`);
                     await new Promise(resolve => setTimeout(resolve, 0));
                 }
 
@@ -67,11 +65,9 @@ self.onmessage = async function(event) {
 
         if (d > 1n && d !== n) {
             console.log(`worker ${workerId + 1} が因数 ${d} を送信（試行回数: ${trialCount}）`);
-            
             setTimeout(() => {
                 postMessage({ factor: d.toString(), trials: trialCount.toString() });
             }, 0);
-            
             return;
         }
 
