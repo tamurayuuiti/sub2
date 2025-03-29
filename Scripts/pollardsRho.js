@@ -50,64 +50,70 @@ export async function pollardsRhoFactorization(number) {
 export async function pollardsRho(n) {
     return new Promise((resolve, reject) => {
         const workers = [];
-        const cpuCount = Math.max(2, navigator.hardwareConcurrency || 4); // CPU数 or デフォルト4
+        const cpuCores = navigator.hardwareConcurrency || 4; // デフォルト 4
+        const totalWorkers = Math.max(2, cpuCores); // 最低 2 つの Worker
         const fx1Workers = 1;
-        const fx2Workers = cpuCount - fx1Workers;
-        let activeWorkers = fx1Workers + fx2Workers;
+        const fx2Workers = totalWorkers - fx1Workers;
+        let activeWorkers = totalWorkers;
 
-        if (activeWorkers === 0) {
-            console.error("Workerを作成できません。");
-            resolve(null);
-            return;
+        const workerConfigs = [];
+        workerConfigs.push({ fxType: "fx1", xStart: 2n }); // fx1 の Worker
+        for (let i = 0; i < fx2Workers; i++) {
+            workerConfigs.push({ fxType: "fx2", xStart: BigInt([2, 3, 5, 7, 11][i % 5]) });
         }
 
-        console.log(`CPUコア数: ${cpuCount}, fx1: 1 Worker, fx2: ${fx2Workers} Workers`);
-
-        // fx1専用のWorker
-        const worker1 = new Worker("./Scripts/worker.js");
-        workers.push(worker1);
-        worker1.postMessage({ n, fxType: "fx1", workerId: 0, xStart: 2n });
-
-        // fx2用のWorker
-        for (let i = 1; i <= fx2Workers; i++) {
+        for (let i = 0; i < totalWorkers; i++) {
             try {
                 const worker = new Worker("./Scripts/worker.js");
                 workers.push(worker);
-
-                const xStart = getRandomBigInt(n);
-                worker.postMessage({ n, fxType: "fx2", workerId: i, xStart });
-
+                
+                worker.postMessage({
+                    n,
+                    fxType: workerConfigs[i].fxType,
+                    workerId: i,
+                    xStart: workerConfigs[i].xStart
+                });
+                
                 worker.onmessage = function (event) {
-                    if (event.data.factor) {
-                        let factor = BigInt(event.data.factor);
-                        console.log(`Worker ${i + 1} が因数 ${factor} を発見`);
-                        workers.forEach((w) => w.terminate());
-                        resolve(factor);
+                    console.log(`受信データ:`, event.data);
+                    
+                    if (event.data.error) {
+                        console.error(`worker ${i + 1} でエラー発生: ${event.data.error}`);
+                        return;
                     }
-
+                    
+                    if (event.data.factor) {
+                        try {
+                            let factor = BigInt(event.data.factor);
+                            console.log(`worker ${i + 1} が因数 ${factor} を発見`);
+                            workers.forEach((w) => w.terminate());
+                            resolve(factor);
+                        } catch (error) {
+                            console.error(`BigInt 変換エラー: ${error.message}`);
+                        }
+                    }
+                    
                     if (event.data.stopped) {
+                        console.log(`worker ${i + 1} が停止`);
                         worker.terminate();
                         activeWorkers--;
+                        
                         if (activeWorkers === 0) {
-                            console.log("すべての Worker が停止しました。");
+                            console.log(`すべての worker が終了。因数を発見できませんでした。`);
                             resolve(null);
                         }
                     }
                 };
 
                 worker.onerror = function (error) {
-                    console.error(`Worker ${i + 1} でエラー発生: ${error.message}`);
+                    console.error(`worker ${i + 1} でエラー: ${error.message}`);
                     reject(error);
                 };
-
             } catch (error) {
-                console.error(`Worker ${i + 1} の作成に失敗: ${error.message}`);
+                console.error(`worker ${i + 1} の作成失敗: ${error.message}`);
                 reject(error);
             }
         }
     });
 }
 
-function getRandomBigInt(n) {
-    return BigInt(Math.floor(Math.random() * Number(n / 2n))) + 1n;
-}
