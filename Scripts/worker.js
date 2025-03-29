@@ -1,7 +1,6 @@
 self.onmessage = async function(event) {
     try {
-        let { n, fxType, workerId, sharedBuffer } = event.data;
-        let sharedView = new Int32Array(sharedBuffer);
+        let { n, fxType, workerId } = event.data;
         let { maxC } = getDigitBasedParams(n);
         let c = getRandomC(n, maxC);
         let fxFunction;
@@ -40,11 +39,6 @@ self.onmessage = async function(event) {
                 y = fxFunction(fxFunction(y, c, n), c, n);
                 q = abs(x - y) * q % n;
                 trialCount++;
-
-                if (Atomics.load(sharedView, 0) !== 0) {
-                    postMessage({ stopped: true });
-                    return;
-                }
 
                 if (q === 0n) {
                     console.error(`worker ${workerId + 1} q が 0 になりました。（リセット回数: ${resetCount}）`);
