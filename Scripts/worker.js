@@ -41,6 +41,11 @@ self.onmessage = async function(event) {
                 q = abs(x - y) * q % n;
                 trialCount++;
 
+                if (Atomics.load(sharedView, 0) !== 0) {
+                    postMessage({ stopped: true });
+                    return;
+                }
+
                 if (q === 0n) {
                     console.error(`worker ${workerId + 1} q が 0 になりました。（リセット回数: ${resetCount}）`);
                     q = 1n;
