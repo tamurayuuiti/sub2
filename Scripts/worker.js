@@ -1,7 +1,9 @@
 self.onmessage = async function(event) {
     try {
         let { n, fxType, workerId, xStart, xEnd } = event.data; // 修正: workerId を確実に取得
-        if (workerId === undefined) throw new Error("workerId が undefined です");
+        if (typeof workerId === "undefined") {
+            throw new Error("workerId が undefined です");
+        }
 
         let { maxC } = getDigitBasedParams(n);
         let c = getRandomC(n, maxC);
