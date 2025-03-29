@@ -1,7 +1,8 @@
-// worker.js
 self.onmessage = async function(event) {
     try {
-        let { n, fxType, workerId, xStart, xEnd } = event.data;
+        let { n, fxType, workerId, xStart, xEnd } = event.data; // 修正: workerId を確実に取得
+        if (workerId === undefined) throw new Error("workerId が undefined です");
+
         let { maxC } = getDigitBasedParams(n);
         let c = getRandomC(n, maxC);
         let fxFunction;
@@ -17,12 +18,12 @@ self.onmessage = async function(event) {
             fxFunction = (x, c, n) => (3n * x * x + 7n * x + c) % n;
         } else if (fxType === "fx2") {
             fxEquation = "(x³ + 5x + c) mod n";
-            fxFunction = (x, c, n) => (x * x * x + 5n * x + c) % n; 
+            fxFunction = (x, c, n) => (x * x * x + 5n * x + c) % n;
         } else {
             throw new Error("Unknown fxType");
         }
 
-        console.log(`Worker ${workerId + 1} の実行成功: fx = ${fxEquation}, 試行上限 ${MAX_TRIALS[fxType]}, c = ${c}`);
+        console.log(`Worker ${workerId + 1} の実行開始: fx = ${fxEquation}, 範囲 [${xStart}, ${xEnd}]`);
 
         let x = BigInt(xStart);
         let y = BigInt(xStart);
@@ -32,6 +33,9 @@ self.onmessage = async function(event) {
         let m = 128n;
         let k = 10n;
         let resetCount = 0;
+
+        x = fxFunction(x, c, n);
+        y = fxFunction(fxFunction(y, c, n), c, n);
 
         while (d === 1n && trialCount < MAX_TRIALS[fxType] && x < BigInt(xEnd)) {
             let ys = y;
@@ -48,7 +52,7 @@ self.onmessage = async function(event) {
                 }
 
                 if (trialCount % 1000000n === 0n) {
-                    console.log(`worker ${workerId + 1} 試行 ${trialCount}, fx = ${fxType}, x=${x}, y=${y}, q=${q}, gcd=${d}`);
+                    console.log(`worker ${workerId + 1} 試行 ${trialCount},　fx = ${fxType}, x=${x}, y=${y}, q=${q}, gcd=${d}`);
                     await new Promise(resolve => setTimeout(resolve, 0));
                 }
 
@@ -65,9 +69,7 @@ self.onmessage = async function(event) {
 
         if (d > 1n && d !== n) {
             console.log(`worker ${workerId + 1} が因数 ${d} を送信（試行回数: ${trialCount}）`);
-            setTimeout(() => {
-                postMessage({ factor: d.toString(), trials: trialCount.toString() });
-            }, 0);
+            postMessage({ factor: d.toString(), trials: trialCount.toString() });
             return;
         }
 
