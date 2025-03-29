@@ -1,72 +1,16 @@
 // ミラー・ラビン素数判定法
 import { isPrimeMillerRabin } from './millerRabin.js';
 
+// どの f(x) を使用するか制御するオブジェクト
 const ENABLE_FX = {
-    fx1: true,  
-    fx2: true   
+    fx1: true,  // (3x² + 7x + c) % n
+    fx2: true   // (x³ + 5x + c) % n
 };
 
+// CPU コア数に基づいて Worker 数を決定
 const MAX_WORKERS = navigator.hardwareConcurrency || 4;
-const workerQueue = [];
-const workerPool = [];
-const sharedBuffer = new SharedArrayBuffer(Int32Array.BYTES_PER_ELEMENT);
-const sharedView = new Int32Array(sharedBuffer);
-
-let fx1Worker = null;
-let fx2Workers = [];
-
-function checkAndSetFactor(factor) {
-    if (Atomics.compareExchange(sharedView, 0, 0, Number(factor)) === 0) {
-        return true;
-    }
-    return false;
-}
-
-function createWorker(n, fxType, workerId) {
-    let worker;
-    if (workerPool.length > 0) {
-        worker = workerPool.pop(); 
-    } else if (workerQueue.length < MAX_WORKERS) {
-        worker = new Worker("./Scripts/worker.js");
-        workerQueue.push(worker);
-    } else {
-        return null;
-    }
-
-    worker.postMessage({ n, fxType, workerId, sharedBuffer });
-    return worker;
-}
-
-function setupFx1Worker(n) {
-    fx1Worker = createWorker(n, "fx1", 0);
-    if (fx1Worker) {
-        fx1Worker.onmessage = function (event) {
-            const { factor } = event.data;
-            if (factor && checkAndSetFactor(factor)) {
-                console.log("Found factor by fx1:", factor);
-            }
-            workerPool.push(fx1Worker);
-            fx2Workers.push(fx1Worker);
-            fx1Worker = null;
-        };
-    }
-}
-
-function setupFx2Workers(n) {
-    for (let i = 1; i < MAX_WORKERS; i++) {
-        let worker = createWorker(n, "fx2", i);
-        if (worker) {
-            fx2Workers.push(worker);
-            worker.onmessage = function (event) {
-                const { factor } = event.data;
-                if (factor && checkAndSetFactor(factor)) {
-                    console.log("Found factor by fx2:", factor);
-                }
-                workerPool.push(worker);
-            };
-        }
-    }
-}
+const workerFx2Pool = [];
+let workerFx1 = null;
 
 export async function pollardsRhoFactorization(number) {
     if (typeof number !== "bigint") {
@@ -110,23 +54,77 @@ export async function pollardsRhoFactorization(number) {
 
 export async function pollardsRho(n) {
     return new Promise((resolve, reject) => {
-        setupFx1Worker(n);
-        setupFx2Workers(n);
+        let activeWorkers = 0;
 
-        fx2Workers.forEach((worker, i) => {
-            worker.onmessage = function (event) {
-                if (event.data.factor) {
+        if (!ENABLE_FX.fx1 && !ENABLE_FX.fx2) {
+            console.error(`全ての f(x) が無効です。少なくとも 1 つ有効にしてください。`);
+            resolve(null);
+            return;
+        }
+
+        // fx1 の Worker を作成
+        if (ENABLE_FX.fx1) {
+            workerFx1 = new Worker("./Scripts/worker.js");
+            activeWorkers++;
+            workerFx1.postMessage({ n, fxType: 'fx1', workerId: 0 });
+
+            workerFx1.onmessage = function (event) {
+                handleWorkerMessage(event, 'fx1', workerFx1, resolve);
+            };
+        }
+
+        // fx2 の Worker を作成
+        if (ENABLE_FX.fx2) {
+            for (let i = 1; i < MAX_WORKERS; i++) {
+                const worker = new Worker("./Scripts/worker.js");
+                workerFx2Pool.push(worker);
+                activeWorkers++;
+                worker.postMessage({ n, fxType: 'fx2', workerId: i });
+
+                worker.onmessage = function (event) {
+                    handleWorkerMessage(event, 'fx2', worker, resolve);
+                };
+            }
+        }
+
+        function handleWorkerMessage(event, fxType, worker, resolve) {
+            console.log(`受信データ:`, event.data);
+
+            if (event.data.error) {
+                console.error(`worker でエラー発生: ${event.data.error}`);
+                return;
+            }
+
+            if (event.data.factor) {
+                try {
                     let factor = BigInt(event.data.factor);
-                    console.log(`Worker ${i + 1} found factor: ${factor}`);
+                    console.log(`worker が因数 ${factor} を発見（試行回数: ${BigInt(event.data.trials)}）`);
+                    
+                    // すべての worker を停止
+                    workerFx1?.terminate();
+                    workerFx2Pool.forEach(w => w.terminate());
+
                     resolve(factor);
-                    fx2Workers.forEach(w => w.terminate());
+                } catch (error) {
+                    console.error(`BigInt 変換エラー: ${error.message}`);
                 }
-                if (event.data.stopped) {
-                    worker.terminate();
+            }
+
+            if (event.data.stopped) {
+                console.log(`worker が試行上限に達し停止`);
+                worker.terminate();
+                activeWorkers--;
+
+                // fx1 の Worker を fx2 用に再利用
+                if (fxType === 'fx1') {
+                    workerFx2Pool.push(worker);
+                }
+
+                if (activeWorkers === 0) {
+                    console.log(`すべての worker が停止しました。因数を発見できませんでした。`);
                     resolve(null);
                 }
-            };
-        });
+            }
+        }
     });
 }
-
