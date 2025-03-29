@@ -19,7 +19,7 @@ self.onmessage = async function(event) {
             throw new Error("Unknown fxType");
         }
 
-        console.log(`Worker ${workerId + 1} を実行: fx = ${fxEquation}, 試行上限 ${MAX_TRIALS[fxType]}, c = ${c} (範囲: 1 ～ ${maxC * 2 - 1})`);
+        console.log(`Worker ${workerId + 1} を実行: fx = ${fxEquation}, 試行上限 ${MAX_TRIALS[fxType]}, c = ${c}`);
 
         let x = 2n, y = 2n, d = 1n;
         let trialCount = 0n;
