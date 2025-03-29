@@ -1,6 +1,6 @@
 self.onmessage = async function(event) {
     try {
-        let { n, fxType, workerId, c } = event.data;
+        let { n, fxType, workerId, c, maxC } = event.data;
         let fxFunction;
         let fxEquation;
 
