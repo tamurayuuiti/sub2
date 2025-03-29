@@ -8,7 +8,7 @@ const ENABLE_FX = {
 };
 
 // CPU コア数に基づいて Worker 数を決定
-const MAX_WORKERS = navigator.hardwareConcurrency || 4;
+const MAX_WORKERS = navigator.hardwareConcurrency * 1.5 || 4;
 const workerFx2Pool = [];
 let workerFx1 = null;
 
