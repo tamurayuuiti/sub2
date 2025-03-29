@@ -17,10 +17,7 @@ self.onmessage = async function(event) {
                 x = BigInt(x);
                 c = BigInt(c);
                 n = BigInt(n);
-                let x2 = x * x;           // `x²` を計算
-                let term1 = 3n * x2;      // `3x²`
-                let term2 = 7n * x;       // `7x`
-                return (term1 + term2 + c) % n;  // 最後に mod n
+                return (3n * x * x + 7n * x + c) % n;
             };
         } else if (fxType === "fx2") {
             fxEquation = "(x³ + 5x + c) mod n";
