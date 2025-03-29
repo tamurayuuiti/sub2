@@ -1,6 +1,6 @@
 self.onmessage = async function(event) {
     try {
-        let { n, fxType, workerId, xStart } = event.data;
+        let { n, fxType, workerId = 0, xStart } = event.data;
         let { maxC } = getDigitBasedParams(n);
         let c = getRandomC(n, maxC);
         let fxFunction;
@@ -21,7 +21,7 @@ self.onmessage = async function(event) {
             throw new Error("Unknown fxType");
         }
 
-        console.log(`Worker ${i + 1} 実行: fxType=${fxType}, xStart=${xStart}`);
+        console.log(`Worker ${workerId + 1} 実行: fxType=${fxType}, xStart=${xStart}`);
 
         let x = xStart, y = xStart, d = 1n;
         let trialCount = 0n;
@@ -47,7 +47,7 @@ self.onmessage = async function(event) {
                 }
 
                 if (trialCount % 1000000n === 0n) {
-                    console.log(`worker ${i + 1} 試行 ${trialCount},　fx = ${fxEquation}, x=${x}, y=${y}, c = ${c}, q=${q}, gcd=${d}`);
+                    console.log(`worker ${workerId + 1} 試行 ${trialCount},　fx = ${fxEquation}, x=${x}, y=${y}, c = ${c}, q=${q}, gcd=${d}`);
                     await new Promise(resolve => setTimeout(resolve, 0));
                 }
 
