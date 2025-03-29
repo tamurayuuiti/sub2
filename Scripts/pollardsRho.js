@@ -66,7 +66,7 @@ export async function pollardsRho(n) {
                 worker.postMessage({
                     n: n.toString(), // 修正: BigInt を文字列化
                     fxType: 'fx2',
-                    workerId: workerId, // 修正: workerId を確実に渡す
+                    workerId: i, // 修正: workerId を確実に渡す
                     xStart: xStart.toString(),
                     xEnd: xEnd.toString(),
                 });
