@@ -1,8 +1,10 @@
 self.onmessage = async function(event) {
     try {
-        let { n, fxType, workerId } = event.data;
+        let { n, fxType, workerId, xRange, c } = event.data;
         let { maxC } = getDigitBasedParams(n);
-        let c = getRandomC(n, maxC);
+        if (!c) {
+            c = getRandomC(n, maxC);
+        }
         let fxFunction;
         let fxEquation;
 
@@ -16,7 +18,7 @@ self.onmessage = async function(event) {
             fxFunction = (x, c, n) => (3n * x * x + 7n * x + c) % n;
         } else if (fxType === "fx2") {
             fxEquation = "(x³ + 5x + c) mod n";
-            fxFunction = (x, c, n) => (x * x * x + 5n * x + c) % n; 
+            fxFunction = (x, c, n) => (x * x * x + 5n * x + c) % n;
         } else {
             throw new Error("Unknown fxType");
         }
@@ -29,6 +31,12 @@ self.onmessage = async function(event) {
         let m = 128n;
         let k = 10n;
         let resetCount = 0;
+
+        // x の範囲を考慮
+        if (xRange) {
+            x = xRange.xMin;
+            y = xRange.xMin;
+        }
 
         x = fxFunction(x, c, n);
         y = fxFunction(fxFunction(y, c, n), c, n);
@@ -47,7 +55,7 @@ self.onmessage = async function(event) {
                 }
 
                 if (trialCount % 1000000n === 0n) {
-                    console.log(`worker ${workerId + 1} 試行 ${trialCount},　fx = ${fxEquation}, x=${x}, y=${y}, c = ${c}, q=${q}, gcd=${d}`);
+                    console.log(`worker ${workerId + 1} 試行 ${trialCount}, fx = ${fxEquation}, x=${x}, y=${y}, c = ${c}, q=${q}, gcd=${d}`);
                     await new Promise(resolve => setTimeout(resolve, 0));
                 }
 
@@ -66,18 +74,18 @@ self.onmessage = async function(event) {
             console.log(`worker ${workerId + 1} が因数 ${d} を送信（試行回数: ${trialCount}）`);
             
             setTimeout(() => {
-                postMessage({ factor: d.toString(), trials: trialCount.toString() });
+                postMessage({ factor: d.toString(), trials: trialCount.toString(), workerId });
             }, 0);
             
             return;
         }
 
         console.log(`worker ${workerId + 1} が試行上限 ${MAX_TRIALS[fxType]} に達したため停止`);
-        postMessage({ stopped: true });
+        postMessage({ stopped: true, workerId });
 
     } catch (error) {
         console.error(`worker ${workerId + 1} でエラー: ${error.stack}`);
-        postMessage({ error: error.stack });
+        postMessage({ error: error.stack, workerId });
     }
 };
 
