@@ -21,7 +21,7 @@ self.onmessage = async function(event) {
             throw new Error("Unknown fxType");
         }
 
-        console.log(`Worker ${workerId + 1} の実行成功: fx = ${fxEquation}, 試行上限 ${MAX_TRIALS[fxType]}, c = ${c} (範囲: 1 ～ ${maxC * 2 - 1})`);
+        console.log(`Worker ${workerId + 1} を実行: fx = ${fxEquation}, 試行上限 ${MAX_TRIALS[fxType]}, c = ${c} (範囲: 1 ～ ${maxC * 2 - 1})`);
 
         let x = 2n, y = 2n, d = 1n;
         let trialCount = 0n;
@@ -47,7 +47,7 @@ self.onmessage = async function(event) {
                 }
 
                 if (trialCount % 1000000n === 0n) {
-                    console.log(`worker ${workerId + 1} 試行 ${trialCount},　fx = ${fxType}, x=${x}, y=${y}, q=${q}, gcd=${d}`);
+                    console.log(`worker ${workerId + 1} 試行 ${trialCount},　fx = ${fxEquation}, x=${x}, y=${y}, c = ${c}, q=${q}, gcd=${d}`);
                     await new Promise(resolve => setTimeout(resolve, 0));
                 }
 
