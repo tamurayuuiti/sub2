@@ -76,6 +76,7 @@ export async function pollardsRho(n) {
                 fxType: xRanges[workerId].fxType, 
                 xRange: xRanges[workerId].xMin !== undefined ? { xMin: xRanges[workerId].xMin, xMax: xRanges[workerId].xMax } : undefined, 
                 c: commonC, 
+                maxC,
                 workerId 
             });
 
