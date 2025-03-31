@@ -1,6 +1,5 @@
 // どの f(x) を使用するか制御するオブジェクト
 const ENABLE_FX = {
-    fx1: false,  
     fx2: true,   
     fx2Count: getOptimalFx2Count()
 };
@@ -8,13 +7,7 @@ const ENABLE_FX = {
 export async function pollardsRho(n) {
     return new Promise((resolve, reject) => {
         const workers = [];
-        let fxTypes = Object.keys(ENABLE_FX).filter(fx => ENABLE_FX[fx] === true);
-
-        if (ENABLE_FX.fx2) {
-            for (let i = 1; i < ENABLE_FX.fx2Count; i++) {
-                fxTypes.push("fx2");
-            }
-        }
+        let fxTypes = Array(ENABLE_FX.fx2Count).fill("fx2");
 
         let activeWorkers = fxTypes.length;
         if (activeWorkers === 0) {
