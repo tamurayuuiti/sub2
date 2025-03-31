@@ -1,6 +1,7 @@
-// ミラー・ラビン素数判定法
+// ミラーラビン素数判定法
 import { isPrimeMillerRabin } from "./millerRabin.js";
 
+// Pollard’s rho 法
 import { pollardsRho } from "./pollardsRho.js";
 
 export async function pollardsRhoFactorization(number) {
