@@ -99,18 +99,15 @@ async function startFactorization() {
 
         document.getElementById("result").textContent = "";
         document.getElementById("time").textContent = "";
-        document.getElementById("progress").textContent = ""; // ← reset
+        document.getElementById("progress").textContent = "";
         document.getElementById("spinner").style.display = "block";
+        document.getElementById("elapsed-time").style.display = "block"; // 経過時間表示を有効化
         document.getElementById("loading").style.display = "flex";
-        await new Promise(resolve => setTimeout(resolve, 10));
 
         isCalculating = true;
         startTime = performance.now();
+        progressInterval = setInterval(updateProgress, 100); // すぐ開始
 
-        setTimeout(() => {
-            progressInterval = setInterval(updateProgress, 100);
-        }, 1000);
-        
         if (primes.length === 0) {
             await loadPrimes();
             if (primes.length === 0) {
@@ -147,10 +144,12 @@ async function startFactorization() {
     } finally {
         isCalculating = false;
         clearInterval(progressInterval);
-        document.getElementById("progress").textContent = ""; // ← これを追加
+        document.getElementById("progress").textContent = "";
         document.getElementById("spinner").style.display = "none";
+        document.getElementById("elapsed-time").style.display = "none"; // 計算終了時に非表示
         document.getElementById("loading").style.display = "none";
     }
 }
+
 
 loadPrimes();
