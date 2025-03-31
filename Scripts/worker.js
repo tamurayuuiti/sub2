@@ -1,18 +1,14 @@
 self.onmessage = async function(event) {
     try {
-        let { n, fxType, workerId, xRange, c } = event.data;
+        let { n, fxType, workerId, initialX } = event.data;
         let { maxC } = getDigitBasedParams(n);
-        
-        if (!c) {
-            throw new Error("c is required and should be provided by the main thread.");
-        }
-        
+        let c = getRandomC(n, maxC);
         let fxFunction;
         let fxEquation;
 
         const MAX_TRIALS = {
-            fx1: 500000n,
-            fx2: 100000000n
+            fx1: 300000n,
+            fx2: 40000000n
         };
 
         if (fxType === "fx1") {
@@ -25,20 +21,15 @@ self.onmessage = async function(event) {
             throw new Error("Unknown fxType");
         }
 
-        let x = 2n, y = 2n, d = 1n;
+        console.log(`Worker ${workerId + 1} を実行: fx = ${fxEquation}, 初期 x = ${initialX}, 試行上限 ${MAX_TRIALS[fxType]}, c = ${c} (範囲: 1 ～ ${maxC * 2 - 1})`);
+
+        let x = initialX, y = initialX, d = 1n;
         let trialCount = 0n;
         let q = 1n;
         let m = 128n;
         let k = 10n;
         let resetCount = 0;
 
-        if (xRange) {
-            x = xRange.xMin;
-            y = xRange.xMin;
-        }
-
-        console.log(`Worker ${workerId + 1} を実行: fx = ${fxEquation}, 試行上限 ${MAX_TRIALS[fxType]}, c = ${c} (範囲: 1 ～ ${maxC * 2 - 1}), x範囲: ${xRange ? xRange.xMin + ' ～ ' + xRange.xMax : '未指定'}`);
-        
         x = fxFunction(x, c, n);
         y = fxFunction(fxFunction(y, c, n), c, n);
 
@@ -56,7 +47,7 @@ self.onmessage = async function(event) {
                 }
 
                 if (trialCount % 1000000n === 0n) {
-                    console.log(`worker ${workerId + 1} 試行 ${trialCount}, fx = ${fxEquation}, x=${x}, y=${y}, c = ${c}, q=${q}, gcd=${d}`);
+                    console.log(`worker ${workerId + 1} 試行 ${trialCount}, fx = ${fxEquation}, x=${x}, y=${y}, c=${c}, q=${q}, gcd=${d}`);
                     await new Promise(resolve => setTimeout(resolve, 0));
                 }
 
@@ -73,42 +64,30 @@ self.onmessage = async function(event) {
 
         if (d > 1n && d !== n) {
             console.log(`worker ${workerId + 1} が因数 ${d} を送信（試行回数: ${trialCount}）`);
-            
+
             setTimeout(() => {
-                postMessage({ factor: d.toString(), trials: trialCount.toString(), workerId });
+                postMessage({ factor: d.toString(), trials: trialCount.toString() });
             }, 0);
-            
+
             return;
         }
 
         console.log(`worker ${workerId + 1} が試行上限 ${MAX_TRIALS[fxType]} に達したため停止`);
-        postMessage({ stopped: true, workerId });
+        postMessage({ stopped: true });
 
     } catch (error) {
-        console.error(`worker ${workerId + 1} でエラー: ${error.stack}`);
-        postMessage({ error: error.stack, workerId });
+        console.error(`worker ${workerId + 1} でエラー発生: ${error.stack}`);
+        postMessage({ error: error.stack });
     }
 };
 
 function getDigitBasedParams(n) {
-    try {
-        let digitCount = n.toString().length;
-        return { maxC: digitCount <= 20 ? 30 : 50 };
-    } catch (error) {
-        console.error("getDigitBasedParams() でエラー:", error.message);
-        return { maxC: 50 };
-    }
+    let digitCount = n.toString().length;
+    return { maxC: digitCount <= 20 ? 30 : 50 };
 }
 
 function getRandomC(n, maxC) {
-    try {
-        const buffer = new Uint32Array(1);
-        crypto.getRandomValues(buffer);
-        return BigInt((buffer[0] % maxC) * 2 + 1);
-    } catch (error) {
-        console.error("getRandomC() でエラー:", error.message);
-        return 1n;
-    }
+    return BigInt((Math.random() * maxC) | 0) * 2n + 1n;
 }
 
 function gcd(a, b) {
