@@ -78,7 +78,7 @@ async function loadPrimes() {
 function updateProgress() {
     if (!startTime) return;
     let elapsedTime = ((performance.now() - startTime) / 1000).toFixed(1);
-    document.getElementById("elapsed-time").textContent = `(経過時間: ${elapsedTime} 秒)`;
+    document.getElementById("elapsed-time").textContent = `（経過時間: ${elapsedTime} 秒）`;
     requestAnimationFrame(updateProgress);
 }
 
