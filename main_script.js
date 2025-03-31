@@ -7,6 +7,7 @@ import { trialDivision } from './Scripts/trialDivision.js';
 // Pollard’s rho 法
 import { pollardsRhoFactorization } from './Scripts/pollardsRhoFactorization.js';
 
+const coreCount = navigator.hardwareConcurrency || 4;
 let startTime = null;
 let isCalculating = false;
 let progressInterval = null;
@@ -120,7 +121,7 @@ async function startFactorization() {
         console.log(`試し割り法完了。残りの数: ${remainder}`);
 
         if (remainder > 1n) {
-            console.log(`Pollard's rho を開始。利用可能なスレッド数: ${coreCount}, n = ${remainder}`);
+            console.log(`Pollard's rho を開始。使用モジュール: ${coreCount <= 4 ? "single_pollardsRho.js" : "multi_pollardsRho.js"} (コア数: ${coreCount})`);
             const extraFactors = await pollardsRhoFactorization(remainder);
 
             if (extraFactors.includes("FAIL")) {
