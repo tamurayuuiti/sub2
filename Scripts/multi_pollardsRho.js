@@ -2,7 +2,7 @@
 const ENABLE_FX = {
     fx1: false,  
     fx2: true,   
-    fx2Count: 3
+    fx2Count: getOptimalFx2Count()
 };
 
 export async function pollardsRho(n) {
