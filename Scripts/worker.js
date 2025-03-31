@@ -11,7 +11,7 @@ self.onmessage = async function(event) {
             fx2: 40000000n
         };
 
-        if (fxType === "fx1") {
+        if (fxType === "fx1") { //試験用関数。現在は未使用
             fxEquation = "(3x² + 7x + c) mod n";
             fxFunction = (x, c, n) => (3n * x * x + 7n * x + c) % n;
         } else if (fxType === "fx2") {
@@ -21,7 +21,7 @@ self.onmessage = async function(event) {
             throw new Error("Unknown fxType");
         }
 
-        console.log(`Worker ${workerId + 1} を実行: fx = ${fxEquation}, 初期 x = ${initialX}, 試行上限 ${MAX_TRIALS[fxType]}, c = ${c} (範囲: 1 ～ ${maxC * 2 - 1})`);
+        console.log(`Worker ${workerId + 1} を実行: fx = ${fxEquation}, 初期 x = ${initialX}, 試行上限 ${MAX_TRIALS[fxType]}, c = ${c}`);
 
         let x = initialX, y = initialX, d = 1n;
         let trialCount = 0n;
@@ -47,7 +47,7 @@ self.onmessage = async function(event) {
                 }
 
                 if (trialCount % 1000000n === 0n) {
-                    console.log(`worker ${workerId + 1} 試行 ${trialCount}, fx = ${fxEquation}, x=${x}, y=${y}, c=${c}, q=${q}, gcd=${d}`);
+                    console.log(`worker ${workerId + 1} 試行 ${trialCount}, x=${x}, y=${y}, c=${c}, q=${q}, gcd=${d}`);
                     await new Promise(resolve => setTimeout(resolve, 0));
                 }
 
