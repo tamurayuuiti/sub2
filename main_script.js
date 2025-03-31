@@ -158,14 +158,4 @@ async function startFactorization() {
     }
 }
 
-//const coreCount = navigator.hardwareConcurrency || 4;
-
-//async function processTask(n) {
-    //if (coreCount <= 4) {
-        //return 仮１;
-    //} else {
-        //return 仮２;
-    //}
-//}
-
 loadPrimes();
