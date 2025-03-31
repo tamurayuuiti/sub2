@@ -78,8 +78,8 @@ async function loadPrimes() {
 function updateProgress() {
     if (!startTime) return;
     let elapsedTime = ((performance.now() - startTime) / 1000).toFixed(1);
-    document.getElementById("elapsed-time").textContent = `経過時間: ${elapsedTime} 秒`;
-    requestAnimationFrame(updateProgress); // よりスムーズな更新
+    document.getElementById("elapsed-time").textContent = `(経過時間: ${elapsedTime} 秒)`;
+    requestAnimationFrame(updateProgress);
 }
 
 async function startFactorization() {
@@ -101,7 +101,7 @@ async function startFactorization() {
         document.getElementById("time").textContent = "";
         document.getElementById("progress").textContent = "";
         document.getElementById("spinner").style.display = "block";
-        document.getElementById("elapsed-time").style.display = "none"; // 最初は非表示
+        document.getElementById("elapsed-time").style.display = "none";
         document.getElementById("loading").style.display = "flex";
 
         isCalculating = true;
@@ -150,7 +150,7 @@ async function startFactorization() {
         isCalculating = false;
         document.getElementById("progress").textContent = "";
         document.getElementById("spinner").style.display = "none";
-        document.getElementById("elapsed-time").style.display = "none"; // 計算終了時に非表示
+        document.getElementById("elapsed-time").style.display = "none";
         document.getElementById("loading").style.display = "none";
     }
 }
