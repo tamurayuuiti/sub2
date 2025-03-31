@@ -108,8 +108,9 @@ async function startFactorization() {
         startTime = performance.now();
         
         setTimeout(() => {
-             progressInterval = setInterval(updateProgress, 100);
-         }, 1000);
+            document.getElementById("elapsed-time").style.display = "block";
+            updateProgress();
+        }, 1000);
 
         if (primes.length === 0) {
             await loadPrimes();
