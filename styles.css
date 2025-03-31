@@ -82,7 +82,7 @@ button:hover {
     justify-content: center;
     gap: 10px;
     height: 24px; /* 高さ統一 */
-    margin-top: 0; /* 計算時間と同じ位置に配置 */
+    margin-top: 20; /* 計算時間と同じ位置に配置 */
 }
 
 /* ====== スピナー（高さ統一 & 表示のズレ修正） ====== */
