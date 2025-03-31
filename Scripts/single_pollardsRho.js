@@ -15,8 +15,7 @@ export async function pollardsRho(n) {
         let ys = y;
         for (let i = 0n; i < m && trialCount < BigInt(MAX_TRIALS); i++) {
             y = fxFunction(fxFunction(y, c, n), c, n);
-            q *= abs(x - y);
-            if (q >= n) q %= n;
+            q = abs(x - y) * q % n;
             trialCount++;
 
             if (q === 0n) {
