@@ -73,43 +73,45 @@ button:hover {
     color: red;
 }
 
-/* ====== 読み込み中の表示 ====== */
+/* ====== 読み込み中の表示（ボタンの下に移動 & 高さ統一） ====== */
 .loading {
     font-size: 18px;
     color: #0072ff;
-    margin-top: 10px;
-    display: none;
+    margin-top: 20px; /* ボタンの下に配置 */
     display: flex;
     align-items: center;
-    gap: 8px;
-}
-
-.loading {
-    display: flex;
-    align-items: center;
+    justify-content: center;
     gap: 10px;
+    height: 24px; /* 高さ統一 */
 }
 
-.elapsed-time {
-    font-size: 18px;
-    color: #333;
-}
-
-/* ====== ローディングアニメーション ====== */
+/* ====== スピナー（高さ統一 & 表示のズレ修正） ====== */
 .spinner {
     display: none;
     border: 4px solid rgba(0, 0, 0, 0.1);
     border-top-color: #0072ff;
     border-radius: 50%;
-    width: 16px;
-    height: 16px;
+    width: 20px;
+    height: 20px;
     animation: spin 1s linear infinite;
+    display: block; /* inline要素化を防ぐ */
 }
 
 @keyframes spin {
     from { transform: rotate(0deg); }
     to { transform: rotate(360deg); }
 }
+
+/* ====== 経過時間の表示（高さを完全統一） ====== */
+.elapsed-time {
+    font-size: 18px;
+    color: #333;
+    height: 24px; /* 高さ統一 */
+    line-height: 24px; /* 文字の中央揃え */
+    display: flex;
+    align-items: center;
+}
+
 
 /* ====== 入力欄と桁数カウンターのスタイル ====== */
 .input-container {
