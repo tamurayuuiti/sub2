@@ -106,7 +106,10 @@ async function startFactorization() {
 
         isCalculating = true;
         startTime = performance.now();
-        progressInterval = setInterval(updateProgress, 100); // すぐ開始
+        
+        setTimeout(() => {
+             progressInterval = setInterval(updateProgress, 100);
+         }, 1000);
 
         if (primes.length === 0) {
             await loadPrimes();
