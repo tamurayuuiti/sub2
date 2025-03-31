@@ -95,6 +95,7 @@ button:hover {
     height: 20px;
     animation: spin 1s linear infinite;
     display: block;
+    margin-top: 20;
 }
 
 @keyframes spin {
@@ -110,6 +111,7 @@ button:hover {
     line-height: 24px;
     display: flex;
     align-items: center;
+    margin-top: 20;
 }
 
 /* ====== 入力欄と桁数カウンターのスタイル ====== */
