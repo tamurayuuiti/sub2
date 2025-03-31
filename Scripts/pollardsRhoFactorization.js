@@ -1,22 +1,12 @@
 // ミラー・ラビン素数判定法
 import { isPrimeMillerRabin } from "./millerRabin.js";
 
-// Pollard’s rho 法の動的モジュール選択
-const coreCount = navigator.hardwareConcurrency || 4;
-const modulePath =
-    coreCount <= 2
-        ? "./single_pollardsRho.js"
-        : "./multi_pollardsRho.js";
-
-// 選択したモジュールのロード
-const modulePromise = import(modulePath);
+import { pollardsRho } from "./pollardsRho.js";
 
 export async function pollardsRhoFactorization(number) {
     if (typeof number !== "bigint") {
         throw new TypeError(`エラー: pollardsRhoFactorization() に渡された number (${number}) が BigInt ではありません。`);
     }
-
-    const { pollardsRho } = await modulePromise;
 
     let factors = [];
     while (number > 1n) {
