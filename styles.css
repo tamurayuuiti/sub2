@@ -73,16 +73,16 @@ button:hover {
     color: red;
 }
 
-/* ====== 読み込み中の表示（ボタンの下に移動 & 高さ統一） ====== */
+/* ====== 読み込み中の表示（計算時間の位置に移動 & 高さ統一） ====== */
 .loading {
     font-size: 18px;
     color: #0072ff;
-    margin-top: 20px; /* ボタンの下に配置 */
     display: flex;
     align-items: center;
     justify-content: center;
     gap: 10px;
     height: 24px; /* 高さ統一 */
+    margin-top: 0; /* 計算時間と同じ位置に配置 */
 }
 
 /* ====== スピナー（高さ統一 & 表示のズレ修正） ====== */
@@ -94,7 +94,7 @@ button:hover {
     width: 20px;
     height: 20px;
     animation: spin 1s linear infinite;
-    display: block; /* inline要素化を防ぐ */
+    display: block;
 }
 
 @keyframes spin {
@@ -106,12 +106,11 @@ button:hover {
 .elapsed-time {
     font-size: 18px;
     color: #333;
-    height: 24px; /* 高さ統一 */
-    line-height: 24px; /* 文字の中央揃え */
+    height: 24px;
+    line-height: 24px;
     display: flex;
     align-items: center;
 }
-
 
 /* ====== 入力欄と桁数カウンターのスタイル ====== */
 .input-container {
