@@ -84,6 +84,17 @@ button:hover {
     gap: 8px;
 }
 
+.loading {
+    display: flex;
+    align-items: center;
+    gap: 10px; /* スピナーと経過時間の間隔 */
+}
+
+.elapsed-time {
+    font-size: 14px;
+    color: #333;
+}
+
 /* ====== ローディングアニメーション ====== */
 .spinner {
     display: none;
@@ -116,17 +127,6 @@ button:hover {
 
 .char-counter.limit-reached {
     color: red;
-}
-
-.loading {
-    display: flex;
-    align-items: center;
-    gap: 10px; /* スピナーと経過時間の間隔 */
-}
-
-.elapsed-time {
-    font-size: 14px;
-    color: #333;
 }
 
 /* ====== エラーメッセージのスタイル ====== */
