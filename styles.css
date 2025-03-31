@@ -75,7 +75,7 @@ button:hover {
 
 /* ====== 読み込み中の表示 ====== */
 .loading {
-    font-size: 16px;
+    font-size: 18px;
     color: #0072ff;
     margin-top: 10px;
     display: none;
