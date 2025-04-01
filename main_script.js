@@ -26,7 +26,6 @@ const charCounter = document.getElementById("charCounter");
 inputField.addEventListener("input", function() {
     this.value = this.value.slice(0, 30); // 30桁制限のみ
     charCounter.textContent = `現在の桁数: ${this.value.length} (最大30桁)`;
-    errorMessage.hidden = this.value.length < 30;
 });
 
 function updateProgress() {
