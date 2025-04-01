@@ -17,6 +17,7 @@ export async function loadPrimes() {
         console.error("素数リストの取得エラー:", error);
         alert("素数リストの読み込みに失敗しました。ページを更新して再試行してください。");
     }
+    return primes;
 }
 
 // 試し割り法
