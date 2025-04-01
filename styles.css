@@ -94,6 +94,13 @@ button:hover {
     to { transform: rotate(360deg); }
 }
 
+/* ====== 制限メッセージ ====== */
+.limits {
+    font-size: 14px;
+    margin-top: 10px;
+    color: red;
+}
+
 /* ====== 入力欄と桁数カウンターのスタイル ====== */
 .input-container {
     width: 100%;
