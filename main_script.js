@@ -20,40 +20,16 @@ document.getElementById("numberInput").addEventListener("keypress", function(eve
     }
 });
 
-// 入力の桁数制限（30桁まで）
 const inputField = document.getElementById("numberInput");
 const charCounter = document.getElementById("charCounter");
 const errorMessage = document.getElementById("errorMessage");
 
-// 入力制御 & カウンター更新
-function updateCounter() {
-    charCounter.textContent = `現在の桁数: ${inputField.value.length} (最大30桁)`;
-
-    if (inputField.value.length >= 30) {
-        charCounter.classList.add("limit-reached");
-        errorMessage.style.display = "block";
-    } else {
-        charCounter.classList.remove("limit-reached");
-        errorMessage.style.display = "none";
-    }
-}
-
 inputField.addEventListener("input", function() {
-    const sanitized = this.value.replace(/[^0-9]/g, '').slice(0, 30);
-    if (this.value !== sanitized) {
-        console.log(`無効な文字を削除: ${this.value} → ${sanitized}`);
-        this.value = sanitized;
-    }
-    updateCounter();
+    this.value = this.value.replace(/[^0-9]/g, '').slice(0, 30);
+    charCounter.textContent = `現在の桁数: ${this.value.length} (最大30桁)`;
+    errorMessage.style.display = this.value.length >= 30 ? "block" : "none";
 });
 
-// 入力制限（記号・30桁超え防止）
-inputField.addEventListener("keydown", function(event) {
-    if (["e", "E", "+", "-", "."].includes(event.key) || 
-        (this.value.length >= 30 && event.key >= "0" && event.key <= "9")) {
-        event.preventDefault();
-    }
-});
 
 function updateProgress() {
     if (!startTime) return;
