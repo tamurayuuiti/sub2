@@ -1,3 +1,25 @@
+// 外部の素数リスト読み込み
+export async function loadPrimes() {
+    let primes = [];
+    try {
+        console.log("素数リストの読み込みを開始します");
+        const response = await fetch("https://tamurayuuiti.github.io/sub2/data/primes.txt");
+        if (!response.ok) {
+            throw new Error(`素数リストの読み込みに失敗しました (HTTP ${response.status})`);
+        }
+        const text = await response.text();
+        primes = text.split(/\s+/).filter(n => n).map(n => BigInt(n));
+        if (primes.length === 0) {
+            throw new Error("素数リストが空です");
+        }
+        console.log(`素数リストの読み込みが完了しました。${primes.length} 個の素数を取得しました。`);
+    } catch (error) {
+        console.error("素数リストの取得エラー:", error);
+        alert("素数リストの読み込みに失敗しました。ページを更新して再試行してください。");
+    }
+}
+
+// 試し割り法
 export async function trialDivision(number, primes) {
     let factors = [];
 
