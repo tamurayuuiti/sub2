@@ -66,14 +66,7 @@ button:hover {
     font-family: monospace;
 }
 
-/* ====== 制限メッセージ ====== */
-.limits {
-    font-size: 14px;
-    margin-top: 10px;
-    color: red;
-}
-
-/* ====== 読み込み中の表示 ====== */
+/* ====== 計算中の表示 ====== */
 .loading {
     font-size: 17px;
     color: #0072ff;
