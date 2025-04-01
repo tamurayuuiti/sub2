@@ -42,3 +42,6 @@ export async function trialDivision(number, primes) {
     }
     return { factors, remainder: number };
 }
+
+loadPrimes();
+
