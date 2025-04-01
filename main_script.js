@@ -22,7 +22,6 @@ document.getElementById("numberInput").addEventListener("keypress", function(eve
 
 const inputField = document.getElementById("numberInput");
 const charCounter = document.getElementById("charCounter");
-const errorMessage = document.getElementById("errorMessage");
 
 inputField.addEventListener("input", function() {
     this.value = this.value.slice(0, 30); // 30桁制限のみ
