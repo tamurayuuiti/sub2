@@ -3,27 +3,76 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>素因数分解計算機</title>
+    <title>素因数分解テスト</title>
     <link rel="stylesheet" href="styles.css">
+    <script type="module" src="factorizationTest.js"></script>
 </head>
 <body>
-    <div class="container">
-        <h2>素因数分解計算機</h2>
-        <div class="input-container">
-            <input type="number" id="numberInput" placeholder="数値を入力" min="2">
-            <div class="char-counter" id="charCounter">現在の桁数: 0（最大30桁）</div>
-        </div>
-        <div class="loading" id="loading" style="display: none;">
-            計算中...
-            <span id="elapsed-time">（経過時間: 0.0 秒）</span>
-            <div class="spinner" id="spinner"></div>
-        </div>
-        <button id="calculateButton">計算</button>
-        <div class="time" id="time"></div>
-        <div class="progress" id="progress"></div>
-        <div class="result" id="result"></div>
-        <div class="limits">※ 2以上の整数を入力してください</div>
-    </div>
-    <script type="module" src="main_script.js"></script>
+    <h1>素因数分解テスト</h1>
+    <label for="numberInput">数値 (最大30桁):</label>
+    <input type="text" id="numberInput" maxlength="30">
+    <span id="charCounter">現在の桁数: 0 (最大30桁)</span>
+    <br>
+    <label for="trialCount">試行回数:</label>
+    <input type="number" id="trialCount" min="1" value="5">
+    <button id="startTest">テスト開始</button>
+    <p id="elapsed-time"></p>
+    <table>
+        <thead>
+            <tr>
+                <th>試行回数</th>
+                <th>計算時間 (秒)</th>
+            </tr>
+        </thead>
+        <tbody id="resultsTable"></tbody>
+    </table>
+    <p id="summary"></p>
+    
+    <script>
+        import { trialDivision, loadPrimes } from './Scripts/trialDivision.js';
+        import { pollardsRhoFactorization } from './Scripts/pollardsRhoFactorization.js';
+        
+        document.getElementById("startTest").addEventListener("click", startTest);
+        document.getElementById("numberInput").addEventListener("input", function() {
+            this.value = this.value.slice(0, 30);
+            document.getElementById("charCounter").textContent = `現在の桁数: ${this.value.length} (最大30桁)`;
+        });
+        
+        async function startTest() {
+            let numStr = document.getElementById("numberInput").value.trim();
+            let trialCount = parseInt(document.getElementById("trialCount").value, 10);
+            if (!numStr || isNaN(trialCount) || trialCount < 1) return;
+            
+            let num = BigInt(numStr);
+            let primes = await loadPrimes();
+            let times = [];
+            let resultsTable = document.getElementById("resultsTable");
+            resultsTable.innerHTML = "";
+            
+            for (let i = 0; i < trialCount; i++) {
+                let start = performance.now();
+                let { factors, remainder } = await trialDivision(num, primes);
+                
+                if (remainder > 1n) {
+                    factors = factors.concat(await pollardsRhoFactorization(remainder));
+                }
+                
+                let end = performance.now();
+                let elapsed = ((end - start) / 1000).toFixed(3);
+                times.push(parseFloat(elapsed));
+                
+                let row = resultsTable.insertRow();
+                row.insertCell(0).textContent = i + 1;
+                row.insertCell(1).textContent = elapsed;
+            }
+            
+            let total = times.reduce((a, b) => a + b, 0).toFixed(3);
+            let avg = (total / times.length).toFixed(3);
+            let max = Math.max(...times).toFixed(3);
+            let min = Math.min(...times).toFixed(3);
+            
+            document.getElementById("summary").textContent = `総時間: ${total}秒, 平均: ${avg}秒, 最大: ${max}秒, 最小: ${min}秒`;
+        }
+    </script>
 </body>
 </html>
