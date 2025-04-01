@@ -25,11 +25,10 @@ const charCounter = document.getElementById("charCounter");
 const errorMessage = document.getElementById("errorMessage");
 
 inputField.addEventListener("input", function() {
-    this.value = this.value.replace(/[^0-9]/g, '').slice(0, 30);
+    this.value = this.value.slice(0, 30); // 30桁制限のみ
     charCounter.textContent = `現在の桁数: ${this.value.length} (最大30桁)`;
-    errorMessage.style.display = this.value.length >= 30 ? "block" : "none";
+    errorMessage.hidden = this.value.length < 30;
 });
-
 
 function updateProgress() {
     if (!startTime) return;
