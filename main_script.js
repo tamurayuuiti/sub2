@@ -2,7 +2,7 @@
 import { isPrimeMillerRabin } from './Scripts/millerRabin.js';
 
 // 試し割り法
-import { trialDivision } from './Scripts/trialDivision.js';
+import { trialDivision, loadPrimes } from './Scripts/trialDivision.js';
 
 // Pollard’s rho 法
 import { pollardsRhoFactorization } from './Scripts/pollardsRhoFactorization.js';
