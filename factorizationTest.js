@@ -19,6 +19,12 @@ import { trialDivision, loadPrimes } from './Scripts/trialDivision.js';
             resultsTable.innerHTML = "";
             
             for (let i = 0; i < trialCount; i++) {
+                if (i % 10 === 0 && i !== 0) {
+                    console.clear();
+                }
+
+
+                    
                 let start = performance.now();
                 let { factors, remainder } = await trialDivision(num, primes);
                 
