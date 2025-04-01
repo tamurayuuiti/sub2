@@ -82,36 +82,25 @@ self.onmessage = async function(event) {
 };
 
 function getDigitBasedParams(n) {
-    let digitCount = n.toString().length;
+    let digitCount = (n === 0n) ? 1 : (n.toString(2).length * 0.30103) | 0;
     return { maxC: digitCount <= 20 ? 30 : 50 };
 }
 
 function getRandomC(n, maxC) {
-    return BigInt((Math.random() * maxC) | 0) * 2n + 1n;
+    return BigInt(Math.floor(Math.random() * maxC)) * 2n + 1n;
 }
 
 function gcd(a, b) {
     if (a === 0n) return b;
     if (b === 0n) return a;
 
-    let shift = 0n;
-    while (((a | b) & 1n) === 0n) {
-        a >>= 1n;
-        b >>= 1n;
-        shift++;
-    }
-
-    while ((a & 1n) === 0n) a >>= 1n;
     while (b !== 0n) {
-        while ((b & 1n) === 0n) b >>= 1n;
-        if (a > b) [a, b] = [b, a];
-        b -= a;
-        if (b === 0n) break;
+        [a, b] = [b, a % b];
     }
-
-    return a << shift;
+    return a;
 }
 
 function abs(n) {
-    return n < 0n ? -n : n;
+    if (n < 0n) return -n;
+    return n;
 }
