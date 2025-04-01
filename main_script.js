@@ -133,5 +133,3 @@ async function startFactorization() {
         document.getElementById("loading").style.display = "none";
     }
 }
-
-loadPrimes();
