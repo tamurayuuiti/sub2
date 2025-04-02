@@ -98,7 +98,21 @@ self.onmessage = async function(event) {
 
 function getDigitBasedParams(n) {
     let digitCount = (n === 0n) ? 1 : (n.toString(2).length * 0.30103) | 0;
-    return { maxC: digitCount <= 20 ? 30 : 50 };
+    let maxC;
+    
+    if (digitCount <= 10) {
+        maxC = 20;
+    } else if (digitCount <= 20) {
+        maxC = 30;
+    } else if (digitCount <= 24) {
+        maxC = 50;
+    } else if (digitCount <= 28) {
+        maxC = 80;
+    } else {
+        maxC = 100;
+    }
+
+    return { maxC };
 }
 
 function getRandomC(n, maxC) {
