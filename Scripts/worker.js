@@ -11,7 +11,7 @@ self.onmessage = async function(event) {
             const MAX_TRIALS = {
                 fx1: 300000n,
                 fx2: 10000000n
-            };
+            };[fxType]
 
             const MAX_C_RETRIES = {
                 fx1: 0,
