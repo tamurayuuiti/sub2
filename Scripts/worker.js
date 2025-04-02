@@ -1,7 +1,6 @@
 self.onmessage = async function(event) {
     try {
         let { n, fxType, workerId, initialX } = event.data;
-        let { maxC } = getDigitBasedParams(n);
 
         const MAX_C_RETRIES = (fxType === "fx1") ? 0 : 9; // fx1: 1回, fx2: 10回
         let cRetryCount = 0;
@@ -80,7 +79,8 @@ self.onmessage = async function(event) {
         }
 
         while (cRetryCount < MAX_C_RETRIES) {
-            let c = getRandomC(n, maxC);
+            let maxC = Math.min(10 + digitCount * 2, n / 10n);
+            let c = BigInt(Math.floor(Math.random() * maxC)) * 2n + 1n;
             let success = await runFactorization(c);
             if (success) return;
             cRetryCount++;
@@ -95,29 +95,6 @@ self.onmessage = async function(event) {
         postMessage({ error: error.stack });
     }
 };
-
-function getDigitBasedParams(n) {
-    let digitCount = (n === 0n) ? 1 : (n.toString(2).length * 0.30103) | 0;
-    let maxC;
-    
-    if (digitCount <= 10) {
-        maxC = 20;
-    } else if (digitCount <= 20) {
-        maxC = 30;
-    } else if (digitCount <= 24) {
-        maxC = 50;
-    } else if (digitCount <= 28) {
-        maxC = 80;
-    } else {
-        maxC = 100;
-    }
-
-    return { maxC };
-}
-
-function getRandomC(n, maxC) {
-    return BigInt(Math.floor(Math.random() * maxC)) * 2n + 1n;
-}
 
 function gcd(a, b) {
     if (a === 0n) return b;
