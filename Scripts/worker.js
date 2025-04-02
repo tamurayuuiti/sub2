@@ -104,13 +104,13 @@ function getDigitBasedParams(n) {
     if (digitCount <= 10) {
         maxC = 20;
     } else if (digitCount <= 20) {
-        maxC = 30;
+        maxC = 35;
     } else if (digitCount <= 24) {
         maxC = 50;
     } else if (digitCount <= 28) {
-        maxC = 80;
+        maxC = 65;
     } else {
-        maxC = 100;
+        maxC = 80;
     }
 
     return { maxC };
