@@ -2,6 +2,8 @@ self.onmessage = async function(event) {
     try {
         let { n, fxType, workerId, initialX } = event.data;
         let { maxC } = getDigitBasedParams(n);
+
+        const MAX_C_RETRIES = (fxType === "fx1") ? 5 : 10; // fx1: 5回, fx2: 10回
         let cRetryCount = 0;
 
         async function runFactorization(c) {
@@ -12,11 +14,6 @@ self.onmessage = async function(event) {
                 fx1: 300000n,
                 fx2: 10000000n
             };
-
-            const MAX_C_RETRIES = {
-                fx1: 0,
-                fx2: 10
-            }[fxType];
 
             if (fxType === "fx1") {
                 fxEquation = "(3x² + 7x + c) mod n";
