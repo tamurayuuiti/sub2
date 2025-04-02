@@ -11,7 +11,7 @@ self.onmessage = async function(event) {
 
             const MAX_TRIALS = {
                 fx1: 300000n,
-                fx2: 15000000n
+                fx2: 20000000n
             };
 
             if (fxType === "fx1") {
