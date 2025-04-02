@@ -30,7 +30,7 @@ self.onmessage = async function(event) {
             let x = initialX, y = initialX, d = 1n;
             let trialCount = 0n;
             let q = 1n;
-            k = 15n
+            let k = 15n
             let resetCount = 0;
 
             x = fxFunction(x, c, n);
