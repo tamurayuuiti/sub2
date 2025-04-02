@@ -30,7 +30,7 @@ self.onmessage = async function(event) {
             let x = initialX, y = initialX, d = 1n;
             let trialCount = 0n;
             let q = 1n;
-            let k = 15n
+            let k = 15n;
             let resetCount = 0;
 
             x = fxFunction(x, c, n);
@@ -50,7 +50,7 @@ self.onmessage = async function(event) {
                     }
 
                     if (trialCount % 1000000n === 0n) {
-                        console.log(`worker ${workerId + 1} 試行 ${trialCount}, x=${x}, y=${y}, c=${c}, q=${q}, gcd=${d}`);
+                        console.log(`worker ${workerId + 1} 試行 ${trialCount}, x=${x}, y=${y}, c=${c}, q=${q}, m=${m}, gcd=${d}`);
                         await new Promise(resolve => setTimeout(resolve, 0));
                     }
 
