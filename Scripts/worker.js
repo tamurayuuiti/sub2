@@ -82,7 +82,7 @@ self.onmessage = async function(event) {
             return false;
         }
 
-        while (cRetryCount < MAX_C_RETRIES[fxType]) {
+        while (cRetryCount < MAX_C_RETRIES) {
             let c = getRandomC(n, maxC);
             let success = await runFactorization(c);
             if (success) return;
