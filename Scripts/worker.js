@@ -2,7 +2,6 @@ self.onmessage = async function(event) {
     try {
         let { n, fxType, workerId, initialX } = event.data;
         let { maxC } = getDigitBasedParams(n);
-        let MAX_C_RETRIES = 5; // cの最大変更回数
         let cRetryCount = 0;
 
         async function runFactorization(c) {
@@ -11,7 +10,12 @@ self.onmessage = async function(event) {
 
             const MAX_TRIALS = {
                 fx1: 300000n,
-                fx2: 20000000n
+                fx2: 10000000n
+            };
+
+            const MAX_C_RETRIES = {
+                fx1: 0n,
+                fx2: 10n
             };
 
             if (fxType === "fx1") {
