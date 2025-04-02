@@ -5,11 +5,6 @@ self.onmessage = async function(event) {
         const MAX_C_RETRIES = (fxType === "fx1") ? 0 : 9; // fx1: 1回, fx2: 10回
         let cRetryCount = 0;
 
-        function getDigitBasedParams(n) {
-            let digitCount = (n === 0n) ? 1 : (n.toString(2).length * 0.30103) | 0;
-            return { maxC: Math.min(10 + digitCount * 2, n / 10n) };
-        }
-
         async function runFactorization(c) {
             let fxFunction;
             let fxEquation;
@@ -103,6 +98,11 @@ self.onmessage = async function(event) {
         postMessage({ error: error.stack });
     }
 };
+
+function getDigitBasedParams(n) {
+    let digitCount = (n === 0n) ? 1 : (n.toString(2).length * 0.30103) | 0;
+    return { maxC: Math.min(10 + digitCount * 2, n / 10n) };
+}
 
 function gcd(a, b) {
     if (a === 0n) return b;
