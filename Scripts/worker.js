@@ -5,7 +5,7 @@ self.onmessage = async function(event) {
         let MAX_C_RETRIES = 5; // cの最大変更回数
         let cRetryCount = 0;
 
-        function runFactorization(c) {
+        async function runFactorization(c) {
             let fxFunction;
             let fxEquation;
 
@@ -72,15 +72,15 @@ self.onmessage = async function(event) {
                     postMessage({ factor: d.toString(), trials: trialCount.toString() });
                 }, 0);
 
-                return true; // 成功
+                return true;
             }
 
-            return false; // 失敗
+            return false;
         }
 
         while (cRetryCount < MAX_C_RETRIES) {
             let c = getRandomC(n, maxC);
-            let success = runFactorization(c);
+            let success = await runFactorization(c);
             if (success) return;
             cRetryCount++;
             console.log(`worker ${workerId + 1} cを変更して再試行 (${cRetryCount}/${MAX_C_RETRIES})`);
