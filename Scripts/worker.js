@@ -5,6 +5,11 @@ self.onmessage = async function(event) {
         const MAX_C_RETRIES = (fxType === "fx1") ? 0 : 9; // fx1: 1回, fx2: 10回
         let cRetryCount = 0;
 
+        function getDigitBasedParams(n) {
+            let digitCount = (n === 0n) ? 1 : (n.toString(2).length * 0.30103) | 0;
+            return { maxC: Math.min(10 + digitCount * 2, n / 10n) };
+        }
+
         async function runFactorization(c) {
             let fxFunction;
             let fxEquation;
@@ -78,13 +83,16 @@ self.onmessage = async function(event) {
             return false;
         }
 
-        while (cRetryCount < MAX_C_RETRIES) {
-            let maxC = Math.min(10 + digitCount * 2, n / 10n);
+        while (cRetryCount <= MAX_C_RETRIES) {
+            let { maxC } = getDigitBasedParams(n);
             let c = BigInt(Math.floor(Math.random() * maxC)) * 2n + 1n;
+            
+            console.log(`worker ${workerId + 1} c=${c} で試行 (${cRetryCount + 1}/${MAX_C_RETRIES + 1})`);
+            
             let success = await runFactorization(c);
             if (success) return;
+
             cRetryCount++;
-            console.log(`worker ${workerId + 1} cを変更して再試行 (${cRetryCount}/${MAX_C_RETRIES} + 1)`);
         }
 
         console.log(`worker ${workerId + 1} が試行上限に達したため停止`);
@@ -107,6 +115,5 @@ function gcd(a, b) {
 }
 
 function abs(n) {
-    if (n < 0n) return -n;
-    return n;
+    return n < 0n ? -n : n;
 }
