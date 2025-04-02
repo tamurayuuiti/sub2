@@ -14,8 +14,8 @@ self.onmessage = async function(event) {
             };
 
             const MAX_C_RETRIES = {
-                fx1: 0n,
-                fx2: 10n
+                fx1: 0,
+                fx2: 10
             };
 
             if (fxType === "fx1") {
