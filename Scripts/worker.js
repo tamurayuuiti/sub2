@@ -16,7 +16,7 @@ self.onmessage = async function(event) {
             const MAX_C_RETRIES = {
                 fx1: 0,
                 fx2: 10
-            }[fxType];
+            };
 
             if (fxType === "fx1") {
                 fxEquation = "(3x² + 7x + c) mod n";
