@@ -1,6 +1,6 @@
 self.onmessage = async function(event) {
     try {
-        let { n, fxType, workerId, initialX } = event.data;
+        let { n, fxType, workerId　= 0, initialX } = event.data;
         let { maxC } = getDigitBasedParams(n);
         let cRetryCount = 0;
 
