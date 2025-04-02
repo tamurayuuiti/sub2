@@ -1,6 +1,7 @@
 self.onmessage = async function(event) {
     try {
         let { n, fxType, workerId, initialX } = event.data;
+        let { maxC } = getDigitBasedParams(n);
 
         const MAX_C_RETRIES = (fxType === "fx1") ? 0 : 9; // fx1: 1回, fx2: 10回
         let cRetryCount = 0;
@@ -79,15 +80,12 @@ self.onmessage = async function(event) {
         }
 
         while (cRetryCount <= MAX_C_RETRIES) {
-            let { maxC } = getDigitBasedParams(n);
-            let c = BigInt(Math.floor(Math.random() * maxC)) * 2n + 1n;
-            
-            console.log(`worker ${workerId + 1} c=${c} で試行 (${cRetryCount + 1}/${MAX_C_RETRIES + 1})`);
-            
+            let c = getRandomC(n, maxC);
             let success = await runFactorization(c);
             if (success) return;
 
             cRetryCount++;
+            console.log(`worker ${workerId + 1} cを変更して再試行 (${cRetryCount + 1}/${MAX_C_RETRIES + 1}) 初期 x = ${initialX}`);
         }
 
         console.log(`worker ${workerId + 1} が試行上限に達したため停止`);
@@ -101,7 +99,25 @@ self.onmessage = async function(event) {
 
 function getDigitBasedParams(n) {
     let digitCount = (n === 0n) ? 1 : (n.toString(2).length * 0.30103) | 0;
-    return { maxC: Math.min(10 + digitCount * 2, n / 10n) };
+    let maxC;
+    
+    if (digitCount <= 10) {
+        maxC = 20;
+    } else if (digitCount <= 20) {
+        maxC = 30;
+    } else if (digitCount <= 24) {
+        maxC = 50;
+    } else if (digitCount <= 28) {
+        maxC = 80;
+    } else {
+        maxC = 100;
+    }
+
+    return { maxC };
+}
+
+function getRandomC(n, maxC) {
+    return BigInt(Math.floor(Math.random() * maxC)) * 2n + 1n;
 }
 
 function gcd(a, b) {
@@ -115,5 +131,6 @@ function gcd(a, b) {
 }
 
 function abs(n) {
-    return n < 0n ? -n : n;
+    if (n < 0n) return -n;
+    return n;
 }
