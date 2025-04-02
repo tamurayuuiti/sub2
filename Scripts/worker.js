@@ -3,7 +3,7 @@ self.onmessage = async function(event) {
         let { n, fxType, workerId, initialX } = event.data;
         let { maxC } = getDigitBasedParams(n);
 
-        const MAX_C_RETRIES = (fxType === "fx1") ? 0 : 19; // fx1: 1回, fx2: 20回
+        const MAX_C_RETRIES = (fxType === "fx1") ? 0 : 9; // fx1: 1回, fx2: 10回
         let cRetryCount = 0;
 
         async function runFactorization(c) {
@@ -12,7 +12,7 @@ self.onmessage = async function(event) {
 
             const MAX_TRIALS = {
                 fx1: 300000n,
-                fx2: 5000000n
+                fx2: 10000000n
             };
 
             if (fxType === "fx1") {
@@ -84,7 +84,7 @@ self.onmessage = async function(event) {
             let success = await runFactorization(c);
             if (success) return;
             cRetryCount++;
-            console.log(`worker ${workerId + 1} cを変更して再試行 (${cRetryCount}/${MAX_C_RETRIES})`);
+            console.log(`worker ${workerId + 1} cを変更して再試行 (${cRetryCount}/${MAX_C_RETRIES} + 1)`);
         }
 
         console.log(`worker ${workerId + 1} が試行上限に達したため停止`);
