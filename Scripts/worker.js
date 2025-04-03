@@ -41,10 +41,10 @@ self.onmessage = async function(event) {
                 let ys = y;
 
                 // c の変更回数に応じて m を調整
-                if (cRetryCount <= 3) {
+                if (cRetryCount <= 1) {
                     m = (m * 3n) >> 1n;  // 1.5倍
                     k = 5n + m / 64n;
-                } else if (cRetryCount <= 6) {
+                } else if (cRetryCount <= 3) {
                     m = (m * 7n) >> 2n;  // 1.75倍
                     k = 3n + m / 32n;
                 } else {
