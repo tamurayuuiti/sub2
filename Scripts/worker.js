@@ -27,7 +27,7 @@ self.onmessage = async function(event) {
         let trialCount = 0n;
         let q = 1n;
         let m = 128n;
-        let k = 15n;
+        let k = 20n;
         let resetCount = 0;
 
         x = fxFunction(x, c, n);
@@ -58,8 +58,8 @@ self.onmessage = async function(event) {
             }
             x = ys;
             if (d === 1n) {  
-                m = 2n ** (BigInt(n.toString().length) / 3n);
-                k = 5n + m / 16n;
+                m = (m * 7n) >> 2n;
+                k = 10n + m / 20n;
             }
         }
 
