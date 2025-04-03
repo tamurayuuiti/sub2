@@ -3,7 +3,7 @@ self.onmessage = async function(event) {
         let { n, fxType, workerId, initialX } = event.data;
         let { maxC } = getDigitBasedParams(n);
 
-        const MAX_C_RETRIES = (fxType === "fx1") ? 0 : 9; // fx1: 1回, fx2: 10回
+        const MAX_C_RETRIES = (fxType === "fx1") ? 0 : 4; // fx1: 1回, fx2: 5回
         let cRetryCount = 0;
 
         async function runFactorization(c) {
@@ -12,7 +12,7 @@ self.onmessage = async function(event) {
 
             const MAX_TRIALS = {
                 fx1: 300000n,
-                fx2: 10000000n
+                fx2: 25000000n
             };
 
             if (fxType === "fx1") {
@@ -62,7 +62,7 @@ self.onmessage = async function(event) {
                 }
                 x = ys;
                 if (d === 1n) {  
-                    m = (m * 7n) >> 2n;  // 1.75倍に増加
+                    m = (m * 3n) >> 1n;  // 1.75倍に増加
                     k = 5n + (m / 64n);  // m に応じて GCD 計算頻度を動的調整
                 }
             }
