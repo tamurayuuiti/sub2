@@ -3,7 +3,7 @@ self.onmessage = async function(event) {
         let { n, fxType, workerId, initialX } = event.data;
         let { maxC } = getDigitBasedParams(n);
 
-        const MAX_C_RETRIES = (fxType === "fx1") ? 0 : 3; // fx1: 1回, fx2: 4回
+        const MAX_C_RETRIES = (fxType === "fx1") ? 0 : 9; // fx1: 1回, fx2: 10回
         let cRetryCount = 0;
 
         async function runFactorization(c) {
@@ -12,7 +12,7 @@ self.onmessage = async function(event) {
 
             const MAX_TRIALS = {
                 fx1: 300000n,
-                fx2: 25000000n
+                fx2: 10000000n
             };
 
             if (fxType === "fx1") {
@@ -31,7 +31,7 @@ self.onmessage = async function(event) {
             let trialCount = 0n;
             let q = 1n;
             let m = 128n;
-            let k = 15n;
+            let k = 10n;
             let resetCount = 0;
 
             x = fxFunction(x, c, n);
@@ -51,18 +51,19 @@ self.onmessage = async function(event) {
                     }
 
                     if (trialCount % 1000000n === 0n) {
-                        console.log(`worker ${workerId + 1} 試行 ${trialCount}, x=${x}, y=${y}, c=${c}, q=${q}, m=${m}, gcd=${d}`);
+                        console.log(`worker ${workerId + 1} 試行 ${trialCount}, x=${x}, y=${y}, c=${c}, m=${m}, k=${k}, q=${q}, gcd=${d}`);
                         await new Promise(resolve => setTimeout(resolve, 0));
                     }
 
-                    if (i % (k + (m / 16n)) === 0n) {
+                    if (i % k === 0n) {
                         d = gcd(q, n);
                         if (d > 1n) break;
                     }
                 }
                 x = ys;
                 if (d === 1n) {  
-                    m = (m * 7n) >> 2n;
+                    m = (m * 7n) >> 2n;  // 1.75倍に増加
+                    k = 5n + (m / 64n);  // m に応じて GCD 計算頻度を動的調整
                 }
             }
 
