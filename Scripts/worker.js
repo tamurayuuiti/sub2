@@ -3,7 +3,7 @@ self.onmessage = async function(event) {
         let { n, fxType, workerId, initialX } = event.data;
         let { maxC } = getDigitBasedParams(n);
 
-        const MAX_C_RETRIES = (fxType === "fx1") ? 0 : 9; // fx1: 1回, fx2: 10回
+        const MAX_C_RETRIES = (fxType === "fx1") ? 0 : 1; // fx1: 1回, fx2: 2回
         let cRetryCount = 0;
 
         async function runFactorization(c) {
@@ -12,10 +12,10 @@ self.onmessage = async function(event) {
 
             const MAX_TRIALS = {
                 fx1: 300000n,
-                fx2: 15000000n
+                fx2: 50000000n
             };
 
-            if (fxType === "fx1") { //試験用関数。現在は未使用
+            if (fxType === "fx1") {
                 fxEquation = "(3x² + 7x + c) mod n";
                 fxFunction = (x, c, n) => (3n * x * x + 7n * x + c) % n;
             } else if (fxType === "fx2") {
@@ -31,7 +31,7 @@ self.onmessage = async function(event) {
             let trialCount = 0n;
             let q = 1n;
             let m = 128n;
-            let k = 20n;
+            let k = 15n;
             let resetCount = 0;
 
             x = fxFunction(x, c, n);
@@ -62,8 +62,7 @@ self.onmessage = async function(event) {
                 }
                 x = ys;
                 if (d === 1n) {  
-                    m = (m * 3n) >> 1n;
-                    k = 10n + m / 10n;
+                    m = (m * 7n) >> 2n;
                 }
             }
 
@@ -83,7 +82,7 @@ self.onmessage = async function(event) {
             if (success) return;
 
             cRetryCount++;
-            console.log(`worker ${workerId + 1} cを変更して再試行 (${cRetryCount + 1}/${MAX_C_RETRIES + 1}) 初期 x = ${initialX}`);
+            console.log(`worker ${workerId + 1} cを変更して再試行 (${cRetryCount + 1}/${MAX_C_RETRIES + 1})`);
         }
 
         console.log(`worker ${workerId + 1} が試行上限に達したため停止`);
