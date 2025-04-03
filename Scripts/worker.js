@@ -8,7 +8,7 @@ self.onmessage = async function(event) {
 
         const MAX_TRIALS = {
             fx1: 300000n,
-            fx2: 50000000n
+            fx2: 100000000n
         };
 
         if (fxType === "fx1") { //試験用関数。現在は未使用
