@@ -55,7 +55,7 @@ self.onmessage = async function(event) {
                         await new Promise(resolve => setTimeout(resolve, 0));
                     }
 
-                    (i % (k + (m / 16n)) === 0n) {
+                    if (i % (k + (m / 16n)) === 0n) {
                         d = gcd(q, n);
                         if (d > 1n) break;
                     }
@@ -69,10 +69,7 @@ self.onmessage = async function(event) {
 
             if (d > 1n && d !== n) {
                 console.log(`worker ${workerId + 1} が因数 ${d} を送信（試行回数: ${trialCount}）`);
-
-                setTimeout(() => {
-                    postMessage({ factor: d.toString(), trials: trialCount.toString() });
-                }, 0);
+                postMessage({ factor: d.toString(), trials: trialCount.toString() });
 
                 return true;
             }
