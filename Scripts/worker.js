@@ -41,7 +41,7 @@ self.onmessage = async function(event) {
                 trialCount++;
 
                 if (q === 0n) {
-                    let d = gcd(q, n);
+                    d = gcd(q, n);
                     if (d > 1n) {
                         console.log(`worker ${workerId + 1} が因数 ${d} を送信（試行回数: ${trialCount}）`);
                         postMessage({ factor: d.toString(), trials: trialCount.toString() });
