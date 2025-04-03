@@ -3,7 +3,7 @@ self.onmessage = async function(event) {
         let { n, fxType, workerId, initialX } = event.data;
         let { maxC } = getDigitBasedParams(n);
 
-        const MAX_C_RETRIES = (fxType === "fx1") ? 0 : 4; // fx1: 1回, fx2: 5回
+        const MAX_C_RETRIES = (fxType === "fx1") ? 0 : 9;
         let cRetryCount = 0;
 
         async function runFactorization(c) {
@@ -12,7 +12,7 @@ self.onmessage = async function(event) {
 
             const MAX_TRIALS = {
                 fx1: 300000n,
-                fx2: 25000000n
+                fx2: 10000000n
             };
 
             if (fxType === "fx1") {
@@ -25,13 +25,13 @@ self.onmessage = async function(event) {
                 throw new Error("Unknown fxType");
             }
 
-            console.log(`Worker ${workerId + 1} を実行: fx = ${fxEquation}, 初期 x = ${initialX}, 試行上限 ${MAX_TRIALS[fxType]}, c = ${c}`);
+            console.log(`Worker ${workerId + 1} 実行: fx = ${fxEquation}, 初期 x = ${initialX}, c = ${c}`);
 
             let x = initialX, y = initialX, d = 1n;
             let trialCount = 0n;
             let q = 1n;
             let m = 128n;
-            let k = 10n;
+            let k;
             let resetCount = 0;
 
             x = fxFunction(x, c, n);
@@ -39,6 +39,19 @@ self.onmessage = async function(event) {
 
             while (d === 1n && trialCount < MAX_TRIALS[fxType]) {
                 let ys = y;
+
+                // c の変更回数に応じて m を調整
+                if (cRetryCount <= 3) {
+                    m = (m * 3n) >> 1n;  // 1.5倍
+                    k = 5n + m / 64n;
+                } else if (cRetryCount <= 6) {
+                    m = (m * 7n) >> 2n;  // 1.75倍
+                    k = 3n + m / 32n;
+                } else {
+                    m = (m * 2n);  // 2.0倍
+                    k = 2n + m / 16n;
+                }
+
                 for (let i = 0n; i < m && trialCount < MAX_TRIALS[fxType]; i++) {
                     y = fxFunction(fxFunction(y, c, n), c, n);
                     q = abs(x - y) * q % n;
@@ -55,20 +68,16 @@ self.onmessage = async function(event) {
                         await new Promise(resolve => setTimeout(resolve, 0));
                     }
 
-                    if (i % k === 0n) {
+                    if (i % (k + (m / 16n)) === 0n) {
                         d = gcd(q, n);
                         if (d > 1n) break;
                     }
                 }
                 x = ys;
-                if (d === 1n) {  
-                    m = (m * 3n) >> 1n;  // 1.75倍に増加
-                    k = 5n + (m / 64n);  // m に応じて GCD 計算頻度を動的調整
-                }
             }
 
             if (d > 1n && d !== n) {
-                console.log(`worker ${workerId + 1} が因数 ${d} を送信（試行回数: ${trialCount}）`);
+                console.log(`worker ${workerId + 1} が因数 ${d} を送信 (試行回数: ${trialCount})`);
 
                 setTimeout(() => {
                     postMessage({ factor: d.toString(), trials: trialCount.toString() });
@@ -86,14 +95,14 @@ self.onmessage = async function(event) {
             if (success) return;
 
             cRetryCount++;
-            console.log(`worker ${workerId + 1} cを変更して再試行 (${cRetryCount + 1}/${MAX_C_RETRIES + 1}) 初期 x = ${initialX}`);
+            console.log(`worker ${workerId + 1} cを変更して再試行 (${cRetryCount + 1}/${MAX_C_RETRIES + 1})`);
         }
 
         console.log(`worker ${workerId + 1} が試行上限に達したため停止`);
         postMessage({ stopped: true });
 
     } catch (error) {
-        console.error(`worker ${workerId + 1} でエラー発生: ${error.stack}`);
+        console.error(`worker ${workerId + 1} エラー発生: ${error.stack}`);
         postMessage({ error: error.stack });
     }
 };
@@ -132,6 +141,6 @@ function gcd(a, b) {
 }
 
 function abs(n) {
-    if (n < 0n) return -n;
-    return n;
+    return n < 0n ? -n : n;
 }
+
