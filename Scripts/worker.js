@@ -51,7 +51,7 @@ self.onmessage = async function(event) {
                     }
 
                     if (trialCount % 1000000n === 0n) {
-                        console.log(`worker ${workerId + 1} 試行 ${trialCount}, x=${x}, y=${y}, c=${c}, q=${q}, m=${m}, gcd=${d}`);
+                        console.log(`worker ${workerId + 1} 試行 ${trialCount}, x=${x}, y=${y}, c=${c}, q=${q}, m=${m}, k=${k} gcd=${d}`);
                         await new Promise(resolve => setTimeout(resolve, 0));
                     }
 
@@ -85,7 +85,7 @@ self.onmessage = async function(event) {
             if (success) return;
 
             cRetryCount++;
-            console.log(`worker ${workerId + 1} cを変更して再試行 (${cRetryCount + 1}/${MAX_C_RETRIES + 1}) 初期 x = ${initialX}`);
+            console.log(`worker ${workerId + 1} cを変更して再試行 (${cRetryCount + 1}/${MAX_C_RETRIES + 1})`);
         }
 
         console.log(`worker ${workerId + 1} が試行上限に達したため停止`);
