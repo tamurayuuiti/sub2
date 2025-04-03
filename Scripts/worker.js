@@ -41,12 +41,6 @@ self.onmessage = async function(event) {
                 trialCount++;
 
                 if (q === 0n) {
-                    d = gcd(q, n);
-                    if (d > 1n) {
-                        console.log(`worker ${workerId + 1} が因数 ${d} を送信（試行回数: ${trialCount}）`);
-                        postMessage({ factor: d.toString(), trials: trialCount.toString() });
-                        return;
-                    }
                     console.error(`worker ${workerId + 1} q が 0 になりました。（リセット回数: ${resetCount}）`);
                     q = 1n;
                     resetCount++;
