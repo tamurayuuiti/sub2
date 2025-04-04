@@ -4,17 +4,13 @@ self.onmessage = async function(event) {
         let { maxC } = getDigitBasedParams(n);
 
         const MAX_TRIALS = {
-            fx1: 300000n,
-            fx2: 100000000n
+            fx1: 100000000n
         };
 
         let fxFunction;
         let fxEquation;
 
-        if (fxType === "fx1") {
-            fxEquation = "(3x² + 7x) mod n";
-            fxFunction = (x, n) => (3n * x * x + 7n * x) % n;
-        } else if (fxType === "fx2") {
+        } else if (fxType === "fx1") {
             fxEquation = "(x³ + 5x) mod n";
             fxFunction = (x, n) => (x * x * x + 5n * x) % n;
         } else {
