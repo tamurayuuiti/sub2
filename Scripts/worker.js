@@ -12,7 +12,7 @@ self.onmessage = async function(event) {
 
             const MAX_TRIALS = {
                 fx1: 300000n,
-                fx2: 50000000n
+                fx2: 40000000n
             };
 
             if (fxType === "fx1") {
@@ -114,8 +114,7 @@ function getDigitBasedParams(n) {
 }
 
 function getRandomC(n, maxC) {
-    // 常に固定の c = 17n を返す
-    return 17n;
+    return BigInt(Math.floor(Math.random() * maxC)) * 2n + 1n;
 }
 
 function gcd(a, b) {
