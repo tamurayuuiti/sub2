@@ -1,20 +1,13 @@
 // どの f(x) を使用するか制御するオブジェクト
 const ENABLE_FX = {
-    fx1: false, //テスト用関数
-    fx2: true,   
-    fx2Count: getOptimalFx2Count()
+    fx1: true,
+    fx1Count: getOptimalFx1Count()
 };
 
 export async function pollardsRho(n) {
     return new Promise((resolve, reject) => {
         const workers = [];
-        let fxTypes = Object.keys(ENABLE_FX).filter(fx => ENABLE_FX[fx] === true);
-
-        if (ENABLE_FX.fx2) {
-            for (let i = 1; i < ENABLE_FX.fx2Count; i++) {
-                fxTypes.push("fx2");
-            }
-        }
+        let fxTypes = Array(ENABLE_FX.fx1Count).fill("fx1");
 
         let activeWorkers = fxTypes.length;
         if (activeWorkers === 0) {
@@ -28,7 +21,7 @@ export async function pollardsRho(n) {
                 const worker = new Worker("./Scripts/worker.js");
                 workers.push(worker);
 
-                let initialX = assignX(i, n, ENABLE_FX.fx2Count);
+                let initialX = assignX(i, n, ENABLE_FX.fx1Count);
 
                 worker.postMessage({ n, fxType: fxTypes[i], workerId: i, initialX });
 
@@ -76,8 +69,8 @@ export async function pollardsRho(n) {
     });
 }
 
-// CPU コア数に基づいて fx2Count を決定
-export function getOptimalFx2Count() {
+// CPU コア数に基づいて fx1Count を決定
+export function getOptimalFx1Count() {
     const cpuCores = navigator.hardwareConcurrency || 4;
 
     if (cpuCores <= 8) {
@@ -87,7 +80,7 @@ export function getOptimalFx2Count() {
     }
 }
 
-function assignX(workerId, n, fx2Count) {
+function assignX(workerId, n, fx1Count) {
     if (workerId === 0) return 2n;
     if (workerId === 1) return n / 2n;
     return getRandomX(n);
@@ -96,3 +89,4 @@ function assignX(workerId, n, fx2Count) {
 function getRandomX(n) {
     return BigInt(Math.floor(Math.random() * Number(n - 2n))) + 2n;
 }
+
