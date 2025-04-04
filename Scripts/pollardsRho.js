@@ -3,20 +3,20 @@ export async function pollardsRho(n) {
         const workers = [];
 
         const workerCount = getWorkerCount();
+        let activeWorkers = workerCount;
 
-        let activeWorkers = fxTypes.length;
         if (activeWorkers === 0) {
-            console.error(`使用可能な f(x) がありません。`);
+            console.error(`使用可能なワーカーがありません。`);
             resolve(null);
             return;
         }
 
-        for (let i = 0; i < fxTypes.length; i++) {
+        for (let i = 0; i < workerCount; i++) {
             try {
                 const worker = new Worker("./Scripts/worker.js");
                 workers.push(worker);
 
-                let initialX = assignX(i, n, fxCount);
+                let initialX = assignX(i, n, workerCount);
 
                 worker.postMessage({ n, workerId: i, initialX });
 
@@ -84,5 +84,3 @@ function assignX(workerId, n, workerCount) {
 function getRandomX(n) {
     return BigInt(Math.floor(Math.random() * Number(n - 2n))) + 2n;
 }
-
-
