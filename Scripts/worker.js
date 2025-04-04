@@ -46,7 +46,7 @@ self.onmessage = async function(event) {
             }
             x = ys;
             if (d === 1n) {
-                m = m * mMultiplier;
+                m = (m * mMultiplier) / 100n;
             }
         }
 
