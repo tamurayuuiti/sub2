@@ -18,7 +18,7 @@ export async function pollardsRho(n) {
                 const initialX = assignX(i, n, workerCount);
                 const mMultiplier = getMMultiplier(i);
 
-                worker.postMessage({ n, workerId: i, initialX, mMultiplier });
+                worker.postMessage({ n, workerId: i, initialX, mMultiplier: mMultiplier.toString() });
 
                 worker.onmessage = function (event) {
                     console.log(`受信データ:`, event.data);
