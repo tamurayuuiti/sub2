@@ -1,6 +1,6 @@
 self.onmessage = async function(event) {
     try {
-        let { n, workerId, initialX, mMultiplier } = event.data;
+        let { n, workerId, initialX } = event.data;
         const mMultiplier = BigInt(event.data.mMultiplier);
         let { maxC } = getDigitBasedParams(n);
 
