@@ -12,7 +12,7 @@ self.onmessage = async function(event) {
 
             const MAX_TRIALS = {
                 fx1: 300000n,
-                fx2: 25000000n
+                fx2: 50000000n
             };
 
             if (fxType === "fx1") {
@@ -31,7 +31,7 @@ self.onmessage = async function(event) {
             let trialCount = 0n;
             let q = 1n;
             let m = 128n;
-            let k = 5n;
+            let k = 15n;
             let resetCount = 0;
 
             x = fxFunction(x, c, n);
