@@ -3,8 +3,6 @@ self.onmessage = async function(event) {
         let { n, workerId, initialX, mMultiplier } = event.data;
         let { maxC } = getDigitBasedParams(n);
 
-        mMultiplier = BigInt(mMultiplier);
-
         const MAX_TRIALS = 100000000n;
 
         const fxEquation = "(x³ + 5x) mod n";
