@@ -1,23 +1,14 @@
 self.onmessage = async function(event) {
     try {
-        let { n, fxType, workerId, initialX } = event.data;
+        let { n, workerId, initialX } = event.data;
         let { maxC } = getDigitBasedParams(n);
 
-        const MAX_TRIALS = {
-            fx1: 100000000n
-        };
+        const MAX_TRIALS = 100000000n;
 
-        let fxFunction;
-        let fxEquation;
+        const fxEquation = "(x³ + 5x) mod n";
+        const fxFunction = (x, n) => (x * x * x + 5n * x) % n;
 
-        } else if (fxType === "fx1") {
-            fxEquation = "(x³ + 5x) mod n";
-            fxFunction = (x, n) => (x * x * x + 5n * x) % n;
-        } else {
-            throw new Error("Unknown fxType");
-        }
-
-        console.log(`Worker ${workerId + 1} を実行: fx = ${fxEquation}, 初期 x = ${initialX}, 試行上限 ${MAX_TRIALS[fxType]}`);
+        console.log(`Worker ${workerId + 1} を実行: fx = ${fxEquation}, 初期 x = ${initialX}, 試行上限 ${MAX_TRIALS}`);
 
         let x = initialX, y = initialX, d = 1n;
         let trialCount = 0n;
@@ -29,9 +20,9 @@ self.onmessage = async function(event) {
         x = fxFunction(x, n);
         y = fxFunction(fxFunction(y, n), n);
 
-        while (d === 1n && trialCount < MAX_TRIALS[fxType]) {
+        while (d === 1n && trialCount < MAX_TRIALS) {
             let ys = y;
-            for (let i = 0n; i < m && trialCount < MAX_TRIALS[fxType]; i++) {
+            for (let i = 0n; i < m && trialCount < MAX_TRIALS; i++) {
                 y = fxFunction(fxFunction(y, n), n);
                 q = abs(x - y) * q % n;
                 trialCount++;
@@ -75,7 +66,7 @@ self.onmessage = async function(event) {
 function getDigitBasedParams(n) {
     let digitCount = (n === 0n) ? 1 : (n.toString(2).length * 0.30103) | 0;
     let maxC;
-    
+
     if (digitCount <= 10) {
         maxC = 20;
     } else if (digitCount <= 20) {
@@ -92,6 +83,7 @@ function getDigitBasedParams(n) {
 }
 
 function getRandomC(n, maxC) {
+
     return 17n;
 }
 
@@ -106,6 +98,5 @@ function gcd(a, b) {
 }
 
 function abs(n) {
-    if (n < 0n) return -n;
-    return n;
+    return n < 0n ? -n : n;
 }
