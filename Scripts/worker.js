@@ -1,8 +1,9 @@
 self.onmessage = async function(event) {
     try {
-        let { n, workerId, initialX } = event.data;
-        const mMultiplier = BigInt(event.data.mMultiplier);
+        let { n, workerId, initialX, mMultiplier } = event.data;
         let { maxC } = getDigitBasedParams(n);
+
+        mMultiplier = BigInt(mMultiplier);
 
         const MAX_TRIALS = 100000000n;
 
