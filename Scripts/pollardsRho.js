@@ -1,7 +1,6 @@
 export async function pollardsRho(n) {
     return new Promise((resolve, reject) => {
         const workers = [];
-
         const workerCount = getWorkerCount();
         let activeWorkers = workerCount;
 
@@ -16,9 +15,10 @@ export async function pollardsRho(n) {
                 const worker = new Worker("./Scripts/worker.js");
                 workers.push(worker);
 
-                let initialX = assignX(i, n, workerCount);
+                const initialX = assignX(i, n, workerCount);
+                const mMultiplier = getMMultiplier(i);
 
-                worker.postMessage({ n, workerId: i, initialX });
+                worker.postMessage({ n, workerId: i, initialX, mMultiplier });
 
                 worker.onmessage = function (event) {
                     console.log(`受信データ:`, event.data);
@@ -30,7 +30,7 @@ export async function pollardsRho(n) {
 
                     if (event.data.factor) {
                         try {
-                            let factor = BigInt(event.data.factor);
+                            const factor = BigInt(event.data.factor);
                             console.log(`worker ${i + 1} が因数 ${factor} を発見（試行回数: ${BigInt(event.data.trials)}）`);
                             workers.forEach((w) => w.terminate());
                             resolve(factor);
