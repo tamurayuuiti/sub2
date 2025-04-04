@@ -16,7 +16,7 @@ export async function pollardsRho(n) {
                 workers.push(worker);
 
                 const initialX = assignX(i, n, workerCount);
-                const mMultiplier = BigInt(Math.floor(getMMultiplier(workerId) * 100));
+                const mMultiplier = BigInt(Math.floor(getMMultiplier(i) * 100));
 
                 worker.postMessage({ n, workerId: i, initialX, mMultiplier });
 
