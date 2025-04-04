@@ -3,7 +3,7 @@ self.onmessage = async function(event) {
         let { n, fxType, workerId, initialX } = event.data;
         let { maxC } = getDigitBasedParams(n);
 
-        const MAX_C_RETRIES = (fxType === "fx1") ? 0 : 3; // テスト用
+        const MAX_C_RETRIES = (fxType === "fx1") ? 0 : 1; // テスト用
         let cRetryCount = 0;
 
         async function runFactorization(c) {
@@ -31,7 +31,7 @@ self.onmessage = async function(event) {
             let trialCount = 0n;
             let q = 1n;
             let m = 128n;
-            let k = 15n;
+            let k = 10n;
             let resetCount = 0;
 
             x = fxFunction(x, c, n);
