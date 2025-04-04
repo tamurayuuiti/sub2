@@ -1,17 +1,13 @@
-// どの f(x) を使用するか制御するオブジェクト
-const ENABLE_FX = {
-    fx1: true,
-    fx1Count: getOptimalFx1Count()
-};
-
 export async function pollardsRho(n) {
     return new Promise((resolve, reject) => {
         const workers = [];
-        let fxTypes = Array(ENABLE_FX.fx1Count).fill("fx1");
+
+        const fxCount = getWorkerCount();
+        const fxTypes = Array.from({ length: fxCount }, () => "fx1");
 
         let activeWorkers = fxTypes.length;
         if (activeWorkers === 0) {
-            console.error(`全ての f(x) が無効です。少なくとも 1 つ有効にしてください。`);
+            console.error(`使用可能な f(x) がありません。`);
             resolve(null);
             return;
         }
@@ -21,7 +17,7 @@ export async function pollardsRho(n) {
                 const worker = new Worker("./Scripts/worker.js");
                 workers.push(worker);
 
-                let initialX = assignX(i, n, ENABLE_FX.fx1Count);
+                let initialX = assignX(i, n, fxCount);
 
                 worker.postMessage({ n, fxType: fxTypes[i], workerId: i, initialX });
 
@@ -69,8 +65,8 @@ export async function pollardsRho(n) {
     });
 }
 
-// CPU コア数に基づいて fx1Count を決定
-export function getOptimalFx1Count() {
+// CPU コア数に基づいてワーカー数を決定
+export function getWorkerCount() {
     const cpuCores = navigator.hardwareConcurrency || 4;
 
     if (cpuCores <= 8) {
@@ -80,7 +76,7 @@ export function getOptimalFx1Count() {
     }
 }
 
-function assignX(workerId, n, fx1Count) {
+function assignX(workerId, n, workerCount) {
     if (workerId === 0) return 2n;
     if (workerId === 1) return n / 2n;
     return getRandomX(n);
@@ -89,4 +85,5 @@ function assignX(workerId, n, fx1Count) {
 function getRandomX(n) {
     return BigInt(Math.floor(Math.random() * Number(n - 2n))) + 2n;
 }
+
 
