@@ -62,7 +62,7 @@ self.onmessage = async function(event) {
                 }
                 x = ys;
                 if (d === 1n) {  
-                    m = (m * 7n) >> 2n;
+                    m = (m * 3n) >> 1n;
                 }
             }
 
