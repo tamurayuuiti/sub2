@@ -114,7 +114,8 @@ function getDigitBasedParams(n) {
 }
 
 function getRandomC(n, maxC) {
-    return BigInt(Math.floor(Math.random() * maxC)) * 2n + 1n;
+    // 常に固定の c = 17n を返す
+    return 17n;
 }
 
 function gcd(a, b) {
