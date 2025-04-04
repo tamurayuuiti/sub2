@@ -2,8 +2,7 @@ export async function pollardsRho(n) {
     return new Promise((resolve, reject) => {
         const workers = [];
 
-        const fxCount = getWorkerCount();
-        const fxTypes = Array.from({ length: fxCount }, () => "fx1");
+        const workerCount = getWorkerCount();
 
         let activeWorkers = fxTypes.length;
         if (activeWorkers === 0) {
@@ -19,7 +18,7 @@ export async function pollardsRho(n) {
 
                 let initialX = assignX(i, n, fxCount);
 
-                worker.postMessage({ n, fxType: fxTypes[i], workerId: i, initialX });
+                worker.postMessage({ n, workerId: i, initialX });
 
                 worker.onmessage = function (event) {
                     console.log(`受信データ:`, event.data);
