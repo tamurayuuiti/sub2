@@ -84,3 +84,8 @@ function assignX(workerId, n, workerCount) {
 function getRandomX(n) {
     return BigInt(Math.floor(Math.random() * Number(n - 2n))) + 2n;
 }
+
+function getMMultiplier(workerId) {
+    const multipliers = [1.5, 2.5, 2.0];
+    return multipliers[workerId % multipliers.length];
+}
