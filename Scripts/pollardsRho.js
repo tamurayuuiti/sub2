@@ -16,7 +16,7 @@ export async function pollardsRho(n) {
                 workers.push(worker);
 
                 const initialX = assignX(i, n, workerCount);
-                const mMultiplier = BigInt(getMMultiplier(i));
+                const mMultiplier = BigInt(Math.floor(getMMultiplier(i) * 100));
 
                 worker.postMessage({ n, workerId: i, initialX, mMultiplier: mMultiplier.toString() });
 
@@ -86,6 +86,6 @@ function getRandomX(n) {
 }
 
 function getMMultiplier(workerId) {
-    const multipliers = [150n, 250n, 200n];
+    const multipliers = [1.5, 2.5, 2.0];
     return multipliers[workerId % multipliers.length];
 }
