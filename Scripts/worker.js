@@ -67,21 +67,8 @@ self.onmessage = async function(event) {
 };
 
 function getDigitBasedParams(n) {
-    let digitCount = n.toString(2).length;
-    let maxC;
-
-    if (digitCount <= 10) {
-        maxC = 20;
-    } else if (digitCount <= 20) {
-        maxC = 35;
-    } else if (digitCount <= 24) {
-        maxC = 50;
-    } else if (digitCount <= 28) {
-        maxC = 65;
-    } else {
-        maxC = 80;
-    }
-
+    const digitCount = n.toString(10).length;
+    const maxC = Math.min(200, 5 * digitCount + 20); // 線形スケール + 上限200
     return { maxC };
 }
 
