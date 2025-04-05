@@ -2,6 +2,7 @@ self.onmessage = async function(event) {
     try {
         let { n, workerId, initialX, mMultiplier } = event.data;
         let { maxC } = getDigitBasedParams(n);
+        let c = getRandomC(n, maxC);
 
         const MAX_TRIALS = 100000000n;
 
@@ -15,7 +16,6 @@ self.onmessage = async function(event) {
         let q = 1n;
         let m = 128n;
         let k = 10n;
-        let c = getRandomC(n, maxC);
         let resetCount = 0;
 
         x = fxFunction(x, n);
