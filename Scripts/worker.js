@@ -18,7 +18,7 @@ self.onmessage = async function(event) {
         let k = 10n;
         let resetCount = 0;
 
-        x = fxFunction(x, n);
+        x = fxFunction(x, c, n);
         y = fxFunction(fxFunction(y, n), n);
 
         while (d === 1n && trialCount < MAX_TRIALS) {
