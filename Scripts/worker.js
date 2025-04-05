@@ -84,7 +84,6 @@ function getDigitBasedParams(n) {
 }
 
 function getRandomC(n, maxC) {
-
     return 17n;
 }
 
