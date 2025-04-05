@@ -7,7 +7,7 @@ self.onmessage = async function(event) {
         const MAX_TRIALS = 100000000n;
 
         const fxEquation = "(x³ + 5x + c) mod n";
-        const fxFunction = (x, c, n) => (x * x + x + c) % n;
+        const fxFunction = (x, c, n) => (x * x * x + x + c) % n;
 
         let mRatio = (Number(mMultiplier) / 100).toFixed(2);
         console.log(`worker ${workerId + 1} 実行: fx = ${fxEquation}, 初期ｘ = ${initialX}, ｍ増加率 = ${mRatio}, 試行上限 ${MAX_TRIALS}`);
