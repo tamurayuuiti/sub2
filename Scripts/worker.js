@@ -67,7 +67,7 @@ self.onmessage = async function(event) {
 };
 
 function getDigitBasedParams(n) {
-    let digitCount = (n === 0n) ? 1 : (n.toString(2).length * 0.30103) | 0;
+    let digitCount = n.toString(2).length;
     let maxC;
 
     if (digitCount <= 10) {
