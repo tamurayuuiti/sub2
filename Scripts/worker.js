@@ -5,8 +5,8 @@ self.onmessage = async function(event) {
 
         const MAX_TRIALS = 100000000n;
 
-        const fxEquation = "(x³ + 5x) mod n";
-        const fxFunction = (x, n) => (x * x * x + 5n * x) % n;
+        const fxEquation = "(x³ + 5x + c) mod n";
+        const fxFunction = (x, n, c) => (x * x * x + 5n * x + c) % n;
 
         console.log(`worker ${workerId + 1} を実行: fx = ${fxEquation}, 初期 x = ${initialX}, 試行上限 ${MAX_TRIALS}`);
 
