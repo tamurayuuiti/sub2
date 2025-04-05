@@ -2,23 +2,23 @@ self.onmessage = async function(event) {
     try {
         let { n, workerId, initialX, mMultiplier } = event.data;
         let { maxC } = getDigitBasedParams(n);
-        let c = getRandomC(n, maxC);
-
-        const MAX_TRIALS = 100000000n;
+        let mRatio = (Number(mMultiplier) / 100).toFixed(2);
 
         const fxEquation = "(x³ + 5x + c) mod n";
         const fxFunction = (x, c, n) => (x * x * x + 5n * x + c) % n;
+        const MAX_TRIALS = 100000000n;
 
-        let mRatio = (Number(mMultiplier) / 100).toFixed(2);
-        console.log(`worker ${workerId + 1} 実行: fx = ${fxEquation}, 初期ｘ = ${initialX}, ｍ増加率 = ${mRatio}, 試行上限 ${MAX_TRIALS}`);
-
-
-        let x = initialX, y = initialX, d = 1n;
         let trialCount = 0n;
+        let resetCount = 0;
+        let x = initialX;
+        let y = initialX;
+        let d = 1n;
         let q = 1n;
         let m = 128n;
         let k = 10n;
-        let resetCount = 0;
+        let c = getRandomC(n, maxC);
+
+        console.log(`worker ${workerId + 1} 実行: fx = ${fxEquation}, 初期ｘ = ${initialX}, ｍ増加率 = ${mRatio}, 試行上限 ${MAX_TRIALS}`);
 
         x = fxFunction(x, c, n);
         y = fxFunction(fxFunction(y, c, n), c, n);
@@ -68,7 +68,7 @@ self.onmessage = async function(event) {
 
 function getDigitBasedParams(n) {
     const digitCount = n.toString(10).length;
-    const maxC = Math.min(200, 5 * digitCount + 20); // 線形スケール + 上限200
+    const maxC = Math.min(200, 5 * digitCount + 20);
     return { maxC };
 }
 
