@@ -3,27 +3,29 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>素因数分解計算機</title>
+    <title>素因数分解テスト</title>
     <link rel="stylesheet" href="styles.css">
+    <script type="module" src="factorizationTest.js"></script>
 </head>
 <body>
-    <div class="container">
-        <h2>素因数分解計算機</h2>
-        <div class="input-container">
-            <input type="number" id="numberInput" placeholder="数値を入力" min="2">
-            <div class="char-counter" id="charCounter">現在の桁数: 0（最大30桁）</div>
-        </div>
-        <div class="loading" id="loading" style="display: none;">
-            計算中...
-            <span id="elapsed-time">（経過時間: 0.0 秒）</span>
-            <div class="spinner" id="spinner"></div>
-        </div>
-        <button id="calculateButton">計算</button>
-        <div class="time" id="time"></div>
-        <div class="progress" id="progress"></div>
-        <div class="result" id="result"></div>
-        <div class="limits">※ 2以上の整数を入力してください</div>
-    </div>
-    <script type="module" src="main_script.js"></script>
+    <h1>素因数分解テスト</h1>
+    <label for="numberInput">数値 (最大30桁):</label>
+    <input type="text" id="numberInput" maxlength="30">
+    <span id="charCounter">現在の桁数: 0 (最大30桁)</span>
+    <br>
+    <label for="trialCount">試行回数:</label>
+    <input type="number" id="trialCount" min="1" value="5">
+    <button id="startTest">テスト開始</button>
+    <p id="elapsed-time"></p>
+    <table>
+        <thead>
+            <tr>
+                <th>試行回数</th>
+                <th>計算時間 (秒)</th>
+            </tr>
+        </thead>
+        <tbody id="resultsTable"></tbody>
+    </table>
+    <p id="summary"></p>
 </body>
 </html>
