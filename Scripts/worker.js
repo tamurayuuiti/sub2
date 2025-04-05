@@ -12,6 +12,7 @@ self.onmessage = async function(event) {
         let mRatio = (Number(mMultiplier) / 100).toFixed(2);
         console.log(`worker ${workerId + 1} 実行: fx = ${fxEquation}, 初期ｘ = ${initialX}, ｍ増加率 = ${mRatio}, 試行上限 ${MAX_TRIALS}`);
 
+
         let x = initialX, y = initialX, d = 1n;
         let trialCount = 0n;
         let q = 1n;
@@ -33,7 +34,6 @@ self.onmessage = async function(event) {
                     console.error(`worker ${workerId + 1} q が 0 になりました。（リセット回数: ${resetCount}）`);
                     q = 1n;
                     resetCount++;
-                    y = getRandomBigIntLessThan(n);
                 }
 
                 if (trialCount % 1000000n === 0n) {
@@ -68,21 +68,12 @@ self.onmessage = async function(event) {
 
 function getDigitBasedParams(n) {
     const digitCount = n.toString(10).length;
-    const maxC = Math.min(200, 5 * digitCount + 20);
+    const maxC = Math.min(200, 5 * digitCount + 20); // 線形スケール + 上限200
     return { maxC };
 }
 
 function getRandomC(n, maxC) {
     return 17n;
-}
-
-function getRandomBigIntLessThan(n) {
-    const digits = n.toString().length;
-    while (true) {
-        const randStr = Array.from({ length: digits }, () => Math.floor(Math.random() * 10)).join('');
-        const r = BigInt(randStr);
-        if (r > 0n && r < n) return r;
-    }
 }
 
 function gcd(a, b) {
