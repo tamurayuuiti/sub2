@@ -19,12 +19,12 @@ self.onmessage = async function(event) {
         let resetCount = 0;
 
         x = fxFunction(x, c, n);
-        y = fxFunction(fxFunction(y, n), n);
-
+        y = fxFunction(fxFunction(y, c, n), c, n);
+        
         while (d === 1n && trialCount < MAX_TRIALS) {
             let ys = y;
             for (let i = 0n; i < m && trialCount < MAX_TRIALS; i++) {
-                y = fxFunction(fxFunction(y, n), n);
+                y = fxFunction(fxFunction(y, c, n), c, n);
                 q = abs(x - y) * q % n;
                 trialCount++;
 
