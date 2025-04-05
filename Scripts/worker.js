@@ -41,7 +41,7 @@ self.onmessage = async function(event) {
                     await new Promise(resolve => setTimeout(resolve, 0));
                 }
 
-                if (i % (k + (m / 16n)) === 0n) {
+                if (i % (k + (m / 8n)) === 0n) {
                     d = gcd(q, n);
                     if (d > 1n) break;
                 }
