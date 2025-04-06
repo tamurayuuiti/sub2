@@ -69,7 +69,7 @@ export function getWorkerCount() {
     const cpuCores = navigator.hardwareConcurrency || 4;
 
     if (cpuCores <= 8) {
-        return Math.max(1, cpuCores - 1);
+        return Math.max(1, cpuCores - 2);
     } else {
         return Math.max(1, Math.floor(cpuCores * 0.6));
     }
@@ -86,6 +86,6 @@ function getRandomX(n) {
 }
 
 function getMMultiplier(workerId) {
-    const multipliers = [150n, 175n, 200n];
+    const multipliers = [200n, 175n, 150n];
     return multipliers[workerId % multipliers.length];
 }
