@@ -34,12 +34,6 @@ self.onmessage = async function(event) {
                     console.error(`worker ${workerId + 1} q が 0 になりました。リセット中（回数: ${resetCount + 1}）`);
                     resetCount++;
                     q = 1n;
-                    c = getRandomC(n, maxC);
-                    x = initialX;
-                    y = initialX;
-                    x = fxFunction(x, c, n);
-                    y = fxFunction(fxFunction(y, c, n), c, n);
-                    break; // 現在の for-loop を抜けてリセット状態に移行
                 }
 
                 if (trialCount % 1000000n === 0n) {
