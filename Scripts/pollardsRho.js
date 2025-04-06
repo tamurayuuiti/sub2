@@ -86,6 +86,6 @@ function getRandomX(n) {
 }
 
 function getMMultiplier(workerId) {
-    const multipliers = [175n, 400n, 150n];
+    const multipliers = [175n, 500n, 150n];
     return multipliers[workerId % multipliers.length];
 }
