@@ -73,7 +73,7 @@ function getDigitBasedParams(n) {
 }
 
 function getRandomC(n, maxC) {
-    return BigInt(Math.floor(Math.random() * maxC)) * 2n + 1n;
+    return 17n;
 }
 
 function gcd(a, b) {
