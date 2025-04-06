@@ -33,7 +33,7 @@ input {
     margin-bottom: 20px;
     text-align: center;
     border: 2px solid #4facfe;
-    border-radius: 50px;
+    border-radius: 5px;
     box-sizing: border-box; /* 追加: padding と border を width に含める */
 }
 
