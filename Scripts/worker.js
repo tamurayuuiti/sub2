@@ -22,7 +22,7 @@ self.onmessage = async function(event) {
 
         x = fxFunction(x, c, n);
         y = fxFunction(fxFunction(y, c, n), c, n);
-        
+
         while (d === 1n && trialCount < MAX_TRIALS) {
             let ys = y;
             for (let i = 0n; i < m && trialCount < MAX_TRIALS; i++) {
@@ -31,9 +31,15 @@ self.onmessage = async function(event) {
                 trialCount++;
 
                 if (q === 0n) {
-                    console.error(`worker ${workerId + 1} q が 0 になりました。（リセット回数: ${resetCount}）`);
-                    q = 1n;
+                    console.error(`worker ${workerId + 1} q が 0 になりました。リセット中（回数: ${resetCount + 1}）`);
                     resetCount++;
+                    q = 1n;
+                    c = getRandomC(n, maxC);
+                    x = initialX;
+                    y = initialX;
+                    x = fxFunction(x, c, n);
+                    y = fxFunction(fxFunction(y, c, n), c, n);
+                    break; // 現在の for-loop を抜けてリセット状態に移行
                 }
 
                 if (trialCount % 1000000n === 0n) {
