@@ -69,7 +69,7 @@ export function getWorkerCount() {
     const cpuCores = navigator.hardwareConcurrency || 4;
 
     if (cpuCores <= 8) {
-        return Math.max(1, cpuCores - 1);
+        return Math.max(1, cpuCores - 3);
     } else {
         return Math.max(1, Math.floor(cpuCores * 0.6));
     }
