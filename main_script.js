@@ -5,7 +5,7 @@ import { isPrimeMillerRabin } from './Scripts/millerRabin.js';
 import { trialDivision, loadPrimes } from './Scripts/trialDivision.js';
 
 // Pollard’s rho 法
-import { pollardsRhoFactorization } from './Scripts/pollardsRhoFactorization.js';
+import { pollardsRhoFactorization } from './Scripts/pollardsRho.js';
 
 const coreCount = navigator.hardwareConcurrency || 4;
 let startTime = null;
