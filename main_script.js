@@ -27,16 +27,16 @@ numberInput.addEventListener("beforeinput", (e) => {
     const len = numberInput.value.length;
     const sel = numberInput.selectionEnd - numberInput.selectionStart;
 
-    // e.data が null（Backspace など）のときは許可
     if (e.data && len - sel + e.data.length > 30) {
         e.preventDefault();
-    }
-    if (sanitized.length > 30) {
-        sanitized = sanitized.slice(0, 30);
     }
 });
 
 numberInput.addEventListener("input", () => {
+    if (numberInput.value.length > 30) {
+        numberInput.value = numberInput.value.slice(0, 30);
+    }
+
     const len = numberInput.value.length;
     charCounter.textContent = `現在の桁数: ${len}（最大30桁）`;
     charCounter.classList.toggle("limit-reached", len >= 30);
