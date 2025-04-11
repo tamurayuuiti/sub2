@@ -31,6 +31,9 @@ numberInput.addEventListener("beforeinput", (e) => {
     if (e.data && len - sel + e.data.length > 30) {
         e.preventDefault();
     }
+    if (sanitized.length > 30) {
+        sanitized = sanitized.slice(0, 30);
+    }
 });
 
 numberInput.addEventListener("input", () => {
