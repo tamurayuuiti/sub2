@@ -20,12 +20,23 @@ document.getElementById("numberInput").addEventListener("keypress", function(eve
     }
 });
 
-const inputField = document.getElementById("numberInput");
+const numberInput = document.getElementById("numberInput");
 const charCounter = document.getElementById("charCounter");
 
-inputField.addEventListener("input", function() {
-    this.value = this.value.slice(0, 30); // 30桁制限のみ
-    charCounter.textContent = `現在の桁数: ${this.value.length} (最大30桁)`;
+numberInput.addEventListener("beforeinput", (e) => {
+    const len = numberInput.value.length;
+    const sel = numberInput.selectionEnd - numberInput.selectionStart;
+
+    // e.data が null（Backspace など）のときは許可
+    if (e.data && len - sel + e.data.length > 30) {
+        e.preventDefault();
+    }
+});
+
+numberInput.addEventListener("input", () => {
+    const len = numberInput.value.length;
+    charCounter.textContent = `現在の桁数: ${len}（最大30桁）`;
+    charCounter.classList.toggle("limit-reached", len >= 30);
 });
 
 function updateProgress() {
