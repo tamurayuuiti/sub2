@@ -3,7 +3,7 @@ export async function loadPrimes() {
     let primes = [];
     try {
         console.log("素数リストの読み込みを開始します");
-        const response = await fetch("https://tamurayuuiti.github.io/sub2/data/primes.txt");
+        const response = await fetch("../src/primes_data/primes.txt");
         if (!response.ok) {
             throw new Error(`素数リストの読み込みに失敗しました (HTTP ${response.status})`);
         }
@@ -21,7 +21,7 @@ export async function loadPrimes() {
 }
 
 // 試し割り法
-export async function trialDivision(number, primes) {
+export async function trialDivision(number, primes, progressCallback = null) {
     let factors = [];
 
     const MAX_PRIME = number >= 10n ** 10n ? 100000n : 499979n;
@@ -41,7 +41,13 @@ export async function trialDivision(number, primes) {
 
     } catch (error) {
         console.error("試し割りエラー:", error);
-        document.getElementById("result").textContent = "試し割り中にエラーが発生しました";
+        // 直接 DOM を操作せず、渡されたコールバックでメッセージを通知する
+        if (typeof progressCallback === "function") {
+            progressCallback("試し割り中にエラーが発生しました");
+        } else {
+            // 呼ばれていない場合はロギングのみ
+            console.error("試し割り中にエラーが発生しました（コールバック未指定）");
+        }
     }
     return { factors, remainder: number };
 }
