@@ -55,10 +55,10 @@ export async function pollardsRho(n) {
 
         for (let i = 0; i < workerCount; i++) {
             try {
-                const worker = new Worker("./Scripts/worker.js");
+                const worker = new Worker("../src/modules/worker.js");
                 workers.push(worker);
 
-                const initialX = assignX(i, n, workerCount);
+                const initialX = assignX(i, n);
                 const mMultiplier = getMMultiplier(i);
 
                 worker.postMessage({ n, workerId: i, initialX, mMultiplier });
@@ -118,7 +118,7 @@ function getWorkerCount() {
     }
 }
 
-function assignX(workerId, n, workerCount) {
+function assignX(workerId, n) {
     if (workerId === 0) return 2n;
     if (workerId === 1) return n / 2n;
     return getRandomX(n);
