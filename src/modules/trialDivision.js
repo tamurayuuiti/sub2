@@ -3,7 +3,7 @@ export async function loadPrimes() {
     let primes = [];
     try {
         console.log("素数リストの読み込みを開始します");
-        const response = await fetch("../src/primes_data/primes.txt");
+        const response = await fetch("./src/primes_data/primes.txt");
         if (!response.ok) {
             throw new Error(`素数リストの読み込みに失敗しました (HTTP ${response.status})`);
         }
