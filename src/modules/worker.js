@@ -16,7 +16,7 @@ self.onmessage = async function(event) {
         let q = 1n;
         let m = 128n;
         let k = 10n;
-        let c = getRandomC(n, maxC);
+        let c = getRandomC(maxC);
 
         console.log(`worker ${workerId + 1} 実行: fx = ${fxEquation}, 初期ｘ = ${initialX}, ｍ増加率 = ${mRatio}, 試行上限 ${MAX_TRIALS}`);
 
@@ -72,7 +72,7 @@ function getDigitBasedParams(n) {
     return { maxC };
 }
 
-function getRandomC(n, maxC) {
+function getRandomC(maxC) {
     return BigInt(Math.floor(Math.random() * maxC)) * 2n + 1n;
 }
 
