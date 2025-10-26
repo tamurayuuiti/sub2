@@ -151,6 +151,13 @@ button:hover {
     font-size: 16px;
 }
 
+/* 制限メッセージ等 */
+.limits {
+    font-size: 16px;
+    margin-top: 8px;
+    color: red;
+}
+
 /* ===========================
    結果（素因数表現）ボックス
    =========================== */
