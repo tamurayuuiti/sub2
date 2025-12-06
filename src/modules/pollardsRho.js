@@ -1,4 +1,4 @@
-// ミラーラビン素数判定法
+// ミラーラビン素数判定法 
 import { isPrimeMillerRabin } from "./millerRabin.js";
 
 export async function pollardsRhoFactorization(number) {
@@ -55,15 +55,20 @@ export async function pollardsRho(n) {
 
         for (let i = 0; i < workerCount; i++) {
             try {
-                const worker = new Worker("./src/modules/worker.js");
+                const worker = new Worker("../src/modules/worker.js");
                 workers.push(worker);
 
                 const initialX = assignX(i, n);
-                const mMultiplier = getMMultiplier(i);
 
-                worker.postMessage({ n, workerId: i, initialX, mMultiplier });
+                worker.postMessage({ n, workerId: i, initialX });
 
                 worker.onmessage = function (event) {
+                    if (event.data && event.data.log) {
+                        // ワーカーが生成したメッセージをそのまま表示して一元化する
+                        console.log(String(event.data.log));
+                        return;
+                    }
+
                     console.log(`受信データ:`, event.data);
 
                     if (event.data.error) {
@@ -126,9 +131,4 @@ function assignX(workerId, n) {
 
 function getRandomX(n) {
     return BigInt(Math.floor(Math.random() * Number(n - 2n))) + 2n;
-}
-
-function getMMultiplier(workerId) {
-    const multipliers = [150n, 175n, 200n];
-    return multipliers[workerId % multipliers.length];
 }
