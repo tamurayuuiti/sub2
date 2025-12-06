@@ -55,7 +55,7 @@ export async function pollardsRho(n) {
 
         for (let i = 0; i < workerCount; i++) {
             try {
-                const worker = new Worker("../src/modules/worker.js");
+                const worker = new Worker("./src/modules/worker.js");
                 workers.push(worker);
 
                 const initialX = assignX(i, n);
