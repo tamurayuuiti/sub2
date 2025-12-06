@@ -4,36 +4,96 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>素因数分解計算機</title>
-  <link rel="stylesheet" href="style.css">
+  <!-- Tailwind CSS CDNを読み込み -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    body { font-family: 'Inter', system-ui, -apple-system, "Segoe UI", Roboto, "Hiragino Kaku Gothic ProN", "Hiragino Sans", "Meiryo", sans-serif; background-color: #f3f4f6; }
+    /* 結果のスクロール領域（任意） */
+    #resultContent { max-height: 250px; overflow-y: auto; }
+
+    /* 追加: 経過時間を改行させない（loadingを常に横並びに） */
+    #loading { flex-direction: row !important; gap: 0.75rem; }
+    .elapsed-inline { white-space: nowrap; display: inline-block; }
+
+    /* 追加: 桁数表示ラベルと値を同じフォントサイズに */
+    .char-count-wrap { font-size: 1rem; color: #6b7280; } /* Tailwind text-gray-500 相当 */
+    #charCounter { font-size: 1rem; font-weight: 600; }
+  </style>
 </head>
 <body>
-  <div class="container">
-    <h2>素因数分解計算機</h2>
+  <div class="min-h-screen flex items-center justify-center p-4">
+    <div class="w-full max-w-xl bg-white shadow-2xl rounded-2xl p-6 sm:p-8 lg:p-10 transition-all duration-300">
 
-    <div class="input-container">
-      <input type="number" id="numberInput" placeholder="数値を入力" min="2">
-      <div class="char-counter" id="charCounter">現在の桁数: 0（最大30桁）</div>
+      <h2 class="text-4xl font-extrabold text-gray-900 mb-8 text-center">素因数分解計算機</h2>
+
+      <div class="mb-6">
+        <label for="numberInput" class="block text-base font-medium text-gray-700 mb-2">
+          計算したい数値 (2以上の整数)
+        </label>
+        <div class="relative">
+          <!-- 既存 script.js が参照する id を維持 -->
+          <input type="text" id="numberInput" placeholder="例: 123456789012345"
+                 class="w-full p-4 border-2 border-gray-300 rounded-xl focus:ring-blue-600 focus:border-blue-600 transition duration-150 ease-in-out text-xl placeholder-gray-400"
+                 inputmode="numeric" pattern="[0-9]*" />
+          <!-- 桁数ラベルと値を同一サイズにするためラップ -->
+          <div class="absolute right-4 bottom-2 char-count-wrap">
+            <span class="char-label">桁数:</span>&nbsp;<span id="charCounter">0</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="text-sm text-yellow-800 bg-yellow-100 p-3 rounded-lg mb-6 border border-yellow-300">
+        <p>※ 2以上の整数を入力してください。</p>
+        <p>※ 非常に大きな数値（約16桁以上）は計算に時間がかかる場合があります。</p>
+      </div>
+
+      <button id="calculateButton"
+              class="w-full py-4 px-4 bg-blue-600 text-white font-bold text-lg rounded-xl shadow-lg hover:bg-blue-700 focus:outline-none focus:ring-4 focus:ring-blue-500 focus:ring-opacity-50 transition duration-300 ease-in-out disabled:opacity-50 disabled:bg-blue-400 disabled:cursor-not-allowed transform hover:scale-[1.005]">
+        素因数分解を実行
+      </button>
+
+      <!-- errorMessage は script.js が直接 textContent を代入するため container として保持 -->
+      <div id="errorMessage" class="hidden mt-6 p-4 bg-red-100 border-2 border-red-500 text-red-700 rounded-xl" role="alert"></div>
+
+      <!-- loading: 既存 script.js が #elapsed-time と #spinner を参照する -->
+      <div id="loading" class="hidden mt-6 flex flex-col sm:flex-row items-center justify-center space-y-2 sm:space-y-0 sm:space-x-4 text-blue-600 p-4 bg-blue-50 rounded-xl border border-blue-200">
+        <div class="flex items-center">
+          <!-- 視覚的なスピナー（SVG） -->
+          <svg class="animate-spin h-5 w-5 mr-3 text-blue-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+          </svg>
+          <span class="font-semibold">計算中...</span>
+        </div>
+
+        <!-- 経過時間は改行させず一行で表示 -->
+        <div class="text-gray-600 text-sm elapsed-inline">
+          （経過時間: <span id="elapsed-time" class="font-mono">0.000</span> 秒）
+        </div>
+
+        <!-- 互換性のために script.js が参照する #spinner を残す（表示/非表示操作用） -->
+        <span id="spinner" style="display:none"></span>
+      </div>
+
+      <!-- 出力ボックス（script.js が #outputBox, #time, #result を操作） -->
+      <div id="outputBox" class="hidden mt-8 bg-gray-50 p-6 rounded-2xl border-2 border-gray-200">
+        <h3 class="text-xl font-bold text-gray-800 mb-3 border-b pb-2">計算結果</h3>
+
+        <div id="time" class="mb-4 text-sm text-gray-600">
+          <span class="font-medium text-gray-800">処理時間:</span> <span id="resultTime" class="font-mono text-gray-900 font-bold">0.000</span> 秒
+        </div>
+
+        <div id="result">
+          <p class="text-sm font-medium text-gray-700 mb-2">素因数分解結果:</p>
+          <div class="bg-white p-4 rounded-xl border border-dashed border-gray-300 overflow-x-auto shadow-inner">
+            <p id="resultContent" class="whitespace-pre-wrap font-mono text-lg text-gray-900 break-all"></p>
+          </div>
+        </div>
+      </div>
+
     </div>
-
-    <button id="calculateButton">計算</button>
-
-    <div class="loading" id="loading" style="display: none;">
-      計算中...
-      <span id="elapsed-time">（経過時間: 0.0 秒）</span>
-      <div class="spinner" id="spinner"></div>
-    </div>
-
-    <div class="error-message" id="errorMessage"></div>
-
-    <!-- 変更: 出力をボックス化 -->
-    <div class="output-box" id="outputBox" aria-live="polite" style="display:none;">
-      <div class="time-box" id="time" role="status"></div>
-      <div class="result-box" id="result" role="region" aria-label="素因数の結果"></div>
-    </div>
-
-    <div class="limits">※ 2以上の整数を入力してください</div>
   </div>
-  
+
   <script type="module" src="script.js"></script>
 </body>
 </html>
