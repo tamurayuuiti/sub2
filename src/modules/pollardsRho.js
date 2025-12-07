@@ -163,7 +163,7 @@ export async function pollardsRho(n, options = {}) {
     for (let i = 0; i < workerCount; i++) {
       let worker;
       try {
-        worker = new Worker("../src/modules/worker.js");
+        worker = new Worker("./src/modules/worker.js");
         workers.push(worker);
       } catch (err) {
         console.error(`worker ${i + 1} creation failed:`, err);
