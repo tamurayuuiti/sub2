@@ -1,10 +1,4 @@
 // --- ヘルパー関数 ---
-
-// ランダムな c を選ぶ
-function randomOddC() {
-    return (BigInt(Math.floor(Math.random() * 50)) | 1n);
-}
-
 // バイナリ GCD
 function gcdBinary(a, b) {
   if (a === 0n) return b < 0n ? -b : b;
@@ -24,13 +18,11 @@ function gcdBinary(a, b) {
 
   while (b !== 0n) {
     while ((b & 1n) === 0n) b >>= 1n;
-
     if (a > b) {
       const t = b;
       b = a;
       a = t;
     }
-
     b = b - a;
   }
 
@@ -49,282 +41,278 @@ function gcdEuclid(a, b) {
   return a;
 }
 
-// ラッパ：ランタイムで切り替えて使う
+// 実行時切替用
 let useBinaryGcd = true;
 function gcdSelect(a, b) {
   return useBinaryGcd ? gcdBinary(a, b) : gcdEuclid(a, b);
 }
 
-// BigInt の差の絶対値を返す
-function abs_diff(a, b) {
-    const d = a - b;
-    return d < 0n ? -d : d;
-}
-
 // 短い非同期待ち
 function tick() {
-    return new Promise(resolve => setTimeout(resolve, 0));
+  return new Promise(resolve => setTimeout(resolve, 0));
 }
 
-// BigInt -> Number
-function toSafeNumberFromBigInt(bi) {
-    const MAX_BI = BigInt(Number.MAX_SAFE_INTEGER);
-    if (bi > MAX_BI) return Number.MAX_SAFE_INTEGER;
-    return Number(bi);
+// --- 受信パラメータ検証ヘルパー ---
+// エラーメッセージをメインスレッドにポストし、false を返す
+function postErrorAndReturn(msg) {
+  try { postMessage({ error: msg }); } catch (e) {}
+  return false;
 }
 
+// 値が有限な正の整数 (Number) であることを検証
+function requireNumberFinitePositiveInteger(name, v) {
+  if (typeof v !== "number") return postErrorAndReturn(`${name} must be Number.`);
+  if (!Number.isFinite(v)) return postErrorAndReturn(`${name} must be finite Number.`);
+  if (!Number.isInteger(v)) return postErrorAndReturn(`${name} must be integer.`);
+  if (v <= 0) return postErrorAndReturn(`${name} must be > 0.`);
+  return true;
+}
+
+// 値が BigInt 型であることを検証
+function requireBigInt(name, v) {
+  if (typeof v !== "bigint") return postErrorAndReturn(`${name} must be BigInt.`);
+  return true;
+}
+
+// 値が boolean 型であることを検証
+function requireBoolean(name, v) {
+  if (typeof v !== "boolean") return postErrorAndReturn(`${name} must be boolean.`);
+  return true;
+}
+
+// --- アルゴリズム補助関数 ---
 // y を指定回進めて trialCount を更新
-function advanceYByStepsHelper(stepCountBI, state, MAX_TRIALS_NUM) {
-    const CHUNK_MAX = BigInt(1e6); // 1,000,000
-    let remaining = stepCountBI;
+function advanceYByStepsHelper(stepCountBI, state, MAX_TRIALS) {
+  const CHUNK_MAX = BigInt(1e6);
+  let remaining = stepCountBI;
 
-    // キャッシュ
-    let y = state.y;
-    const c = state.c;
-    const n = state.n;
-    let trial = state.trialCount;
-    const MAX_TRIALS = MAX_TRIALS_NUM;
+  let y = state.y;
+  const c = state.c;
+  const n = state.n;
+  let trial = state.trialCount;
 
-    while (remaining > 0n && trial < MAX_TRIALS) {
-        const takeBI = remaining > CHUNK_MAX ? CHUNK_MAX : remaining;
-        const take = Number(takeBI);
-        for (let k = 0; k < take && trial < MAX_TRIALS; k++) {
-            // fx をインライン化
-            y = (y * y + c) % n;
-            trial++;
-        }
-        remaining -= BigInt(take);
+  while (remaining > 0n && trial < MAX_TRIALS) {
+    const takeBI = remaining > CHUNK_MAX ? CHUNK_MAX : remaining;
+    const take = Number(takeBI);
+    for (let k = 0; k < take && trial < MAX_TRIALS; k++) {
+      y = (y * y + c) % n;
+      trial++;
     }
+    remaining -= BigInt(take);
+  }
 
-    state.y = y;
-    state.trialCount = trial;
+  state.y = y;
+  state.trialCount = trial;
 }
 
 // stepLimit 進行中に部分積で GCD を判定
-function processChunkHelper(x, stepLimit, state, PART_BLOCK) {
-    let part = 1n;
-    let inPart = 0;
-    let gcdCallsAdded = 0;
+function processChunkHelper(x, stepLimit, state, PART_BLOCK, MAX_TRIALS) {
+  let part = 1n;
+  let inPart = 0;
+  let gcdCallsAdded = 0;
 
-    // ローカルキャッシュ
-    const n = state.n;
-    const c = state.c;
-    let y = state.y;
-    let trial = state.trialCount;
-    const MAX_TRIALS = state.MAX_TRIALS_NUM;
+  const n = state.n;
+  const c = state.c;
+  let y = state.y;
+  let trial = state.trialCount;
 
-    for (let i = 0; i < stepLimit && trial < MAX_TRIALS; i++) {
-        // fx をインライン化
-        y = (y * y + c) % n;
-        trial++;
+  for (let i = 0; i < stepLimit && trial < MAX_TRIALS; i++) {
+    y = (y * y + c) % n;
+    trial++;
 
-        const diff = x > y ? x - y : y - x; // abs_diff をインライン化
-        if (diff === 0n) {
-            state.y = y;
-            state.trialCount = trial;
-            return { dFound: n, gcdCallsAdded, badCollision: true };
-        }
-
-        part = (part * diff) % n;
-        inPart++;
-
-        if (inPart >= PART_BLOCK) {
-            gcdCallsAdded++;
-            const g = gcdSelect(part, n);
-            if (g > 1n && g < n) {
-                state.y = y;
-                state.trialCount = trial;
-                return { dFound: g, gcdCallsAdded, badCollision: false };
-            }
-            if (g === n) {
-                state.y = y;
-                state.trialCount = trial;
-                return { dFound: n, gcdCallsAdded, badCollision: true };
-            }
-            part = 1n;
-            inPart = 0;
-        }
+    const diff = x > y ? x - y : y - x;
+    if (diff === 0n) {
+      state.y = y;
+      state.trialCount = trial;
+      return { dFound: n, gcdCallsAdded, badCollision: true };
     }
 
-    if (inPart > 0) {
-        gcdCallsAdded++;
-        const g = gcdSelect(part, n);
-        if (g > 1n && g < n) {
-            state.y = y;
-            state.trialCount = trial;
-            return { dFound: g, gcdCallsAdded, badCollision: false };
-        }
-        if (g === n) {
-            state.y = y;
-            state.trialCount = trial;
-            return { dFound: n, gcdCallsAdded, badCollision: true };
-        }
-    }
+    part = (part * diff) % n;
+    inPart++;
 
-    state.y = y;
-    state.trialCount = trial;
-    return { dFound: 1n, gcdCallsAdded, badCollision: false };
+    if (inPart >= PART_BLOCK) {
+      gcdCallsAdded++;
+      const g = gcdSelect(part, n);
+      if (g > 1n && g < n) {
+        state.y = y;
+        state.trialCount = trial;
+        return { dFound: g, gcdCallsAdded, badCollision: false };
+      }
+      if (g === n) {
+        state.y = y;
+        state.trialCount = trial;
+        return { dFound: n, gcdCallsAdded, badCollision: true };
+      }
+      part = 1n;
+      inPart = 0;
+    }
+  }
+
+  if (inPart > 0) {
+    gcdCallsAdded++;
+    const g = gcdSelect(part, n);
+    if (g > 1n && g < n) {
+      state.y = y;
+      state.trialCount = trial;
+      return { dFound: g, gcdCallsAdded, badCollision: false };
+    }
+    if (g === n) {
+      state.y = y;
+      state.trialCount = trial;
+      return { dFound: n, gcdCallsAdded, badCollision: true };
+    }
+  }
+
+  state.y = y;
+  state.trialCount = trial;
+  return { dFound: 1n, gcdCallsAdded, badCollision: false };
 }
 
-// d === n 時の線形探索で復旧
-async function doFallbackHelper(x_prev, state, MAX_TRIALS_NUM, LOG_INTERVAL_NUM, maybeLogFunc, workerId) {
-    let ys = x_prev;
+// フォールバック
+async function doFallbackHelper(x_prev, state, MAX_TRIALS, LOG_INTERVAL, maybeLogFunc, workerId) {
+  let ys = x_prev;
+  const c = state.c;
+  const n = state.n;
+  let trial = state.trialCount;
 
-    const c = state.c;
-    const n = state.n;
-    let trial = state.trialCount;
-    const MAX_TRIALS = MAX_TRIALS_NUM;
+  let g = 1n;
+  while (g === 1n && trial < MAX_TRIALS) {
+    ys = (ys * ys + c) % n;
+    trial++;
+    g = gcdSelect(x_prev > ys ? x_prev - ys : ys - x_prev, n);
 
-    let g = 1n;
-    while (g === 1n && trial < MAX_TRIALS) {
-        ys = (ys * ys + c) % n;
-        trial++;
-        g = gcdSelect(x_prev > ys ? x_prev - ys : ys - x_prev, n);
-
-        if (typeof maybeLogFunc === "function") {
-            maybeLogFunc(trial, LOG_INTERVAL_NUM, () =>
-                `worker ${workerId + 1} フォールバック中 試行 ${trial}, c=${c}, g=${g}`
-            ).catch(() => {});
-        }
+    if (typeof maybeLogFunc === "function") {
+      maybeLogFunc(trial, LOG_INTERVAL, () =>
+        `worker ${workerId + 1} フォールバック中 試行 ${trial}, c=${c}, g=${g}`
+      ).catch(() => {});
     }
+  }
 
-    state.trialCount = trial;
-    return g;
+  state.trialCount = trial;
+  return g;
 }
 
 // --- ログファクトリ ---
 function makeMaybeLogger(initialThreshold) {
-    let nextLogThreshold = initialThreshold;
-    let emitCount = 0;
-    return async function maybeLog(trialCount, logInterval, messageFunc) {
-        if (!isFinite(logInterval) || logInterval <= 0) return;
-        if (trialCount >= nextLogThreshold) {
-            const msg = String(messageFunc());
-            try { postMessage({ log: msg }); } catch (e) {}
-            const over = Math.floor((trialCount - nextLogThreshold) / logInterval) + 1;
-            nextLogThreshold += over * logInterval;
-            emitCount++;
-            if (emitCount % 10 === 0) await tick();
-        }
-    };
+  let nextLogThreshold = initialThreshold;
+  let emitCount = 0;
+  return async function maybeLog(trialCount, logInterval, messageFunc) {
+    if (!Number.isFinite(logInterval) || logInterval <= 0) return;
+    if (trialCount >= nextLogThreshold) {
+      const msg = String(messageFunc());
+      try { postMessage({ log: msg }); } catch (e) {}
+      const over = Math.floor((trialCount - nextLogThreshold) / logInterval) + 1;
+      nextLogThreshold += over * logInterval;
+      emitCount++;
+      if (emitCount % 10 === 0) await tick();
+    }
+  };
 }
 
 // --- ワーカーメイン ---
 self.onmessage = async function(event) {
-    try {
-        const n = event.data.n;
-        const workerId = event.data.workerId ?? 0;
-        const initialX_in = event.data.initialX;
+  try {
+    const n = event.data.n;
+    const workerId = event.data.workerId;
+    const initialX_in = event.data.initialX;
 
-        const MAX_TRIALS_BI = event.data.MAX_TRIALS ?? 100000000n;
-        const LOG_INTERVAL_BI = event.data.logInterval ?? 2500000n;
+    // 必須パラメータの型/値検証
+    if (!requireNumberFinitePositiveInteger("MAX_TRIALS", event.data.MAX_TRIALS)) return;
+    if (!requireNumberFinitePositiveInteger("logInterval", event.data.logInterval)) return;
+    if (!requireBoolean("useBinaryGcd", event.data.useBinaryGcd)) return;
+    if (!requireBigInt("c", event.data.c)) return;
+    if (!requireBigInt("m", event.data.m)) return;
+    if (!requireNumberFinitePositiveInteger("PART_BLOCK", event.data.PART_BLOCK)) return;
 
-        const MAX_TRIALS_NUM = toSafeNumberFromBigInt(MAX_TRIALS_BI);
-        const LOG_INTERVAL_NUM = toSafeNumberFromBigInt(LOG_INTERVAL_BI);
+    const MAX_TRIALS = event.data.MAX_TRIALS;
+    const LOG_INTERVAL = event.data.logInterval;
+    useBinaryGcd = event.data.useBinaryGcd;
+    const c = event.data.c;
+    const m = event.data.m;
+    const PART_BLOCK = event.data.PART_BLOCK;
 
-        const maybeLog = makeMaybeLogger(LOG_INTERVAL_NUM);
+    const maybeLog = makeMaybeLogger(LOG_INTERVAL);
 
-        if (n <= 3n) {
-            postMessage({ stopped: true });
-            return;
-        }
-
-        // gcd の切替
-        const nBits = n.toString(2).length;
-        const thresholdBits = event.data.gcdThresholdBits ?? 128;
-        useBinaryGcd = (nBits >= thresholdBits);
-
-        let c = 3n;
-
-        // チャンクサイズ m を桁数ベースで決定
-        const digitCount = n.toString(10).length;
-        let m = digitCount <= 5 ? 32n : digitCount <= 10 ? 64n : digitCount <= 15 ? 128n : 512n;
-
-        // PART_BLOCK を桁数ベースで決定
-        let PART_BLOCK;
-        if (digitCount <= 10) PART_BLOCK = 32;
-        else if (digitCount <= 50) PART_BLOCK = 64;
-        else if (digitCount <= 100) PART_BLOCK = 128;
-        else if (digitCount <= 200) PART_BLOCK = 256;
-        else PART_BLOCK = 512;
-
-        const state = {
-            y: (initialX_in !== undefined && initialX_in !== null) ? initialX_in : 2n,
-            c,
-            n,
-            trialCount: 0,
-            MAX_TRIALS_NUM
-        };
-
-        let badCollisions = 0;
-        let gcdCalls = 0;
-
-        // 初期ステップ
-        state.y = (state.y * state.y + c) % n;
-        state.trialCount++;
-
-        let x = state.y;
-        let d = 1n;
-        let r = 1n;
-
-        while (d === 1n && state.trialCount < MAX_TRIALS_NUM) {
-            const x_prev = x;
-
-            // ブロック前進（r ステップ）
-            x = state.y;
-            advanceYByStepsHelper(r, state, MAX_TRIALS_NUM);
-
-            // チャンク処理：m ごとに processChunkHelper を呼ぶ
-            let j = 0n;
-            while (j < r && d === 1n && state.trialCount < MAX_TRIALS_NUM) {
-                const stepLimitBI = (r - j) < m ? (r - j) : m;
-                const stepLimit = Number(stepLimitBI);
-
-                const res = processChunkHelper(x, stepLimit, state, PART_BLOCK);
-                gcdCalls += res.gcdCallsAdded;
-                if (res.dFound !== 1n) {
-                    if (res.badCollision) {
-                        badCollisions++;
-                        d = state.n;
-                        break;
-                    } else {
-                        d = res.dFound;
-                        break;
-                    }
-                }
-
-                j += BigInt(stepLimit);
-            }
-
-            // フォールバック処理
-            if (d === n) {
-                const g = await doFallbackHelper(x_prev, state, MAX_TRIALS_NUM, LOG_INTERVAL_NUM, maybeLog, workerId);
-                d = g;
-                if (d === n) {
-                    postMessage({ stopped: true, reason: "bad collision (d===n) after linear recovery" });
-                    return;
-                }
-            }
-
-            // outer ログ
-            maybeLog(state.trialCount, LOG_INTERVAL_NUM, () =>
-                `worker ${workerId + 1} 試行 ${state.trialCount}, gcdCalls=${gcdCalls}, c=${c}, PART_BLOCK=${PART_BLOCK}, useBinaryGcd=${useBinaryGcd}`
-            ).catch(() => {});
-
-            if (d === 1n) r *= 2n;
-        }
-
-        console.log(
-            `worker ${workerId + 1} 終了: 試行 ${state.trialCount}, gcdCalls=${gcdCalls}, c=${c}, badCollisions=${badCollisions}, PART_BLOCK=${PART_BLOCK}, useBinaryGcd=${useBinaryGcd}`
-        );
-
-        if (d > 1n && d !== n) {
-            postMessage({ factor: d.toString(), trials: String(state.trialCount) });
-        } else {
-            postMessage({ stopped: true, trials: String(state.trialCount) });
-        }
-
-    } catch (err) {
-        postMessage({ error: String(err && err.stack ? err.stack : err) });
+    if (n <= 3n) {
+      postMessage({ stopped: true });
+      return;
     }
+
+    // state 初期化
+    const state = {
+      y: (initialX_in !== undefined && initialX_in !== null) ? initialX_in : 2n,
+      c,
+      n,
+      trialCount: 0
+    };
+
+    let badCollisions = 0;
+    let gcdCalls = 0;
+
+    // 初期ステップ
+    state.y = (state.y * state.y + c) % n;
+    state.trialCount++;
+
+    let x = state.y;
+    let d = 1n;
+    let r = 1n;
+
+    while (d === 1n && state.trialCount < MAX_TRIALS) {
+      const x_prev = x;
+
+      // ブロック前進（r ステップ）
+      x = state.y;
+      advanceYByStepsHelper(r, state, MAX_TRIALS);
+
+      // チャンク処理（m ごと）
+      let j = 0n;
+      while (j < r && d === 1n && state.trialCount < MAX_TRIALS) {
+        const stepLimitBI = (r - j) < m ? (r - j) : m;
+        const stepLimit = Number(stepLimitBI);
+        const res = processChunkHelper(x, stepLimit, state, PART_BLOCK, MAX_TRIALS);
+        gcdCalls += res.gcdCallsAdded;
+        if (res.dFound !== 1n) {
+          if (res.badCollision) {
+            badCollisions++;
+            d = state.n;
+            break;
+          } else {
+            d = res.dFound;
+            break;
+          }
+        }
+        j += BigInt(stepLimit);
+      }
+
+      // フォールバック
+      if (d === n) {
+        const g = await doFallbackHelper(x_prev, state, MAX_TRIALS, LOG_INTERVAL, maybeLog, workerId);
+        d = g;
+        if (d === n) {
+          postMessage({ stopped: true, reason: "bad collision (d===n) after linear recovery" });
+          return;
+        }
+      }
+
+      // ログ
+      maybeLog(state.trialCount, LOG_INTERVAL, () =>
+        `worker ${workerId + 1} 試行 ${state.trialCount}, gcdCalls=${gcdCalls}, c=${c}, PART_BLOCK=${PART_BLOCK}, useBinaryGcd=${useBinaryGcd}`
+      ).catch(() => {});
+
+      if (d === 1n) r *= 2n;
+    }
+
+    console.log(
+      `worker ${workerId + 1} 終了: 試行 ${state.trialCount}, gcdCalls=${gcdCalls}, c=${c}, badCollisions=${badCollisions}, PART_BLOCK=${PART_BLOCK}, useBinaryGcd=${useBinaryGcd}`
+    );
+
+    if (d > 1n && d !== n) {
+      postMessage({ factor: d.toString(), trials: String(state.trialCount) });
+    } else {
+      postMessage({ stopped: true, trials: String(state.trialCount) });
+    }
+
+  } catch (err) {
+    postMessage({ error: String(err && err.stack ? err.stack : err) });
+  }
 };
