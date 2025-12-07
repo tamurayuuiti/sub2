@@ -2,20 +2,57 @@
 
 // ランダムな c を選ぶ
 function randomOddC() {
-    // 0〜49 のランダム値を生成し、下位 1bit を 1 にして確実に奇数にする
     return (BigInt(Math.floor(Math.random() * 50)) | 1n);
 }
 
-// ユークリッドの互除法で GCD を返す
-function gcd(a, b) {
-    a = a < 0n ? -a : a;
-    b = b < 0n ? -b : b;
-    while (b !== 0n) {
-        const t = a % b;
-        a = b;
-        b = t;
+// バイナリ GCD
+function gcdBinary(a, b) {
+  if (a === 0n) return b < 0n ? -b : b;
+  if (b === 0n) return a < 0n ? -a : a;
+
+  a = a < 0n ? -a : a;
+  b = b < 0n ? -b : b;
+
+  let shift = 0n;
+  while (((a | b) & 1n) === 0n) {
+    a >>= 1n;
+    b >>= 1n;
+    shift += 1n;
+  }
+
+  while ((a & 1n) === 0n) a >>= 1n;
+
+  while (b !== 0n) {
+    while ((b & 1n) === 0n) b >>= 1n;
+
+    if (a > b) {
+      const t = b;
+      b = a;
+      a = t;
     }
-    return a;
+
+    b = b - a;
+  }
+
+  return a << shift;
+}
+
+// ユークリッド（剰余）GCD
+function gcdEuclid(a, b) {
+  a = a < 0n ? -a : a;
+  b = b < 0n ? -b : b;
+  while (b !== 0n) {
+    const t = a % b;
+    a = b;
+    b = t;
+  }
+  return a;
+}
+
+// ラッパ：ランタイムで切り替えて使う
+let useBinaryGcd = true;
+function gcdSelect(a, b) {
+  return useBinaryGcd ? gcdBinary(a, b) : gcdEuclid(a, b);
 }
 
 // BigInt の差の絶対値を返す
@@ -24,26 +61,21 @@ function abs_diff(a, b) {
     return d < 0n ? -d : d;
 }
 
-// 関数 f(x) = x^2 + c (mod n)
-function fx(x, c, mod) {
-    return (x * x + c) % mod;
-}
-
-// 短い非同期待ち（イベントループを譲る）
+// 短い非同期待ち
 function tick() {
     return new Promise(resolve => setTimeout(resolve, 0));
 }
 
-// BigInt -> Number（範囲外は Number.MAX_SAFE_INTEGER）
+// BigInt -> Number
 function toSafeNumberFromBigInt(bi) {
     const MAX_BI = BigInt(Number.MAX_SAFE_INTEGER);
     if (bi > MAX_BI) return Number.MAX_SAFE_INTEGER;
     return Number(bi);
 }
 
-// y を指定回進めて trialCount を更新し、state のローカル化でループを高速化する処理
+// y を指定回進めて trialCount を更新
 function advanceYByStepsHelper(stepCountBI, state, MAX_TRIALS_NUM) {
-    const CHUNK_MAX = BigInt(1e9);
+    const CHUNK_MAX = BigInt(1e6); // 1,000,000
     let remaining = stepCountBI;
 
     // キャッシュ
@@ -57,19 +89,18 @@ function advanceYByStepsHelper(stepCountBI, state, MAX_TRIALS_NUM) {
         const takeBI = remaining > CHUNK_MAX ? CHUNK_MAX : remaining;
         const take = Number(takeBI);
         for (let k = 0; k < take && trial < MAX_TRIALS; k++) {
-            // fx をローカルの y に対して呼ぶ（mod, c はローカル）
-            y = fx(y, c, n);
+            // fx をインライン化
+            y = (y * y + c) % n;
             trial++;
         }
         remaining -= BigInt(take);
     }
 
-    // 書き戻し
     state.y = y;
     state.trialCount = trial;
 }
 
-// stepLimit 進行中に部分積で GCD を判定し、state のローカル化と不要計算の削除で高速化する処理
+// stepLimit 進行中に部分積で GCD を判定
 function processChunkHelper(x, stepLimit, state, PART_BLOCK) {
     let part = 1n;
     let inPart = 0;
@@ -83,24 +114,23 @@ function processChunkHelper(x, stepLimit, state, PART_BLOCK) {
     const MAX_TRIALS = state.MAX_TRIALS_NUM;
 
     for (let i = 0; i < stepLimit && trial < MAX_TRIALS; i++) {
-        y = fx(y, c, n);
+        // fx をインライン化
+        y = (y * y + c) % n;
         trial++;
 
-        const diff = x > y ? x - y : y - x; // abs_diff をインライン化（少し速い）
+        const diff = x > y ? x - y : y - x; // abs_diff をインライン化
         if (diff === 0n) {
-            // 書き戻して終了（bad collision）
             state.y = y;
             state.trialCount = trial;
             return { dFound: n, gcdCallsAdded, badCollision: true };
         }
 
-        // diff < n 前提なので % n は不要
         part = (part * diff) % n;
         inPart++;
 
         if (inPart >= PART_BLOCK) {
             gcdCallsAdded++;
-            const g = gcd(part, n);
+            const g = gcdSelect(part, n);
             if (g > 1n && g < n) {
                 state.y = y;
                 state.trialCount = trial;
@@ -116,10 +146,9 @@ function processChunkHelper(x, stepLimit, state, PART_BLOCK) {
         }
     }
 
-    // leftover
     if (inPart > 0) {
         gcdCallsAdded++;
-        const g = gcd(part, n);
+        const g = gcdSelect(part, n);
         if (g > 1n && g < n) {
             state.y = y;
             state.trialCount = trial;
@@ -132,17 +161,15 @@ function processChunkHelper(x, stepLimit, state, PART_BLOCK) {
         }
     }
 
-    // 書き戻し
     state.y = y;
     state.trialCount = trial;
     return { dFound: 1n, gcdCallsAdded, badCollision: false };
 }
 
-// d === n 時の線形探索で復旧しつつ、state のローカル化と非同期待ちの削減で高速化する処理
+// d === n 時の線形探索で復旧
 async function doFallbackHelper(x_prev, state, MAX_TRIALS_NUM, LOG_INTERVAL_NUM, maybeLogFunc, workerId) {
     let ys = x_prev;
 
-    // キャッシュ
     const c = state.c;
     const n = state.n;
     let trial = state.trialCount;
@@ -150,11 +177,10 @@ async function doFallbackHelper(x_prev, state, MAX_TRIALS_NUM, LOG_INTERVAL_NUM,
 
     let g = 1n;
     while (g === 1n && trial < MAX_TRIALS) {
-        ys = fx(ys, c, n);
+        ys = (ys * ys + c) % n;
         trial++;
-        g = gcd(x_prev > ys ? x_prev - ys : ys - x_prev, n);
+        g = gcdSelect(x_prev > ys ? x_prev - ys : ys - x_prev, n);
 
-        // 最低限のログを残す
         if (typeof maybeLogFunc === "function") {
             maybeLogFunc(trial, LOG_INTERVAL_NUM, () =>
                 `worker ${workerId + 1} フォールバック中 試行 ${trial}, c=${c}, g=${g}`
@@ -162,7 +188,6 @@ async function doFallbackHelper(x_prev, state, MAX_TRIALS_NUM, LOG_INTERVAL_NUM,
         }
     }
 
-    // 書き戻し
     state.trialCount = trial;
     return g;
 }
@@ -204,11 +229,25 @@ self.onmessage = async function(event) {
             return;
         }
 
-        let c =  3n; //randomOddC();
+        // gcd の切替
+        const nBits = n.toString(2).length;
+        const thresholdBits = event.data.gcdThresholdBits ?? 128;
+        useBinaryGcd = (nBits >= thresholdBits);
+
+        let c = 3n;
+
+        // チャンクサイズ m を桁数ベースで決定
         const digitCount = n.toString(10).length;
         let m = digitCount <= 5 ? 32n : digitCount <= 10 ? 64n : digitCount <= 15 ? 128n : 512n;
 
-        // state オブジェクトを用意してヘルパーに渡す
+        // PART_BLOCK を桁数ベースで決定
+        let PART_BLOCK;
+        if (digitCount <= 10) PART_BLOCK = 32;
+        else if (digitCount <= 50) PART_BLOCK = 64;
+        else if (digitCount <= 100) PART_BLOCK = 128;
+        else if (digitCount <= 200) PART_BLOCK = 256;
+        else PART_BLOCK = 512;
+
         const state = {
             y: (initialX_in !== undefined && initialX_in !== null) ? initialX_in : 2n,
             c,
@@ -221,10 +260,8 @@ self.onmessage = async function(event) {
         let gcdCalls = 0;
 
         // 初期ステップ
-        state.y = fx(state.y, c, n);
+        state.y = (state.y * state.y + c) % n;
         state.trialCount++;
-
-        const PART_BLOCK = 64;
 
         let x = state.y;
         let d = 1n;
@@ -269,16 +306,16 @@ self.onmessage = async function(event) {
                 }
             }
 
-            // outer ログ（非同期で呼び出し、await しない）
+            // outer ログ
             maybeLog(state.trialCount, LOG_INTERVAL_NUM, () =>
-                `worker ${workerId + 1} 試行 ${state.trialCount}, gcdCalls=${gcdCalls}, c=${c}`
+                `worker ${workerId + 1} 試行 ${state.trialCount}, gcdCalls=${gcdCalls}, c=${c}, PART_BLOCK=${PART_BLOCK}, useBinaryGcd=${useBinaryGcd}`
             ).catch(() => {});
 
             if (d === 1n) r *= 2n;
         }
 
         console.log(
-            `worker ${workerId + 1} 終了: 試行 ${state.trialCount}, gcdCalls=${gcdCalls}, c=${c}, badCollisions=${badCollisions}`
+            `worker ${workerId + 1} 終了: 試行 ${state.trialCount}, gcdCalls=${gcdCalls}, c=${c}, badCollisions=${badCollisions}, PART_BLOCK=${PART_BLOCK}, useBinaryGcd=${useBinaryGcd}`
         );
 
         if (d > 1n && d !== n) {
