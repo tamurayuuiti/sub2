@@ -1,11 +1,7 @@
 // ミラーラビン素数判定法
 import { isPrimeMillerRabin } from "./millerRabin.js";
 
-/* ===========================
-   ヘルパー関数
-   =========================== */
-
-// ランダムな odd c を main 側で生成
+// ランダムな c を生成
 function randomOddC(range = 65536) {
   return (BigInt(Math.floor(Math.random() * range)) | 1n);
 }
@@ -24,7 +20,7 @@ function randomBigIntBelow(rangeBigInt) {
   return r;
 }
 
-// 安全な initialX 取得
+// 安全な initialX を取得
 function getRandomX(n) {
   if (n <= 3n) return 2n;
   const range = n - 2n;
@@ -39,10 +35,7 @@ function getWorkerCount() {
   return Math.max(1, Math.floor(cpuCores * 0.6));
 }
 
-/* ===========================
-   ブロックスケール決定
-   =========================== */
-
+// ブロックスケールの決定
 function chooseBlockScaleByBits(n) {
   const bits = n.toString(2).length;
   if (bits < 80) return 32;
@@ -55,10 +48,6 @@ function chooseBlockScaleByBits(n) {
 function clampPartBlock(pb, min = 32, max = 1024) {
   return Math.min(max, Math.max(min, pb));
 }
-
-/* ===========================
-   エントリ（公開 API）
-   =========================== */
 
 // Pollard's Rho を再帰的に回して素因数を求める
 export async function pollardsRhoFactorization(number) {
@@ -126,11 +115,11 @@ export async function pollardsRho(n, options = {}) {
 
     const MAX_TRIALS = (typeof options.MAX_TRIALS === "number" && Number.isFinite(options.MAX_TRIALS) && options.MAX_TRIALS > 0)
       ? Math.floor(options.MAX_TRIALS)
-      : 100000000;
+      : 200000000;
 
     const LOG_INTERVAL = (typeof options.logInterval === "number" && Number.isFinite(options.logInterval) && options.logInterval > 0)
       ? Math.floor(options.logInterval)
-      : 2500000;
+      : 2000000;
 
     const maxRestartsPerWorker = (typeof options.maxRestartsPerWorker === "number")
       ? Math.max(0, Math.floor(options.maxRestartsPerWorker))
@@ -167,7 +156,7 @@ export async function pollardsRho(n, options = {}) {
     for (let i = 0; i < workerCount; i++) {
       let worker;
       try {
-        worker = new Worker("./src/modules/worker.js");
+        worker = new Worker("./src/workers/worker.js");
         workers.push(worker);
       } catch (err) {
         console.error(`worker ${i + 1} creation failed:`, err);
