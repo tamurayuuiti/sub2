@@ -18,6 +18,15 @@
     /* 追加: 桁数表示ラベルと値を同じフォントサイズに */
     .char-count-wrap { font-size: 1rem; color: #6b7280; } /* Tailwind text-gray-500 相当 */
     #charCounter { font-size: 1rem; font-weight: 600; }
+
+    /* 修正: 桁数表示が長い入力と重ならないように絶対配置で縦中央にし、入力側に余白を確保 */
+    .char-count-wrap {
+      position: absolute;
+      right: 1rem;
+      top: 50%;
+      transform: translateY(-50%);
+      pointer-events: none;
+    }
   </style>
 </head>
 <body>
@@ -33,7 +42,7 @@
         <div class="relative">
           <!-- 既存 script.js が参照する id を維持 -->
           <input type="text" id="numberInput" placeholder="例: 123456789012345"
-                 class="w-full p-4 border-2 border-gray-300 rounded-xl focus:ring-blue-600 focus:border-blue-600 transition duration-150 ease-in-out text-xl placeholder-gray-400"
+                 class="w-full p-4 pr-20 border-2 border-gray-300 rounded-xl focus:ring-blue-600 focus:border-blue-600 transition duration-150 ease-in-out text-xl placeholder-gray-400"
                  inputmode="numeric" pattern="[0-9]*" />
           <!-- 桁数ラベルと値を同一サイズにするためラップ -->
           <div class="absolute right-4 bottom-2 char-count-wrap">
@@ -94,6 +103,6 @@
     </div>
   </div>
 
-  <script type="module" src="script.js"></script>
+  <script type="module" src="src/app.js"></script>
 </body>
 </html>
