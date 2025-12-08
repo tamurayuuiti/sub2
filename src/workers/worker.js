@@ -1,4 +1,3 @@
-// --- ヘルパー関数 ---
 // バイナリ GCD
 function gcdBinary(a, b) {
   if (a === 0n) return b < 0n ? -b : b;
@@ -52,7 +51,6 @@ function tick() {
   return new Promise(resolve => setTimeout(resolve, 0));
 }
 
-// --- 受信パラメータ検証ヘルパー ---
 // エラーメッセージをメインスレッドにポストし、false を返す
 function postErrorAndReturn(msg) {
   try { postMessage({ error: msg }); } catch (e) {}
@@ -80,7 +78,6 @@ function requireBoolean(name, v) {
   return true;
 }
 
-// --- アルゴリズム補助関数 ---
 // y を指定回進めて trialCount を更新
 function advanceYByStepsHelper(stepCountBI, state, MAX_TRIALS) {
   const CHUNK_MAX = BigInt(1e6);
@@ -209,7 +206,7 @@ function makeMaybeLogger(initialThreshold) {
   };
 }
 
-// --- ワーカーメイン ---
+// ワーカーメイン
 self.onmessage = async function(event) {
   try {
     const n = event.data.n;
