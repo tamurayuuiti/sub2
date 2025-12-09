@@ -26,6 +26,11 @@ async function startFactorization() {
     try {
         if (isCalculating) return;
 
+        // 開始処理
+        isCalculating = true;
+        if (elements.calculateButton) elements.calculateButton.disabled = true;
+        if (elements.numberInput) elements.numberInput.disabled = true;
+
         hideErrorAndPrepare();
 
         // 入力取得
@@ -39,13 +44,11 @@ async function startFactorization() {
         const num = BigInt(inputValue);
         console.log(`素因数分解を開始: ${num}`);
 
-        isCalculating = true;
         startTime = performance.now();
 
-        // 開始直後から小数点以下1桁で更新を始める
         updateProgress();
 
-        // 素数リストを確実に代入（プリロード済みでも安全に再代入）
+        // 素因数分解開始
         if (!primes || primes.length === 0) {
             try {
                 primes = await loadPrimes();
@@ -57,8 +60,8 @@ async function startFactorization() {
         }
 
         console.log("試し割り法を実行します");
-        let { factors, remainder } = trialDivision(num, primes, { 
-            progressCallback: msg => { elements.result.textContent = msg; }
+        let { factors, remainder } = trialDivision(num, primes, {
+            progressCallback: msg => { if (elements.result) elements.result.textContent = msg; }
         });
 
         console.log(`試し割り法完了。残りの数: ${remainder}`);
@@ -67,34 +70,40 @@ async function startFactorization() {
             console.log(`Pollard's rho を開始 (コア数: ${coreCount})`);
             const extraFactors = await pollardsRhoFactorization(remainder);
 
-            if (Array.isArray(extraFactors) && extraFactors.includes("FAIL")) {
+            // エラーチェック
+            if (!Array.isArray(extraFactors)) {
+                console.error("Pollard returned unexpected result:", extraFactors);
+                if (elements.result) elements.result.textContent = "素因数分解失敗";
+                return;
+            }
+
+            if (extraFactors.includes("FAIL")) {
                 console.error("Pollard's Rho では因数を発見できませんでした。素因数分解を中断します。");
                 if (elements.result) elements.result.textContent = "素因数分解失敗";
                 return;
             }
 
-            // 既存の動作に忠実に配列結合
             factors = factors.concat(extraFactors);
         }
 
         let elapsedTime = ((performance.now() - startTime) / 1000).toFixed(3);
-        showFinalResult(factors, elapsedTime, num.toString());
+        showFinalResult(factors, elapsedTime);
         console.log(`素因数分解完了: ${factors.join(" × ")}, 計算時間: ${elapsedTime} 秒`);
     } catch (error) {
         console.error("計算エラー:", error);
         if (elements.result) elements.result.textContent = "計算中にエラーが発生しました";
     } finally {
+        // 終了処理
         isCalculating = false;
         if (elements.spinner) elements.spinner.style.display = "none";
         if (elements.loading) elements.loading.style.display = "none";
         if (elements.calculateButton) elements.calculateButton.disabled = false;
-        // ループ停止を確実にするため startTime をクリア
+        if (elements.numberInput) elements.numberInput.disabled = false;
         startTime = null;
     }
 }
 
 function updateProgress() {
-    // 計算中のみ継続して更新
     if (!isCalculating || !startTime) return;
     const elapsedTime = ((performance.now() - startTime) / 1000).toFixed(1);
     if (elements.elapsedTime) elements.elapsedTime.textContent = `${elapsedTime}`;
@@ -110,7 +119,6 @@ function hideErrorAndPrepare() {
     if (elements.errorMessage) elements.errorMessage.style.display = "none";
     if (elements.spinner) elements.spinner.style.display = "block";
     if (elements.loading) elements.loading.style.display = "flex";
-    // console.clear() は運用ログ消去のリスクがあるため削除
 }
 
 function showError(message) {
@@ -125,7 +133,7 @@ function showError(message) {
     if (elements.result) elements.result.style.display = "none";
 }
 
-function showFinalResult(factors, elapsedTime,) {
+function showFinalResult(factors, elapsedTime) {
     function escapeHtml(str) {
         return String(str)
             .replace(/&/g, "&amp;")
@@ -135,7 +143,7 @@ function showFinalResult(factors, elapsedTime,) {
             .replace(/'/g, "&#39;");
     }
 
-    // factors (BigInt or string) を文字列化してカウント
+    // 因数を文字列化して個数を数える
     const strs = (Array.isArray(factors) ? factors : []).map(f => (typeof f === "bigint" ? f.toString() : String(f)));
     const numericStrs = strs.filter(s => /^[0-9]+$/.test(s));
     const counts = new Map();
@@ -143,18 +151,17 @@ function showFinalResult(factors, elapsedTime,) {
 
     const sortedKeys = Array.from(counts.keys()).sort((a, b) => (BigInt(a) < BigInt(b) ? -1 : 1));
 
-    // parts を作成（指数は <sup> で表現）
+    // 整形して表示用に組み立て
     const parts = sortedKeys.map(k => {
         const c = counts.get(k);
         const base = escapeHtml(k);
         return c > 1 ? `${base}<sup>${escapeHtml(String(c))}</sup>` : `${base}`;
     });
 
-    // 非数値（万が一）も付ける
     const nonNumeric = strs.filter(s => !/^[0-9]+$/.test(s)).map(s => escapeHtml(s));
     const allParts = parts.concat(nonNumeric);
 
-    // time と result を整形して表示（左辺（元の入力値 =）は表示しない）
+    // 表示更新
     if (elements.time) elements.time.innerHTML = `<div class="time-label">計算時間</div><div class="time-value">${escapeHtml(elapsedTime)} 秒</div>`;
     const resultHtml = `<div class="result-label">素因数</div>
         <div class="factors-content">
@@ -162,7 +169,6 @@ function showFinalResult(factors, elapsedTime,) {
         </div>`;
 
     if (elements.result) elements.result.innerHTML = resultHtml;
-
     if (elements.outputBox) elements.outputBox.style.display = "block";
     if (elements.time) elements.time.style.display = "block";
     if (elements.result) elements.result.style.display = "block";
@@ -177,31 +183,34 @@ if (elements.numberInput) {
     });
 }
 
-// 新しい input イベント（非数字を除去して桁数を更新、ボタンの有効/無効制御）
+// 入力欄の入力イベント処理
 if (elements.numberInput) {
     elements.numberInput.addEventListener("input", () => {
         const input = elements.numberInput;
         // 画面上から非数字文字を取り除く
         input.value = input.value.replace(/[^0-9]/g, '');
 
+        // 最大50桁に制限
+        if (input.value.length > 50) {
+            input.value = input.value.slice(0, 50);
+        }
+
+        // 桁数表示とボタン有効化/無効化
         const len = input.value.length;
         if (elements.charCounter) elements.charCounter.textContent = `${len}`;
-        // 2 以上の整数でボタンを有効にする
         try {
             if (elements.calculateButton) elements.calculateButton.disabled = len === 0 || (len > 0 && BigInt(input.value) < 2n);
         } catch (e) {
             if (elements.calculateButton) elements.calculateButton.disabled = true;
         }
-        // 隠れているエラー/出力をクリア
         if (elements.errorMessage) elements.errorMessage.style.display = "none";
         if (elements.outputBox) elements.outputBox.style.display = "none";
     });
 }
 
-// ボタンを無効化しておく
 if (elements.calculateButton) elements.calculateButton.disabled = true;
 
-// ページ読み込み時に素数リストをプリロード
+// ページロード時に素数リストを先読み込み
 (async () => {
     try {
         primes = await loadPrimes();
