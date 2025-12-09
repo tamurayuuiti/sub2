@@ -8,18 +8,18 @@
   <script src="https://cdn.tailwindcss.com"></script>
   <style>
     body { font-family: 'Inter', system-ui, -apple-system, "Segoe UI", Roboto, "Hiragino Kaku Gothic ProN", "Hiragino Sans", "Meiryo", sans-serif; background-color: #f3f4f6; }
-    /* 結果のスクロール領域（任意） */
+    /* 結果のスクロール領域 */
     #resultContent { max-height: 250px; overflow-y: auto; }
 
-    /* 追加: 経過時間を改行させない（loadingを常に横並びに） */
+    /* loading 表示スタイル */
     #loading { flex-direction: row !important; gap: 0.75rem; }
     .elapsed-inline { white-space: nowrap; display: inline-block; }
 
-    /* 追加: 桁数表示ラベルと値を同じフォントサイズに */
+    /* 桁数表示スタイル */
     .char-count-wrap { font-size: 1rem; color: #6b7280; } /* Tailwind text-gray-500 相当 */
     #charCounter { font-size: 1rem; font-weight: 600; }
 
-    /* 修正: 桁数表示が長い入力と重ならないように絶対配置で縦中央にし、入力側に余白を確保 */
+    /* 桁数表示の位置調整 */
     .char-count-wrap {
       position: absolute;
       right: 1rem;
@@ -37,23 +37,24 @@
 
       <div class="mb-6">
         <label for="numberInput" class="block text-base font-medium text-gray-700 mb-2">
-          計算したい数値 (2以上の整数)
+          計算したい数値を入力してください
         </label>
         <div class="relative">
-          <!-- 既存 script.js が参照する id を維持 -->
+          <!-- input ボックス -->
           <input type="text" id="numberInput" placeholder="例: 123456789012345"
                  class="w-full p-4 pr-20 border-2 border-gray-300 rounded-xl focus:ring-blue-600 focus:border-blue-600 transition duration-150 ease-in-out text-xl placeholder-gray-400"
-                 inputmode="numeric" pattern="[0-9]*" />
-          <!-- 桁数ラベルと値を同一サイズにするためラップ -->
-          <div class="absolute right-4 bottom-2 char-count-wrap">
-            <span class="char-label">桁数:</span>&nbsp;<span id="charCounter">0</span>
+                 inputmode="numeric" pattern="[0-9]*" maxlength="50" autocomplete="off" />
+          <div class="absolute right-4 bottom-2 char-count-wrap" aria-hidden="false">
+            <span class="char-label">桁数:</span>&nbsp;
+            <span id="charCounter" aria-live="polite">0</span>
           </div>
         </div>
       </div>
 
       <div class="text-sm text-yellow-800 bg-yellow-100 p-3 rounded-lg mb-6 border border-yellow-300">
         <p>※ 2以上の整数を入力してください。</p>
-        <p>※ 非常に大きな数値（約16桁以上）は計算に時間がかかる場合があります。</p>
+        <p>※ 入力可能な最大桁数は<strong>50桁</strong>です。</p>
+        <p>※ 大きな数値は計算に時間がかかる場合があります。</p>
       </div>
 
       <button id="calculateButton"
@@ -61,10 +62,10 @@
         素因数分解を実行
       </button>
 
-      <!-- errorMessage は script.js が直接 textContent を代入するため container として保持 -->
+      <!-- エラーメッセージ表示エリア -->
       <div id="errorMessage" class="hidden mt-6 p-4 bg-red-100 border-2 border-red-500 text-red-700 rounded-xl" role="alert"></div>
 
-      <!-- loading: 既存 script.js が #elapsed-time と #spinner を参照する -->
+      <!-- 読み込み中表示エリア -->
       <div id="loading" class="hidden mt-6 flex flex-col sm:flex-row items-center justify-center space-y-2 sm:space-y-0 sm:space-x-4 text-blue-600 p-4 bg-blue-50 rounded-xl border border-blue-200">
         <div class="flex items-center">
           <!-- 視覚的なスピナー（SVG） -->
@@ -75,16 +76,15 @@
           <span class="font-semibold">計算中...</span>
         </div>
 
-        <!-- 経過時間は改行させず一行で表示 -->
+        <!-- 経過時間表示 -->
         <div class="text-gray-600 text-sm elapsed-inline">
           （経過時間: <span id="elapsed-time" class="font-mono">0.000</span> 秒）
         </div>
 
-        <!-- 互換性のために script.js が参照する #spinner を残す（表示/非表示操作用） -->
         <span id="spinner" style="display:none"></span>
       </div>
 
-      <!-- 出力ボックス（script.js が #outputBox, #time, #result を操作） -->
+      <!-- 結果表示エリア -->
       <div id="outputBox" class="hidden mt-8 bg-gray-50 p-6 rounded-2xl border-2 border-gray-200">
         <h3 class="text-xl font-bold text-gray-800 mb-3 border-b pb-2">計算結果</h3>
 
@@ -99,7 +99,6 @@
           </div>
         </div>
       </div>
-
     </div>
   </div>
 
