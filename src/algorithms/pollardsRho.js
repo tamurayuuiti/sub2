@@ -2,8 +2,10 @@
 import { isPrimeMillerRabin } from "./millerRabin.js";
 
 // ランダムな c を生成
-function randomOddC(range = 65536) {
-  return (BigInt(Math.floor(Math.random() * range)) | 1n);
+function randomC(range = 1_000_000) {
+  let c = BigInt(Math.floor(Math.random() * range));
+  if (c === 0n) c = 1n;
+  return c;
 }
 
 // BigInt 用の簡易ランダム生成
@@ -113,14 +115,17 @@ export async function pollardsRho(n, options = {}) {
     const m = BigInt(scale);
     const PART_BLOCK = clampPartBlock(scale, 32, 1024);
 
+    // 最大試行回数
     const MAX_TRIALS = (typeof options.MAX_TRIALS === "number" && Number.isFinite(options.MAX_TRIALS) && options.MAX_TRIALS > 0)
       ? Math.floor(options.MAX_TRIALS)
       : 200000000;
-
+  
+    // ログ出力間隔
     const LOG_INTERVAL = (typeof options.logInterval === "number" && Number.isFinite(options.logInterval) && options.logInterval > 0)
       ? Math.floor(options.logInterval)
       : 2000000;
 
+    // 最大再起動回数
     const maxRestartsPerWorker = (typeof options.maxRestartsPerWorker === "number")
       ? Math.max(0, Math.floor(options.maxRestartsPerWorker))
       : 10;
@@ -170,7 +175,7 @@ export async function pollardsRho(n, options = {}) {
 
       let restartCount = 0;
       let initialX = (i === 0) ? 2n : getRandomX(n);
-      let c = randomOddC();
+      let c = randomC();
 
       try {
         postInitToWorker(worker, i, initialX, c);
@@ -199,7 +204,7 @@ export async function pollardsRho(n, options = {}) {
         if (data.factor) {
           try {
             const factorCandidate = BigInt(data.factor);
-            // 必要最小限のチェック：1 < factor < n かつ n % factor === 0
+            // 妥当な因数か検証
             if (factorCandidate > 1n && factorCandidate < n && n % factorCandidate === 0n) {
               finish(factorCandidate, false);
             } else {
@@ -221,7 +226,7 @@ export async function pollardsRho(n, options = {}) {
           }
 
           initialX = (i === 0) ? 2n : getRandomX(n);
-          c = randomOddC();
+          c = randomC();
 
           try {
             postInitToWorker(worker, i, initialX, c);
