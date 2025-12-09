@@ -2,7 +2,6 @@
 export function isPrimeMillerRabin(n) {
     console.log(`素数判定開始: n = ${n}`);
 
-    // n-1 = 2^r * d を求める
     let d = n - 1n;
     let r = 0n;
     while (d % 2n === 0n) {
