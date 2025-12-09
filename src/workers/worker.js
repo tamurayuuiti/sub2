@@ -189,7 +189,7 @@ async function doFallbackHelper(x_prev, state, MAX_TRIALS, LOG_INTERVAL, maybeLo
   return g;
 }
 
-// --- ログファクトリ ---
+// ログファクトリ
 function makeMaybeLogger(initialThreshold) {
   let nextLogThreshold = initialThreshold;
   let emitCount = 0;
