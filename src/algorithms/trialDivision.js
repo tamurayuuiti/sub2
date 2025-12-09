@@ -55,11 +55,7 @@ export function trialDivision(number, primes, options = {}) {
     for (let idx = 0; idx < total; idx++) {
         const prime = primes[idx];
         if (prime === null || prime === undefined) continue;
-
-        // 呼び出し側が上限を指定していれば、それを尊重して打ち切る
         if (maxPrime !== null && prime > maxPrime) break;
-
-        // prime^2 > number なら打ち切る
         if (prime * prime > number) break;
 
         while (number % prime === 0n) {
