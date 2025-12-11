@@ -43,7 +43,7 @@
           <!-- input ボックス -->
           <input type="text" id="numberInput" placeholder="例: 123456789012345"
                  class="w-full p-4 pr-20 border-2 border-gray-300 rounded-xl focus:ring-blue-600 focus:border-blue-600 transition duration-150 ease-in-out text-xl placeholder-gray-400"
-                 inputmode="numeric" pattern="[0-9]*" maxlength="50" autocomplete="off" />
+                 inputmode="numeric" pattern="[0-9]*" maxlength="30" autocomplete="off" />
           <div class="absolute right-4 bottom-2 char-count-wrap" aria-hidden="false">
             <span class="char-label">桁数:</span>&nbsp;
             <span id="charCounter" aria-live="polite">0</span>
@@ -53,7 +53,7 @@
 
       <div class="text-sm text-yellow-800 bg-yellow-100 p-3 rounded-lg mb-6 border border-yellow-300">
         <p>※ 2以上の整数を入力してください。</p>
-        <p>※ 入力可能な最大桁数は<strong>50桁</strong>です。</p>
+        <p>※ 入力可能な最大桁数は<strong>30桁</strong>です。</p>
         <p>※ 大きな数値は計算に時間がかかる場合があります。</p>
       </div>
 
@@ -69,10 +69,9 @@
       <div id="loading" class="hidden mt-6 flex flex-col sm:flex-row items-center justify-center space-y-2 sm:space-y-0 sm:space-x-4 text-blue-600 p-4 bg-blue-50 rounded-xl border border-blue-200">
         <div class="flex items-center">
           <!-- 視覚的なスピナー（SVG） -->
-          <svg class="animate-spin h-5 w-5 mr-3 text-blue-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-          </svg>
+          <div class="mr-3">
+            <div class="animate-spin h-5 w-5 rounded-full border-4 border-blue-200 border-t-blue-600" aria-hidden="true"></div>
+          </div>
           <span class="font-semibold">計算中...</span>
         </div>
 
