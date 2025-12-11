@@ -118,12 +118,12 @@ export async function pollardsRho(n, options = {}) {
     // 最大試行回数
     const MAX_TRIALS = (typeof options.MAX_TRIALS === "number" && Number.isFinite(options.MAX_TRIALS) && options.MAX_TRIALS > 0)
       ? Math.floor(options.MAX_TRIALS)
-      : 200000000;
+      : 100_000_000;
   
     // ログ出力間隔
     const LOG_INTERVAL = (typeof options.logInterval === "number" && Number.isFinite(options.logInterval) && options.logInterval > 0)
       ? Math.floor(options.logInterval)
-      : 2000000;
+      : 1_000_000;
 
     // 最大再起動回数
     const maxRestartsPerWorker = (typeof options.maxRestartsPerWorker === "number")
