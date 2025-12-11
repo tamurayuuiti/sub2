@@ -70,16 +70,19 @@ async function startFactorization() {
             console.log(`Pollard's rho を開始 (コア数: ${coreCount})`);
             const extraFactors = await pollardsRhoFactorization(remainder);
 
-            // エラーチェック
+            // エラーチェック: 想定外の戻り値
             if (!Array.isArray(extraFactors)) {
-                console.error("Pollard returned unexpected result:", extraFactors);
-                if (elements.result) elements.result.textContent = "素因数分解失敗";
+                const elapsedTime = startTime ? ((performance.now() - startTime) / 1000).toFixed(3) : "0.000";
+                console.error("Pollard returned unexpected result:", extraFactors, `Elapsed: ${elapsedTime} s`);
+                showError("素因数分解失敗");
                 return;
             }
 
+            // Pollard の失敗シグナル
             if (extraFactors.includes("FAIL")) {
-                console.error("Pollard's Rho では因数を発見できませんでした。素因数分解を中断します。");
-                if (elements.result) elements.result.textContent = "素因数分解失敗";
+                const elapsedTime = startTime ? ((performance.now() - startTime) / 1000).toFixed(3) : "0.000";
+                console.error("素因数分解を中断します", `Elapsed: ${elapsedTime} s`);
+                showError("素因数分解失敗");
                 return;
             }
 
@@ -90,8 +93,9 @@ async function startFactorization() {
         showFinalResult(factors, elapsedTime);
         console.log(`素因数分解完了: ${factors.join(" × ")}, 計算時間: ${elapsedTime} 秒`);
     } catch (error) {
-        console.error("計算エラー:", error);
-        if (elements.result) elements.result.textContent = "計算中にエラーが発生しました";
+        const elapsedTime = startTime ? ((performance.now() - startTime) / 1000).toFixed(3) : "0.000";
+        console.error("計算エラー:", error, `Elapsed: ${elapsedTime} s`);
+        showError("計算中にエラーが発生しました");
     } finally {
         // 終了処理
         isCalculating = false;
@@ -121,28 +125,35 @@ function hideErrorAndPrepare() {
     if (elements.loading) elements.loading.style.display = "flex";
 }
 
+// エラーメッセージ表示（UI には時間は表示しない）
 function showError(message) {
     if (elements.errorMessage) {
         elements.errorMessage.textContent = message;
         elements.errorMessage.style.display = "block";
     }
-    if (elements.time) elements.time.innerHTML = "";
+
     if (elements.result) elements.result.innerHTML = "";
     if (elements.outputBox) elements.outputBox.style.display = "none";
-    if (elements.time) elements.time.style.display = "none";
-    if (elements.result) elements.result.style.display = "none";
+
+    if (elements.time) {
+        elements.time.innerHTML = "";
+        elements.time.style.display = "none";
+    }
+
+    if (elements.spinner) elements.spinner.style.display = "none";
+    if (elements.loading) elements.loading.style.display = "none";
+}
+
+function escapeHtml(str) {
+    return String(str)
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#39;");
 }
 
 function showFinalResult(factors, elapsedTime) {
-    function escapeHtml(str) {
-        return String(str)
-            .replace(/&/g, "&amp;")
-            .replace(/</g, "&lt;")
-            .replace(/>/g, "&gt;")
-            .replace(/"/g, "&quot;")
-            .replace(/'/g, "&#39;");
-    }
-
     // 因数を文字列化して個数を数える
     const strs = (Array.isArray(factors) ? factors : []).map(f => (typeof f === "bigint" ? f.toString() : String(f)));
     const numericStrs = strs.filter(s => /^[0-9]+$/.test(s));
@@ -190,9 +201,9 @@ if (elements.numberInput) {
         // 画面上から非数字文字を取り除く
         input.value = input.value.replace(/[^0-9]/g, '');
 
-        // 最大50桁に制限
-        if (input.value.length > 50) {
-            input.value = input.value.slice(0, 50);
+        // 最大30桁に制限
+        if (input.value.length > 30) {
+            input.value = input.value.slice(0, 30);
         }
 
         // 桁数表示とボタン有効化/無効化
