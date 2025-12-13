@@ -1,5 +1,5 @@
 // ミラーラビン素数判定法
-import { isPrimeMillerRabin } from "./algorithms/mille-rabin.js";
+import { isPrimeMillerRabin } from "./algorithms/miller-rabin.js";
 
 // 試し割り法
 import { trialDivision, loadPrimes } from './algorithms/trial-division.js';
