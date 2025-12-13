@@ -1,5 +1,5 @@
 // ミラーラビン素数判定法
-import { isPrimeMillerRabin } from "./millerRabin.js";
+import { isPrimeMillerRabin } from "./miller-rabin.js";
 
 // ランダムな c を生成
 function randomC(range = 1_000_000) {
@@ -30,13 +30,6 @@ function getRandomX(n) {
   return r + 2n;
 }
 
-// CPU コア数に基づいてワーカー数を決定
-function getWorkerCount() {
-  const cpuCores = navigator.hardwareConcurrency || 4;
-  if (cpuCores <= 8) return Math.max(1, cpuCores - 2);
-  return Math.max(1, Math.floor(cpuCores * 0.6));
-}
-
 // ブロックスケールの決定
 function chooseBlockScaleByBits(n) {
   const bits = n.toString(2).length;
@@ -52,7 +45,7 @@ function clampPartBlock(pb, min = 32, max = 1024) {
 }
 
 // Pollard's Rho を再帰的に回して素因数を求める
-export async function pollardsRhoFactorization(number) {
+export async function pollardsRhoFactorization(number, workerCount = 1) {
     if (typeof number !== "bigint") {
         throw new TypeError(`エラー: pollardsRhoFactorization() に渡された number (${number}) が BigInt ではありません。`);
     }
@@ -68,7 +61,7 @@ export async function pollardsRhoFactorization(number) {
         let factor = null;
         while (!factor || factor === number) {
             console.log(`Pollard's rho を試行: ${number}`);
-            factor = await pollardsRho(number);
+            factor = await pollardsRho(number, { workerCount });
 
             if (factor === null) {
                 console.error(`Pollard's Rho では因数を発見できませんでした。`);
@@ -82,7 +75,7 @@ export async function pollardsRhoFactorization(number) {
             factors.push(factor);
         } else {
             console.log(`合成数を発見: ${factor} → さらに分解`);
-            let subFactors = await pollardsRhoFactorization(factor);
+            let subFactors = await pollardsRhoFactorization(factor, workerCount);
             if (subFactors.includes("FAIL")) return ["FAIL"];
             factors = factors.concat(subFactors);
         }
@@ -96,7 +89,11 @@ export async function pollardsRhoFactorization(number) {
 export async function pollardsRho(n, options = {}) {
   return new Promise((resolve, reject) => {
     const workers = [];
-    const workerCount = getWorkerCount();
+    // workerCount オプションを処理
+    const workerCount = (typeof options.workerCount === "number" && options.workerCount > 0)
+      ? options.workerCount
+      : 2;
+
     let activeWorkers = workerCount;
     let finished = false;
 
@@ -161,7 +158,7 @@ export async function pollardsRho(n, options = {}) {
     for (let i = 0; i < workerCount; i++) {
       let worker;
       try {
-        worker = new Worker("./src/workers/worker.js");
+        worker = new Worker("./src/workers/pollards-rho.worker.js");
         workers.push(worker);
       } catch (err) {
         console.error(`worker ${i + 1} creation failed:`, err);
