@@ -4,7 +4,9 @@ let primesCache = null;
 // 外部の素数リスト読み込み
 export async function loadPrimes(progressCallback = null) {
     if (primesCache) {
-        if (typeof progressCallback === "function") progressCallback({ status: "cached", count: primesCache.length });
+        if (typeof progressCallback === "function") {
+            progressCallback({ status: "cached", count: primesCache.length });
+        }
         return primesCache;
     }
 
@@ -19,11 +21,11 @@ export async function loadPrimes(progressCallback = null) {
 
         // BigInt に変換
         const out = new Array(tokens.length);
-        const REPORT_INTERVAL = 10000; // 進捗通知の粒度
+        const REPORT_INTERVAL = 10000;
         for (let i = 0; i < tokens.length; i++) {
             try {
                 out[i] = BigInt(tokens[i]);
-            } catch (e) {
+            } catch {
                 out[i] = null;
                 console.warn(`トークン変換失敗: index=${i} token=${tokens[i]}`);
             }
@@ -32,11 +34,15 @@ export async function loadPrimes(progressCallback = null) {
             }
         }
         primesCache = out.filter(x => x !== null);
-        if (typeof progressCallback === "function") progressCallback({ status: "done", count: primesCache.length });
+        if (typeof progressCallback === "function") {
+            progressCallback({ status: "done", count: primesCache.length });
+        }
         return primesCache;
     } catch (err) {
         console.error("loadPrimes error:", err);
-        if (typeof progressCallback === "function") progressCallback({ status: "error", message: String(err) });
+        if (typeof progressCallback === "function") {
+            progressCallback({ status: "error", message: String(err) });
+        }
         return [];
     }
 }
@@ -44,17 +50,22 @@ export async function loadPrimes(progressCallback = null) {
 // 試し割り法
 export function trialDivision(number, primes, options = {}) {
     if (typeof number !== "bigint") throw new TypeError("number must be BigInt");
-    if (!Array.isArray(primes) || primes.length === 0) throw new Error("primes must be a non-empty BigInt[]");
+    if (!Array.isArray(primes) || primes.length === 0) {
+        throw new Error("primes must be a non-empty BigInt[]");
+    }
 
     const factors = [];
     const total = primes.length;
     const REPORT_INTERVAL = 10000;
-    const maxPrime = (options.maxPrime !== undefined && options.maxPrime !== null) ? options.maxPrime : null;
+    const maxPrime =
+        (options.maxPrime !== undefined && options.maxPrime !== null)
+            ? options.maxPrime
+            : null;
     const progressCallback = options.progressCallback || null;
 
     for (let idx = 0; idx < total; idx++) {
         const prime = primes[idx];
-        if (prime === null || prime === undefined) continue;
+        if (prime == null) continue;
         if (maxPrime !== null && prime > maxPrime) break;
         if (prime * prime > number) break;
 
