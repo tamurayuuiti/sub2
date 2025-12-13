@@ -1,13 +1,31 @@
+// ミラーラビン素数判定法
+import { isPrimeMillerRabin } from "./algorithms/mille-rabin.js";
+
 // 試し割り法
-import { trialDivision, loadPrimes } from './algorithms/trialDivision.js';
+import { trialDivision, loadPrimes } from './algorithms/trial-division.js';
 
 // Pollard’s rho 法
-import { pollardsRhoFactorization } from './algorithms/pollardsRho.js';
+import { pollardsRhoFactorization } from './algorithms/pollards-rho.js';
+
+// ECM 法
+import { ecmFactorization } from './algorithms/ecm.js';
 
 let primes = [];
 let startTime = null;
 let isCalculating = false;
-const coreCount = navigator.hardwareConcurrency || 4;
+
+// 経過時間を取得するヘルパー関数
+function getElapsedTime() {
+    if (!startTime) return "0.000";
+    return ((performance.now() - startTime) / 1000).toFixed(3);
+}
+
+// 利用可能なワーカー数を取得
+function getWorkerCount() {
+    const cpuCores = navigator.hardwareConcurrency || 4;
+    if (cpuCores <= 8) return Math.max(1, cpuCores - 2);
+    return Math.max(1, Math.floor(cpuCores * 0.6));
+}
 
 const elements = {
     numberInput: document.getElementById("numberInput"),
@@ -37,7 +55,7 @@ async function startFactorization() {
         const rawInput = elements.numberInput ? elements.numberInput.value : "";
         const inputValue = String(rawInput).trim().replace(/[^0-9]/g, '');
         if (!inputValue || BigInt(inputValue) < 2n) {
-            showError("有効な整数を入力してください");
+            showError("2以上の整数を入力してください");
             return;
         }
 
@@ -45,57 +63,80 @@ async function startFactorization() {
         console.log(`素因数分解を開始: ${num}`);
 
         startTime = performance.now();
-
         updateProgress();
 
-        // 素因数分解開始
+        // 素数判定
+        if (isPrimeMillerRabin(num)) {
+            const elapsedTime = getElapsedTime();
+            showFinalResult([num], elapsedTime);
+            console.log(`入力は素数: ${num}, 計算時間: ${elapsedTime} 秒`);
+            return;
+        }
+
+        // 素数リスト読み込み
         if (!primes || primes.length === 0) {
             try {
                 primes = await loadPrimes();
             } catch (e) {
-                console.warn("素数リストの読み込みに失敗:", e);
+                console.warn("初期化警告: 素数リストの読み込みに失敗しました", e);
                 primes = [];
             }
-            if (!primes || primes.length === 0) throw new Error("素数リストが空のため、計算できません");
+            if (!primes || primes.length === 0) {
+                throw new Error("重大なエラー: 素数リストが空のため計算を続行できません");
+            }
         }
 
         console.log("試し割り法を実行します");
         let { factors, remainder } = trialDivision(num, primes, {
-            progressCallback: msg => { if (elements.result) elements.result.textContent = msg; }
+            progressCallback: msg => {
+                if (elements.result) elements.result.textContent = msg;
+            }
         });
 
         console.log(`試し割り法完了。残りの数: ${remainder}`);
 
         if (remainder > 1n) {
-            console.log(`Pollard's rho を開始 (コア数: ${coreCount})`);
-            const extraFactors = await pollardsRhoFactorization(remainder);
+            const digitCount = remainder.toString().length;
+            let extraFactors;
+            const workerCount = getWorkerCount();
+            console.log(`並列計算用のワーカー数: ${workerCount}`);
 
-            // エラーチェック: 想定外の戻り値
+            if (digitCount <= 10) {
+                // 10桁以下なら Pollard's rho 法
+                console.log(`Pollard's rho を開始（残り ${digitCount} 桁）`);
+                extraFactors = await pollardsRhoFactorization(remainder, workerCount);  
+            } else {
+                // それ以上なら ECM 法
+                console.log(`ECM を開始（残り ${digitCount} 桁）`);
+                extraFactors = await ecmFactorization(remainder, workerCount);
+            }
+
+            // 想定外の戻り値
             if (!Array.isArray(extraFactors)) {
-                const elapsedTime = startTime ? ((performance.now() - startTime) / 1000).toFixed(3) : "0.000";
-                console.error("Pollard returned unexpected result:", extraFactors, `Elapsed: ${elapsedTime} s`);
-                showError("素因数分解失敗");
+                const elapsedTime = getElapsedTime();
+                console.error(`内部エラー: アルゴリズムからの戻り値が不正です (経過時間: ${elapsedTime}s)`, extraFactors);
+                showError("計算に失敗しました");
                 return;
             }
 
-            // Pollard の失敗シグナル
+            // 失敗シグナル
             if (extraFactors.includes("FAIL")) {
-                const elapsedTime = startTime ? ((performance.now() - startTime) / 1000).toFixed(3) : "0.000";
-                console.error("素因数分解を中断します", `Elapsed: ${elapsedTime} s`);
-                showError("素因数分解失敗");
+                const elapsedTime = getElapsedTime();
+                console.error(`計算中断: アルゴリズムが因数を特定できず終了しました (経過時間: ${elapsedTime}s)`);
+                showError("素因数を特定できませんでした");
                 return;
             }
 
             factors = factors.concat(extraFactors);
         }
 
-        let elapsedTime = ((performance.now() - startTime) / 1000).toFixed(3);
+        const elapsedTime = getElapsedTime();
         showFinalResult(factors, elapsedTime);
         console.log(`素因数分解完了: ${factors.join(" × ")}, 計算時間: ${elapsedTime} 秒`);
     } catch (error) {
-        const elapsedTime = startTime ? ((performance.now() - startTime) / 1000).toFixed(3) : "0.000";
-        console.error("計算エラー:", error, `Elapsed: ${elapsedTime} s`);
-        showError("計算中にエラーが発生しました");
+        const elapsedTime = getElapsedTime();
+        console.error(`予期せぬエラーが発生しました: ${error} (経過時間: ${elapsedTime}s)`);
+        showError("エラーが発生しました");
     } finally {
         // 終了処理
         isCalculating = false;
@@ -201,9 +242,9 @@ if (elements.numberInput) {
         // 画面上から非数字文字を取り除く
         input.value = input.value.replace(/[^0-9]/g, '');
 
-        // 最大30桁に制限
-        if (input.value.length > 30) {
-            input.value = input.value.slice(0, 30);
+        // 最大50桁に制限
+        if (input.value.length > 50) {
+            input.value = input.value.slice(0, 50);
         }
 
         // 桁数表示とボタン有効化/無効化
