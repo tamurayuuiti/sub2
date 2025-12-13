@@ -1,35 +1,5 @@
-// バイナリ GCD
-function gcdBinary(a, b) {
-  if (a === 0n) return b < 0n ? -b : b;
-  if (b === 0n) return a < 0n ? -a : a;
-
-  a = a < 0n ? -a : a;
-  b = b < 0n ? -b : b;
-
-  let shift = 0n;
-  while (((a | b) & 1n) === 0n) {
-    a >>= 1n;
-    b >>= 1n;
-    shift += 1n;
-  }
-
-  while ((a & 1n) === 0n) a >>= 1n;
-
-  while (b !== 0n) {
-    while ((b & 1n) === 0n) b >>= 1n;
-    if (a > b) {
-      const t = b;
-      b = a;
-      a = t;
-    }
-    b = b - a;
-  }
-
-  return a << shift;
-}
-
 // ユークリッド（剰余）GCD
-function gcdEuclid(a, b) {
+function gcd(a, b) {
   a = a < 0n ? -a : a;
   b = b < 0n ? -b : b;
   while (b !== 0n) {
@@ -40,12 +10,6 @@ function gcdEuclid(a, b) {
   return a;
 }
 
-// 実行時切替用
-let useBinaryGcd = true;
-function gcdSelect(a, b) {
-  return useBinaryGcd ? gcdBinary(a, b) : gcdEuclid(a, b);
-}
-
 // 短い非同期待ち
 function tick() {
   return new Promise(resolve => setTimeout(resolve, 0));
@@ -53,29 +17,23 @@ function tick() {
 
 // エラーメッセージをメインスレッドにポストし、false を返す
 function postErrorAndReturn(msg) {
-  try { postMessage({ error: msg }); } catch (e) {}
-  return false;
+  try { postMessage({ error: msg }); } catch (e) {}
+  return false;
 }
 
 // 値が有限な正の整数 (Number) であることを検証
 function requireNumberFinitePositiveInteger(name, v) {
-  if (typeof v !== "number") return postErrorAndReturn(`${name} must be Number.`);
-  if (!Number.isFinite(v)) return postErrorAndReturn(`${name} must be finite Number.`);
-  if (!Number.isInteger(v)) return postErrorAndReturn(`${name} must be integer.`);
-  if (v <= 0) return postErrorAndReturn(`${name} must be > 0.`);
-  return true;
+  if (typeof v !== "number") return postErrorAndReturn(`${name} must be Number.`);
+  if (!Number.isFinite(v)) return postErrorAndReturn(`${name} must be finite Number.`);
+  if (!Number.isInteger(v)) return postErrorAndReturn(`${name} must be integer.`);
+  if (v <= 0) return postErrorAndReturn(`${name} must be > 0.`);
+  return true;
 }
 
 // 値が BigInt 型であることを検証
 function requireBigInt(name, v) {
-  if (typeof v !== "bigint") return postErrorAndReturn(`${name} must be BigInt.`);
-  return true;
-}
-
-// 値が boolean 型であることを検証
-function requireBoolean(name, v) {
-  if (typeof v !== "boolean") return postErrorAndReturn(`${name} must be boolean.`);
-  return true;
+  if (typeof v !== "bigint") return postErrorAndReturn(`${name} must be BigInt.`);
+  return true;
 }
 
 // y を指定回進めて trialCount を更新
@@ -129,7 +87,8 @@ function processChunkHelper(x, stepLimit, state, PART_BLOCK, MAX_TRIALS) {
 
     if (inPart >= PART_BLOCK) {
       gcdCallsAdded++;
-      const g = gcdSelect(part, n);
+      
+      const g = gcd(part, n);
       if (g > 1n && g < n) {
         state.y = y;
         state.trialCount = trial;
@@ -147,7 +106,7 @@ function processChunkHelper(x, stepLimit, state, PART_BLOCK, MAX_TRIALS) {
 
   if (inPart > 0) {
     gcdCallsAdded++;
-    const g = gcdSelect(part, n);
+    const g = gcd(part, n);
     if (g > 1n && g < n) {
       state.y = y;
       state.trialCount = trial;
@@ -176,7 +135,8 @@ async function doFallbackHelper(x_prev, state, MAX_TRIALS, LOG_INTERVAL, maybeLo
   while (g === 1n && trial < MAX_TRIALS) {
     ys = (ys * ys + c) % n;
     trial++;
-    g = gcdSelect(x_prev > ys ? x_prev - ys : ys - x_prev, n);
+
+    g = gcd(x_prev > ys ? x_prev - ys : ys - x_prev, n);
 
     if (typeof maybeLogFunc === "function") {
       maybeLogFunc(trial, LOG_INTERVAL, () =>
@@ -216,14 +176,12 @@ self.onmessage = async function(event) {
     // 必須パラメータの型/値検証
     if (!requireNumberFinitePositiveInteger("MAX_TRIALS", event.data.MAX_TRIALS)) return;
     if (!requireNumberFinitePositiveInteger("logInterval", event.data.logInterval)) return;
-    if (!requireBoolean("useBinaryGcd", event.data.useBinaryGcd)) return;
     if (!requireBigInt("c", event.data.c)) return;
     if (!requireBigInt("m", event.data.m)) return;
     if (!requireNumberFinitePositiveInteger("PART_BLOCK", event.data.PART_BLOCK)) return;
 
     const MAX_TRIALS = event.data.MAX_TRIALS;
     const LOG_INTERVAL = event.data.logInterval;
-    useBinaryGcd = event.data.useBinaryGcd;
     const c = event.data.c;
     const m = event.data.m;
     const PART_BLOCK = event.data.PART_BLOCK;
@@ -291,16 +249,16 @@ self.onmessage = async function(event) {
         }
       }
 
-      // ログ
+      // ログ出力
       maybeLog(state.trialCount, LOG_INTERVAL, () =>
-        `worker ${workerId + 1} 試行 ${state.trialCount}, gcdCalls=${gcdCalls}, c=${c}, PART_BLOCK=${PART_BLOCK}, useBinaryGcd=${useBinaryGcd}`
+        `worker ${workerId + 1} 試行 ${state.trialCount}, gcdCalls=${gcdCalls}, c=${c}, PART_BLOCK=${PART_BLOCK}`
       ).catch(() => {});
 
       if (d === 1n) r *= 2n;
     }
 
     console.log(
-      `worker ${workerId + 1} 終了: 試行 ${state.trialCount}, gcdCalls=${gcdCalls}, c=${c}, badCollisions=${badCollisions}, PART_BLOCK=${PART_BLOCK}, useBinaryGcd=${useBinaryGcd}`
+      `worker ${workerId + 1} 終了: 試行 ${state.trialCount}, gcdCalls=${gcdCalls}, c=${c}, badCollisions=${badCollisions}, PART_BLOCK=${PART_BLOCK}`
     );
 
     if (d > 1n && d !== n) {
