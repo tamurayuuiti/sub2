@@ -212,7 +212,7 @@ async function runCurves(n, B1, B2, curvesToRun, sigmaStart) {
         let params = suyamaParam(sigma, n);
         
         if (params && params.factor) {
-             if (params.factor < n) return { factor: params.factor, trials: c + 1 };
+             if (params.factor < n) return { factor: params.factor, trials: globalTotalTrials };
         }
         if (!params) continue;
         
@@ -229,7 +229,7 @@ async function runCurves(n, B1, B2, curvesToRun, sigmaStart) {
         }
 
         let g = gcd(Qz, n);
-        if (g > ONE && g < n) return { factor: g, trials: c + 1 };
+        if (g > ONE && g < n) return { factor: g, trials: globalTotalTrials };
 
         // ステージ2
         if (B2 > B1) {
@@ -278,12 +278,12 @@ async function runCurves(n, B1, B2, curvesToRun, sigmaStart) {
 
                 if (stepCount % 200 === 0) {
                       let g2 = gcd(product, n);
-                      if (g2 > ONE && g2 < n) return { factor: g2, trials: c + 1 };
+                      if (g2 > ONE && g2 < n) return { factor: g2, trials: globalTotalTrials };
                       product = ONE;
                 }
             }
             let g2 = gcd(product, n);
-            if (g2 > ONE && g2 < n) return { factor: g2, trials: c + 1 };
+            if (g2 > ONE && g2 < n) return { factor: g2, trials: globalTotalTrials };
         }
     }
     return null;
