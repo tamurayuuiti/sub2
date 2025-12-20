@@ -30,7 +30,7 @@ function requireNumberFinitePositiveInteger(name, v) {
   return true;
 }
 
-// 値が BigInt 型であることを検証
+// 値が BigInt であることを検証
 function requireBigInt(name, v) {
   if (typeof v !== "bigint") return postErrorAndReturn(`${name} must be BigInt.`);
   return true;
