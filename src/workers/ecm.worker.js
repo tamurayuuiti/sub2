@@ -1,18 +1,26 @@
-// --- BigInt Utilities & ECM Arithmetic ---
+// 定数
 const ZERO = 0n;
 const ONE = 1n;
 const TWO = 2n;
 const FOUR = 4n;
 
+// グローバル変数
+let globalTotalTrials = 0;
+let currentNStr = null;
+
+// ユークリッドの互除法によるGCD計算
 function gcd(a, b) {
-    while (b !== ZERO) {
-        let t = b;
-        b = a % b;
-        a = t;
-    }
-    return a;
+  a = a < ZERO ? -a : a;
+  b = b < ZERO ? -b : b;
+  while (b !== ZERO) {
+    const t = a % b;
+    a = b;
+    b = t;
+  }
+  return a;
 }
 
+// 拡張ユークリッドの互除法
 function extendedGCD(a, m) {
     let t = ZERO, newt = ONE;
     let r = m, newr = a;
@@ -25,18 +33,18 @@ function extendedGCD(a, m) {
     return { gcd: r, inv: t };
 }
 
-// --- Prime Sieve ---
+// 素数ふるい
 const PrimeManager = {
     smallPrimes: [],
     sieveBuffer: null,
     maxSieved: 0,
 
+    // 指定までの小素数リストを取得
     getSmallPrimes: function(max) {
         if (this.smallPrimes.length > 0 && this.smallPrimes[this.smallPrimes.length-1] >= max) {
             let idx = this.smallPrimes.findIndex(p => p > max);
             return idx === -1 ? this.smallPrimes : this.smallPrimes.slice(0, idx);
         }
-        // 単純なエラトステネスのふるいで初期リストを作成
         const bitset = new Uint8Array(max + 1);
         bitset.fill(1); bitset[0]=0; bitset[1]=0;
         const sqrt = Math.floor(Math.sqrt(max));
@@ -74,7 +82,6 @@ const PrimeManager = {
     },
 
     *iteratePrimes(start, end) {
-        // 修正: 呼び出し側も max (end) のみを渡すように変更
         if (end > this.maxSieved) this.ensureSieve(end);
         
         for (let i = start; i <= end; i++) {
@@ -85,7 +92,7 @@ const PrimeManager = {
     }
 };
 
-// モンゴメリ乗算と関連関数
+// モンゴメリ曲線上の点倍算
 function montgomeryLadder(k, x0, z0, A24, n) {
     k = BigInt(k); x0 = BigInt(x0); z0 = BigInt(z0); A24 = BigInt(A24); n = BigInt(n);
     let x1 = ONE, z1 = ZERO;
@@ -126,6 +133,7 @@ function montgomeryLadder(k, x0, z0, A24, n) {
     return { x: x1, z: z1 };
 }
 
+// モンゴメリ差分加算
 function montgomeryDiffAdd(Xm, Zm, Xp, Zp, Xd, Zd, n) {
     let A = Xm + Zm; if(A>=n) A-=n;
     let B = Xm - Zm; if(B<ZERO) B+=n;
@@ -140,6 +148,7 @@ function montgomeryDiffAdd(Xm, Zm, Xp, Zp, Xd, Zd, n) {
     return { x: X_new, z: Z_new };
 }
 
+// Suyamaパラメータ計算
 function suyamaParam(sigma, n) {
     const sigma2 = (sigma * sigma) % n;
     let u = sigma2 - 5n; if(u<ZERO) u+=n;
@@ -157,6 +166,7 @@ function suyamaParam(sigma, n) {
     return { x: u3, z: v3, A24: A24 };
 }
 
+// ベビーステップの事前計算
 function precomputeBabySteps(Qx, Qz, A24, n, D) {
     const babySteps = new Map();
     const limit = D / 2;
@@ -177,11 +187,10 @@ function precomputeBabySteps(Qx, Qz, A24, n, D) {
     return babySteps;
 }
 
-// --- ECM Core Loop ---
+// ECMメイン関数
 async function runCurves(n, B1, B2, curvesToRun, sigmaStart) {
     const primes = PrimeManager.getSmallPrimes(B1);
     
-    // 修正: 呼び出し引数を修正 (B2のみ渡す)
     if (B2 > B1) PrimeManager.ensureSieve(B2);
 
     const D = 2310;
@@ -189,20 +198,27 @@ async function runCurves(n, B1, B2, curvesToRun, sigmaStart) {
     const D_half = 1155; 
 
     for (let c = 0; c < curvesToRun; c++) {
-        // イベントループを回してメッセージ受信や停止要求を可能にする
-        if (c % 5 === 0) await new Promise(r => setTimeout(r, 0));
+        globalTotalTrials++;
+
+        // 10回ごとにログ出力
+        if (globalTotalTrials % 10 === 0) {
+            const currentSigma = sigmaStart + BigInt(c);
+            console.log(`累積試行 ${globalTotalTrials} (Sigma: ${currentSigma})`);
+
+            await new Promise(r => setTimeout(r, 0));
+        }
 
         let sigma = sigmaStart + BigInt(c);
         let params = suyamaParam(sigma, n);
         
         if (params && params.factor) {
-             if (params.factor < n) return params.factor;
+             if (params.factor < n) return { factor: params.factor, trials: c + 1 };
         }
         if (!params) continue;
         
         let { x: Qx, z: Qz, A24 } = params;
 
-        // Stage 1
+        // ステージ1
         for (let p of primes) {
             let pBi = BigInt(p);
             let q_pow = pBi;
@@ -213,9 +229,9 @@ async function runCurves(n, B1, B2, curvesToRun, sigmaStart) {
         }
 
         let g = gcd(Qz, n);
-        if (g > ONE && g < n) return g;
+        if (g > ONE && g < n) return { factor: g, trials: c + 1 };
 
-        // Stage 2
+        // ステージ2
         if (B2 > B1) {
             const babySteps = precomputeBabySteps(Qx, Qz, A24, n, D);
             let R = montgomeryLadder(D_bi, Qx, Qz, A24, n);
@@ -262,29 +278,39 @@ async function runCurves(n, B1, B2, curvesToRun, sigmaStart) {
 
                 if (stepCount % 200 === 0) {
                       let g2 = gcd(product, n);
-                      if (g2 > ONE && g2 < n) return g2;
+                      if (g2 > ONE && g2 < n) return { factor: g2, trials: c + 1 };
                       product = ONE;
                 }
             }
             let g2 = gcd(product, n);
-            if (g2 > ONE && g2 < n) return g2;
+            if (g2 > ONE && g2 < n) return { factor: g2, trials: c + 1 };
         }
     }
     return null;
 }
 
-// --- Worker Message Handler ---
+// メッセージハンドラ
 self.onmessage = async function(e) {
     const { n, B1, B2, curves, sigmaStart } = e.data;
+    
+    // グローバル変数初期化
+    if (currentNStr !== n) {
+        currentNStr = n;
+        globalTotalTrials = 0;
+    }
+
     const nBi = BigInt(n);
     const sigmaBi = BigInt(sigmaStart);
 
     try {
-        const factor = await runCurves(nBi, B1, B2, curves, sigmaBi);
-        if (factor) {
-            self.postMessage({ factor: factor.toString() });
+        const result = await runCurves(nBi, B1, B2, curves, sigmaBi);
+        if (result && result.factor) {
+            self.postMessage({ 
+                factor: result.factor.toString(),
+                trials: result.trials 
+            });
         } else {
-            self.postMessage({ done: true });
+            self.postMessage({ done: true, trials: globalTotalTrials });
         }
     } catch (err) {
         self.postMessage({ error: err.message });
