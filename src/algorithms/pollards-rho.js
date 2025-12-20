@@ -122,11 +122,6 @@ export async function pollardsRho(n, options = {}) {
       ? Math.floor(options.logInterval)
       : 1_000_000;
 
-    // 最大再起動回数
-    const maxRestartsPerWorker = (typeof options.maxRestartsPerWorker === "number")
-      ? Math.max(0, Math.floor(options.maxRestartsPerWorker))
-      : 10;
-
     function terminateAllWorkers() {
       for (const w of workers) {
         try { w.terminate(); } catch (e) {}
@@ -170,7 +165,6 @@ export async function pollardsRho(n, options = {}) {
         continue;
       }
 
-      let restartCount = 0;
       let initialX = (i === 0) ? 2n : getRandomX(n);
       let c = randomC();
 
@@ -214,26 +208,13 @@ export async function pollardsRho(n, options = {}) {
         }
 
         if (data.stopped) {
-          restartCount++;
-          if (restartCount > maxRestartsPerWorker) {
-            try { worker.terminate(); } catch (e) {}
-            activeWorkers--;
-            if (!finished && activeWorkers === 0) finish(null, false);
-            return;
+          try { worker.terminate(); } catch (e) {}
+          activeWorkers--;
+          
+          // すべてのワーカーが停止したら終了
+          if (!finished && activeWorkers === 0) {
+            finish(null, false); 
           }
-
-          initialX = (i === 0) ? 2n : getRandomX(n);
-          c = randomC();
-
-          try {
-            postInitToWorker(worker, i, initialX, c);
-          } catch (err) {
-            console.error(`failed to restart worker ${i + 1}:`, err);
-            try { worker.terminate(); } catch (e) {}
-            activeWorkers--;
-            if (!finished && activeWorkers === 0) finish(null, false);
-          }
-
           return;
         }
       };
