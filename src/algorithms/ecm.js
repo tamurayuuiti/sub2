@@ -1,7 +1,7 @@
 // ミラーラビン素数判定法
 import { isPrimeMillerRabin } from "./miller-rabin.js";
 
-// ECM戦略（段階的に負荷を上げる）
+// ECM用の戦略リスト
 function getStrategies() {
     return [
         { B1: 2000, B2: 200000, curvesPerWorker: 10 },
@@ -12,7 +12,7 @@ function getStrategies() {
     ];
 }
 
-// ECM (Elliptic Curve Method) を再帰的に回して素因数を求める
+// ECM を再帰的に回して素因数を求める
 export async function ecmFactorization(number, workerCount = 1) {
     if (typeof number !== "bigint") {
         throw new TypeError(`エラー: ecmFactorization() に渡された number (${number}) が BigInt ではありません。`);
@@ -89,7 +89,6 @@ export async function ecmOneNumber(n, options = {}) {
 
     function postInitToWorker(worker, workerId, strategyIndex = 0) {
       if (strategyIndex >= strategies.length) {
-          // これ以上の戦略がない場合はこのWorkerを停止
           try { worker.terminate(); } catch (e) {}
           activeWorkers--;
           if (!finished && activeWorkers === 0) finish(null, false);
@@ -101,7 +100,7 @@ export async function ecmOneNumber(n, options = {}) {
       const base = BigInt(Math.floor(Math.random() * 1000000));
       const sigma = base + BigInt(workerId * 1000) + BigInt(strategyIndex * 100000);
 
-      // 現在の戦略インデックスをWorkerインスタンスに紐付けておく（次のステップ用）
+      // 現在の戦略インデックスをWorkerに保存
       worker.currentStrategyIndex = strategyIndex;
 
       worker.postMessage({
@@ -139,6 +138,7 @@ export async function ecmOneNumber(n, options = {}) {
         continue;
       }
 
+      // メッセージハンドラ
       worker.onmessage = function (event) {
         if (!event || !event.data) return;
         const data = event.data;
@@ -150,7 +150,6 @@ export async function ecmOneNumber(n, options = {}) {
 
         if (data.error) {
           console.error(`worker ${i + 1} error: ${data.error}`);
-          // エラー時も次の戦略へ進むか、終了するか。ここでは次の戦略へ進めてみる
           if (!finished) {
              const nextStrat = (worker.currentStrategyIndex || 0) + 1;
              postInitToWorker(worker, i, nextStrat);
@@ -165,7 +164,6 @@ export async function ecmOneNumber(n, options = {}) {
             if (factorCandidate > 1n && factorCandidate < n && n % factorCandidate === 0n) {
               finish(factorCandidate, false);
             } else {
-              // 因数が見つからなかった（n自身など）場合は次へ
               const nextStrat = (worker.currentStrategyIndex || 0) + 1;
               postInitToWorker(worker, i, nextStrat);
             }
@@ -175,7 +173,7 @@ export async function ecmOneNumber(n, options = {}) {
           return;
         }
 
-        // ECMのWorker完了（done）
+        // 戦略完了通知
         if (data.done) {
           const nextStrat = (worker.currentStrategyIndex || 0) + 1;
           
@@ -192,6 +190,7 @@ export async function ecmOneNumber(n, options = {}) {
         }
       };
 
+      // エラー処理
       worker.onerror = function (err) {
         console.error(`worker ${i + 1} onerror:`, err.message || err);
         try { worker.terminate(); } catch (e) {}
