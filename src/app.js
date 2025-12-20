@@ -96,38 +96,50 @@ async function startFactorization() {
         console.log(`試し割り法完了。残りの数: ${remainder}`);
 
         if (remainder > 1n) {
-            const digitCount = remainder.toString().length;
-            let extraFactors;
-            const workerCount = getWorkerCount();
-            console.log(`並列計算用のワーカー数: ${workerCount}`);
-
-            if (digitCount <= 10) {
-                // 10桁以下なら Pollard's rho 法
-                console.log(`Pollard's rho を開始（残り ${digitCount} 桁）`);
-                extraFactors = await pollardsRhoFactorization(remainder, workerCount);  
+            // 残りの数が素数かどうか判定
+            if (isPrimeMillerRabin(remainder)) {
+                console.log(`残りの数は素数と判定されました: ${remainder}`);
+                factors.push(remainder);
             } else {
-                // それ以上なら ECM 法
-                console.log(`ECM を開始（残り ${digitCount} 桁）`);
-                extraFactors = await ecmFactorization(remainder, workerCount);
-            }
+                const digitCount = remainder.toString().length;
+                let extraFactors;
+                const workerCount = getWorkerCount();
+                console.log(`並列計算用のワーカー数: ${workerCount}`);
+                
+                if (digitCount <= 20) { 
+                    // 20桁以下なら Pollard's rho 法
+                    console.log(`Pollard's rho を開始（残り ${digitCount} 桁）`);
+                    extraFactors = await pollardsRhoFactorization(remainder, workerCount);
 
-            // 想定外の戻り値
-            if (!Array.isArray(extraFactors)) {
-                const elapsedTime = getElapsedTime();
-                console.error(`内部エラー: アルゴリズムからの戻り値が不正です (経過時間: ${elapsedTime}s)`, extraFactors);
-                showError("計算に失敗しました");
-                return;
-            }
+                    // Pollard's Rho が失敗した場合は ECM にフォールバック
+                    if (Array.isArray(extraFactors) && extraFactors.includes("FAIL")) {
+                        console.warn(`Pollard's rho で因数を特定できませんでした。ECM に移行して再試行します。`);
+                        extraFactors = await ecmFactorization(remainder, workerCount);
+                    }
+                } else {
+                    // 21桁以上なら ECM 法
+                    console.log(`ECM を開始（残り ${digitCount} 桁）`);
+                    extraFactors = await ecmFactorization(remainder, workerCount);
+                }
 
-            // 失敗シグナル
-            if (extraFactors.includes("FAIL")) {
-                const elapsedTime = getElapsedTime();
-                console.error(`計算中断: アルゴリズムが因数を特定できず終了しました (経過時間: ${elapsedTime}s)`);
-                showError("素因数を特定できませんでした");
-                return;
-            }
+                // 想定外の戻り値
+                if (!Array.isArray(extraFactors)) {
+                    const elapsedTime = getElapsedTime();
+                    console.error(`内部エラー: アルゴリズムからの戻り値が不正です (経過時間: ${elapsedTime}s)`, extraFactors);
+                    showError("計算に失敗しました");
+                    return;
+                }
 
-            factors = factors.concat(extraFactors);
+                // ECM でも失敗した場合のシグナル
+                if (extraFactors.includes("FAIL")) {
+                    const elapsedTime = getElapsedTime();
+                    console.error(`計算中断: アルゴリズムが因数を特定できず終了しました (経過時間: ${elapsedTime}s)`);
+                    showError("素因数を特定できませんでした");
+                    return;
+                }
+
+                factors = factors.concat(extraFactors);
+            }
         }
 
         const elapsedTime = getElapsedTime();
@@ -166,7 +178,7 @@ function hideErrorAndPrepare() {
     if (elements.loading) elements.loading.style.display = "flex";
 }
 
-// エラーメッセージ表示（UI には時間は表示しない）
+// エラーメッセージ表示
 function showError(message) {
     if (elements.errorMessage) {
         elements.errorMessage.textContent = message;
@@ -195,7 +207,7 @@ function escapeHtml(str) {
 }
 
 function showFinalResult(factors, elapsedTime) {
-    // 因数を文字列化して個数を数える
+    // 因数の集計とソート
     const strs = (Array.isArray(factors) ? factors : []).map(f => (typeof f === "bigint" ? f.toString() : String(f)));
     const numericStrs = strs.filter(s => /^[0-9]+$/.test(s));
     const counts = new Map();
@@ -203,7 +215,7 @@ function showFinalResult(factors, elapsedTime) {
 
     const sortedKeys = Array.from(counts.keys()).sort((a, b) => (BigInt(a) < BigInt(b) ? -1 : 1));
 
-    // 整形して表示用に組み立て
+    // 表示用のHTML生成
     const parts = sortedKeys.map(k => {
         const c = counts.get(k);
         const base = escapeHtml(k);
@@ -228,8 +240,13 @@ function showFinalResult(factors, elapsedTime) {
 
 if (elements.calculateButton) elements.calculateButton.addEventListener("click", startFactorization);
 if (elements.numberInput) {
-    elements.numberInput.addEventListener("keypress", function(event) {
+    // Enterキーで計算開始
+    elements.numberInput.addEventListener("keydown", function(event) {
+        if (event.isComposing || event.keyCode === 229) {
+            return;
+        }
         if (event.key === "Enter") {
+            event.preventDefault();
             startFactorization();
         }
     });
@@ -262,7 +279,7 @@ if (elements.numberInput) {
 
 if (elements.calculateButton) elements.calculateButton.disabled = true;
 
-// ページロード時に素数リストを先読み込み
+// 初期化時に素数リストを読み込む
 (async () => {
     try {
         primes = await loadPrimes();
