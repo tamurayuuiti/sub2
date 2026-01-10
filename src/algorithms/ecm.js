@@ -4,13 +4,23 @@ import { isPrimeMillerRabin } from "./miller-rabin.js"; // ミラーラビン素
 
 // ECM用の戦略リスト取得
 function getStrategies() {
-    return [
-        { B1: 2000, B2: 200000, curvesPerWorker: 50 },
-        { B1: 11000, B2: 1100000, curvesPerWorker: 30 },
-        { B1: 50000, B2: 5000000, curvesPerWorker: 20 },
-        { B1: 250000, B2: 25000000, curvesPerWorker: 10 },
-        { B1: 1000000, B2: 100000000, curvesPerWorker: 5 } 
-    ];
+  return [
+    { Level: 1, B1: 2_000,     B2: 100_000,     curvesPerWorker: 100 },
+    { Level: 2, B1: 11_000,    B2: 1_100_000,   curvesPerWorker: 200 },
+    { Level: 3, B1: 50_000,    B2: 5_000_000,   curvesPerWorker: 500 },
+    { Level: 4, B1: 250_000,   B2: 25_000_000,  curvesPerWorker: 1000 },
+    { Level: 5, B1: 1_000_000, B2: 100_000_000, curvesPerWorker: 2000 }
+  ];
+}
+
+// 初期戦略インデックス選択
+function selectInitialStrategyIndex(n) {
+    const digits = n.toString().length;
+    if (digits <= 20) return 0;
+    if (digits <= 28) return 1;
+    if (digits <= 34) return 2;
+    if (digits <= 42) return 3;
+    return 4;
 }
 
 // ECM を再帰的に回して素因数を求める
@@ -72,6 +82,9 @@ export async function ecmOneNumber(n, options = {}) {
     let finished = false;
     
     const strategies = getStrategies();
+    const initialStrategyIndex = selectInitialStrategyIndex(n);
+    const initialStrategy = strategies[initialStrategyIndex];
+    console.log(`ECM 戦略 Lv${initialStrategyIndex + 1} 開始 (B1=${initialStrategy.B1}, B2=${initialStrategy.B2}, 曲線数=${initialStrategy.curvesPerWorker})`);
 
     // 全ワーカー終了
     function terminateAllWorkers() {
@@ -102,19 +115,25 @@ export async function ecmOneNumber(n, options = {}) {
     }
 
     // ワーカー初期化
-    function postInitToWorker(worker, workerId, strategyIndex = 0) {
+    function postInitToWorker(worker, workerId, initialStrategyIndex) {
       if (finished) return;
 
-      if (strategyIndex >= strategies.length) {
-          handleWorkerExit(workerId);
-          return;
+      if (initialStrategyIndex >= strategies.length) {
+        handleWorkerExit(workerId);
+        return;
       }
 
-      const strat = strategies[strategyIndex];
-      const randomSeed = BigInt(Math.floor(Math.random() * Number.MAX_SAFE_INTEGER));
-      const sigma = randomSeed + BigInt(workerId);
+      const strat = strategies[initialStrategyIndex];
 
-      worker.currentStrategyIndex = strategyIndex;
+      if (worker.sigmaBase === undefined) {
+        worker.sigmaBase =
+          BigInt(Math.floor(Math.random() * Number.MAX_SAFE_INTEGER)) + BigInt(workerId);
+      }
+
+      const sigmaStart = worker.sigmaBase;
+
+      worker.sigmaBase += BigInt(strat.curvesPerWorker);
+      worker.currentStrategyIndex = initialStrategyIndex;
 
       worker.postMessage({
         workerId: workerId,
@@ -122,7 +141,7 @@ export async function ecmOneNumber(n, options = {}) {
         B1: strat.B1,
         B2: strat.B2,
         curves: strat.curvesPerWorker,
-        sigmaStart: sigma.toString()
+        sigmaStart: sigmaStart.toString()
       });
     }
 
@@ -153,8 +172,7 @@ export async function ecmOneNumber(n, options = {}) {
 
         if (data.error) {
           console.error(`worker ${i + 1} からエラー報告がありました: ${data.error}`);
-          const nextStrat = (worker.currentStrategyIndex || 0) + 1;
-          postInitToWorker(worker, i, nextStrat);
+          postInitToWorker(worker, i, worker.currentStrategyIndex + 1);
           return;
         }
 
@@ -164,26 +182,24 @@ export async function ecmOneNumber(n, options = {}) {
             if (factorCandidate > 1n && factorCandidate < n && n % factorCandidate === 0n) {
               finish(factorCandidate, false);
             } else {
-              const nextStrat = (worker.currentStrategyIndex || 0) + 1;
-              postInitToWorker(worker, i, nextStrat);
+              postInitToWorker(worker, i, worker.currentStrategyIndex + 1);
             }
           } catch (e) {
             console.error(`worker ${i + 1} の因数解析に失敗しました: ${e}`);
-            const nextStrat = (worker.currentStrategyIndex || 0) + 1;
-            postInitToWorker(worker, i, nextStrat);
+            postInitToWorker(worker, i, worker.currentStrategyIndex + 1);
           }
           return;
         }
 
         if (data.done) {
-          const nextStrat = (worker.currentStrategyIndex || 0) + 1;
-          postInitToWorker(worker, i, nextStrat);
+          console.log(`worker ${i + 1} が次の戦略へ移行しました`);
+          postInitToWorker(worker, i, worker.currentStrategyIndex + 1);
           return;
         }
       };
 
       try {
-        postInitToWorker(worker, i, 0);
+        postInitToWorker(worker, i, initialStrategyIndex);
       } catch (err) {
         console.error(`worker ${i + 1} への初期化メッセージ送信に失敗しました:`, err);
         handleWorkerExit(i);
