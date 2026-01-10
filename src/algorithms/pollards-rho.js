@@ -1,43 +1,190 @@
 // pollards-rho.js - Pollard's Rho 法による因数分解アルゴリズム
 
-import { isPrimeMillerRabin } from "./miller-rabin.js"; // ミラーラビン素数判定法
+import { isPrimeMillerRabin } from "./miller-rabin.js";
 
-// BigInt 用の簡易ランダム生成
+// ユークリッドの互除法
+function gcd(a, b) {
+    a = a < 0n ? -a : a;
+    b = b < 0n ? -b : b;
+    while (b !== 0n) {
+        const t = a % b;
+        a = b;
+        b = t;
+    }
+    return a;
+}
+
+// 簡易乱数生成
 function randomBigIntBelow(rangeBigInt) {
-  if (rangeBigInt <= 0n) return 0n;
-  const bits = rangeBigInt.toString(2).length;
-  const chunks = Math.ceil(bits / 30);
-  let r = 0n;
-  for (let i = 0; i < chunks; i++) {
-    const part = BigInt(Math.floor(Math.random() * (1 << 30)));
-    r = (r << 30n) | part;
-  }
-  if (r >= rangeBigInt) r = r % rangeBigInt;
-  return r;
+    if (rangeBigInt <= 0n) return 0n;
+    const bits = rangeBigInt.toString(2).length;
+    const chunks = Math.ceil(bits / 30);
+    let r = 0n;
+    for (let i = 0; i < chunks; i++) {
+        const part = BigInt(Math.floor(Math.random() * (1 << 30)));
+        r = (r << 30n) | part;
+    }
+    if (r >= rangeBigInt) r = r % rangeBigInt;
+    return r;
 }
 
 // ランダムな x を生成
 function getRandomX(n) {
-  if (n <= 3n) return 2n;
-  const range = n - 2n;
-  const r = randomBigIntBelow(range);
-  return r + 2n;
+    if (n <= 3n) return 2n;
+    return randomBigIntBelow(n - 2n) + 2n;
 }
 
 // ランダムな c を生成
-function randomC(range = 1_000_000) {
-  let c = BigInt(Math.floor(Math.random() * range));
-  if (c === 0n) c = 1n;
-  return c;
+function randomC(range = 1000) {
+    let c = BigInt(Math.floor(Math.random() * range));
+    return c === 0n ? 1n : c;
+}
+
+// チャンク処理
+function processChunk(x, stepLimit, state, PART_BLOCK, MAX_TRIALS) {
+    let part = 1n;
+    let inPart = 0;
+
+    const n = state.n;
+    const c = state.c;
+    let y = state.y;
+    let trial = state.trialCount;
+
+    for (let i = 0; i < stepLimit && trial < MAX_TRIALS; i++) {
+        y = (y * y + c) % n;
+        trial++;
+
+        const diff = x > y ? x - y : y - x;
+        
+        if (diff === 0n) {
+            state.y = y;
+            state.trialCount = trial;
+            return { dFound: n, badCollision: true };
+        }
+
+        part = (part * diff) % n;
+        inPart++;
+
+        if (inPart >= PART_BLOCK) {
+            const g = gcd(part, n);
+            if (g > 1n && g < n) {
+                state.y = y;
+                state.trialCount = trial;
+                return { dFound: g, badCollision: false };
+            }
+            if (g === n) {
+                state.y = y;
+                state.trialCount = trial;
+                return { dFound: n, badCollision: true };
+            }
+            part = 1n;
+            inPart = 0;
+        }
+    }
+
+    if (inPart > 0) {
+        const g = gcd(part, n);
+        if (g > 1n && g < n) {
+            state.y = y;
+            state.trialCount = trial;
+            return { dFound: g, badCollision: false };
+        }
+        if (g === n) {
+            state.y = y;
+            state.trialCount = trial;
+            return { dFound: n, badCollision: true };
+        }
+    }
+
+    state.y = y;
+    state.trialCount = trial;
+    return { dFound: 1n, badCollision: false };
+}
+
+// フォールバック処理
+function doFallback(x_prev, state) {
+    let ys = x_prev;
+    const c = state.c;
+    const n = state.n;
+    
+    let g = 1n;
+    while (g === 1n) {
+        ys = (ys * ys + c) % n;
+        
+        g = gcd(x_prev > ys ? x_prev - ys : ys - x_prev, n);
+    }
+    return g;
+}
+
+// Pollard's Rho アルゴリズム本体
+function pollardsRho(n, initialX, c) {
+    // パラメータ設定
+    const PART_BLOCK = 32;
+    const m = 32n;
+    const MAX_TRIALS = 100_000; // 最大試行回数
+
+    const state = {
+        y: initialX,
+        c: c,
+        n: n,
+        trialCount: 0
+    };
+
+    state.y = (state.y * state.y + c) % n;
+    state.trialCount++;
+
+    let x = state.y;
+    let d = 1n;
+    let r = 1n;
+
+    while (d === 1n && state.trialCount < MAX_TRIALS) {
+        const x_prev = x;
+        x = state.y;
+
+        let j = 0n;
+        while (j < r && d === 1n && state.trialCount < MAX_TRIALS) {
+            const stepLimitBI = (r - j) < m ? (r - j) : m;
+            const stepLimit = Number(stepLimitBI);
+            const res = processChunk(x, stepLimit, state, PART_BLOCK, MAX_TRIALS);
+            
+            if (res.dFound !== 1n) {
+                if (res.badCollision) {
+                    d = state.n;
+                } else {
+                    d = res.dFound;
+                }
+                break;
+            }
+            j += BigInt(stepLimit);
+        }
+
+        if (d === n) {
+            const g = doFallback(x_prev, state);
+            d = g;
+            if (d === n) {
+                return null;
+            }
+        }
+
+        if (d === 1n) r *= 2n;
+    }
+
+    if (d > 1n && d < n) {
+        return d;
+    }
+    return null;
 }
 
 // 再帰的に Pollard's Rho を回して素因数を求める
-export async function pollardsRhoFactorization(number, workerCount = 1) {
+export async function pollardsRhoFactorization(number) {
     if (typeof number !== "bigint") {
-        throw new TypeError(`エラー: pollardsRhoFactorization() に渡された number (${number}) が BigInt ではありません。`);
+        throw new TypeError(`Number must be BigInt.`);
     }
 
+    if (number <= 1n) return [number];
+
     let factors = [];
+    
     while (number > 1n) {
         if (isPrimeMillerRabin(number)) {
             console.log(`素因数を発見: ${number}`);
@@ -46,14 +193,31 @@ export async function pollardsRhoFactorization(number, workerCount = 1) {
         }
 
         let factor = null;
-        while (!factor || factor === number) {
-            console.log(`Pollard's rho を試行: ${number}`);
-            factor = await pollardsRho(number, { workerCount });
+        
+        // 再試行回数設定
+        const MAX_RETRIES = 5; 
+        
+        for (let i = 0; i < MAX_RETRIES; i++) {
+            const initialX = (i === 0) ? 2n : getRandomX(number);
+            const c = randomC();
 
-            if (factor === null) {
-                console.error(`Pollard's Rho では因数を発見できませんでした。`);
-                return ["FAIL"];
+            console.log(`Pollard's rho 試行 ${i + 1}/${MAX_RETRIES} (c=${c})...`);
+
+            factor = pollardsRho(number, initialX, c);
+            
+            if (factor) {
+                console.log(`Pollard's rho 成功 (${i+1}回目): ${factor}`);
+                break; 
+            } else {
+                if (i < MAX_RETRIES - 1) {
+                    console.warn(`Pollard's rho 失敗 (${i+1}回目)。パラメータを変更して再試行します...`);
+                }
             }
+        }
+
+        if (!factor) {
+            console.error(`Pollard's Rho 失敗 (20桁以下)。ECMへ移行します。`);
+            return ["FAIL"];
         }
 
         console.log(`因数を発見: ${factor}`);
@@ -61,148 +225,13 @@ export async function pollardsRhoFactorization(number, workerCount = 1) {
         if (isPrimeMillerRabin(factor)) {
             factors.push(factor);
         } else {
-            console.log(`合成数を発見: ${factor} → さらに分解`);
-            let subFactors = await pollardsRhoFactorization(factor, workerCount);
+            let subFactors = await pollardsRhoFactorization(factor);
             if (subFactors.includes("FAIL")) return ["FAIL"];
             factors = factors.concat(subFactors);
         }
 
         number /= factor;
     }
-    return factors;
-}
 
-// Pollard's Rho 本体
-export async function pollardsRho(n, options = {}) {
-  return new Promise((resolve, reject) => {
-    const workers = [];
-    const workerCount = (typeof options.workerCount === "number" && options.workerCount > 0)
-      ? options.workerCount
-      : 2;
-
-    let activeWorkers = workerCount;
-    let finished = false;
-
-    if (workerCount <= 0) {
-      resolve(null);
-      return;
-    }
-
-    const PART_BLOCK = 32;
-    const m = 32n;
-
-    // 最大試行回数
-    const MAX_TRIALS = (typeof options.MAX_TRIALS === "number" && Number.isFinite(options.MAX_TRIALS) && options.MAX_TRIALS > 0)
-      ? Math.floor(options.MAX_TRIALS)
-      : 100_000_000;
-  
-    // ログ出力間隔
-    const LOG_INTERVAL = (typeof options.logInterval === "number" && Number.isFinite(options.logInterval) && options.logInterval > 0)
-      ? Math.floor(options.logInterval)
-      : 1_000_000;
-
-    // 全ワーカー終了
-    function terminateAllWorkers() {
-      for (const w of workers) {
-        try { w.terminate(); } catch (e) {}
-      }
-    }
-
-    // 終了処理
-    function finish(value, isReject = false) {
-      if (finished) return;
-      finished = true;
-      terminateAllWorkers();
-      if (isReject) reject(value);
-      else resolve(value);
-    }
-
-    // ワーカー初期化メッセージ送信
-    function postInitToWorker(worker, workerId, initialX, c) {
-      worker.postMessage({
-        n,
-        c,
-        m,
-        workerId,
-        initialX,
-        PART_BLOCK,
-        MAX_TRIALS,
-        logInterval: LOG_INTERVAL
-      });
-    }
-
-    for (let i = 0; i < workerCount; i++) {
-      let worker;
-      try {
-        worker = new Worker("./src/workers/pollards-rho.worker.js");
-        workers.push(worker);
-      } catch (err) {
-        console.error(`worker ${i + 1} の起動に失敗しました:`, err);
-        activeWorkers--;
-        if (activeWorkers <= 0) {
-          finish(null, false);
-          return;
-        }
-        continue;
-      }
-
-      let initialX = (i === 0) ? 2n : getRandomX(n);
-      let c = randomC();
-
-      try {
-        postInitToWorker(worker, i, initialX, c);
-      } catch (err) {
-        console.error(`worker ${i + 1} への初期化メッセージ送信に失敗しました:`, err);
-        try { worker.terminate(); } catch (e) {}
-        activeWorkers--;
-        if (!finished && activeWorkers === 0) finish(null, false);
-        continue;
-      }
-
-      worker.onmessage = function (event) {
-        if (!event || !event.data) return;
-        const data = event.data;
-
-        if (data.log) {
-          console.log(String(data.log));
-          return;
-        }
-
-        if (data.error) {
-          console.error(`worker ${i + 1} からエラー報告がありました: ${data.error}`);
-          return;
-        }
-
-        if (data.factor) {
-          try {
-            const factorCandidate = BigInt(data.factor);
-            if (factorCandidate > 1n && factorCandidate < n && n % factorCandidate === 0n) {
-              finish(factorCandidate, false);
-            } else {
-              console.warn(`worker ${i + 1} が無効な因数を返しました: ${factorCandidate}`);
-            }
-          } catch (e) {
-            console.error(`worker ${i + 1} の因数解析に失敗しました: ${e}`);
-          }
-          return;
-        }
-
-        if (data.stopped) {
-          try { worker.terminate(); } catch (e) {}
-          activeWorkers--;
-
-          if (!finished && activeWorkers === 0) {
-            finish(null, false); 
-          }
-          return;
-        }
-      };
-
-      worker.onerror = function (err) {
-        console.error(`worker ${i + 1} でエラーが発生しました:`, err.message || err);
-        try { worker.terminate(); } catch (e) {}
-        if (!finished) finish(err, true);
-      };
-    }
-  });
+    return factors.sort((a, b) => (a < b ? -1 : a > b ? 1 : 0));
 }
