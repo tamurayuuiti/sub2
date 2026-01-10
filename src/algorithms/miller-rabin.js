@@ -1,6 +1,8 @@
-// ミラー・ラビン素数判定法
+// miller-rabin.js - ミラーラビン素数判定法
+
+// ミラーラビン素数判定法
 export function isPrimeMillerRabin(n) {
-    console.log(`素数判定開始: n = ${n}`);
+    console.log(`素数判定開始: ${n}`);
 
     let d = n - 1n;
     let r = 0n;
@@ -29,11 +31,12 @@ export function isPrimeMillerRabin(n) {
         }
 
         if (composite) {
-            console.log(`判定結果: n は合成数`);
+            console.log(`判定結果: ${n} は合成数`);
+            return false;
         }
     }
 
-    console.log(`判定結果: n は素数`);
+    console.log(`判定結果: ${n} は素数`);
     return true;
 }
 
