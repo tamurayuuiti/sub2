@@ -219,10 +219,12 @@ async function runCurves(n, B1, B2, curvesToRun, sigmaStart, workerId) {
     for (let c = 0; c < curvesToRun; c++) {
         globalTotalTrials++;
 
-        // 10回ごとにログ出力
-        if (globalTotalTrials % 10 === 0) {
+        // 1曲線ごとにログを送信
+        if (globalTotalTrials % 1 === 0) {
             const currentSigma = sigmaStart + BigInt(c);
-            console.log(`worker ${workerId + 1} 進行中: 曲線数 ${globalTotalTrials} (σ=${currentSigma})`);
+            self.postMessage({
+                log: `worker ${workerId + 1} 進行中: 曲線数 ${globalTotalTrials} (σ=${currentSigma})`
+            });
             await new Promise(r => setTimeout(r, 0));
         }
 
