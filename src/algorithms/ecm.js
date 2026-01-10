@@ -1,14 +1,15 @@
-// ミラーラビン素数判定法
-import { isPrimeMillerRabin } from "./miller-rabin.js";
+// ecm.js - ECM 法による因数分解アルゴリズム
 
-// ECM用の戦略リスト
+import { isPrimeMillerRabin } from "./miller-rabin.js"; // ミラーラビン素数判定法
+
+// ECM用の戦略リスト取得
 function getStrategies() {
     return [
-        { B1: 2000, B2: 200000, curvesPerWorker: 10 },
-        { B1: 10000, B2: 1000000, curvesPerWorker: 20 },
-        { B1: 50000, B2: 5000000, curvesPerWorker: 40 },
-        { B1: 250000, B2: 25000000, curvesPerWorker: 50 },
-        { B1: 1000000, B2: 100000000, curvesPerWorker: 50 } 
+        { B1: 2000, B2: 200000, curvesPerWorker: 50 },
+        { B1: 11000, B2: 1100000, curvesPerWorker: 30 },
+        { B1: 50000, B2: 5000000, curvesPerWorker: 20 },
+        { B1: 250000, B2: 25000000, curvesPerWorker: 10 },
+        { B1: 1000000, B2: 100000000, curvesPerWorker: 5 } 
     ];
 }
 
@@ -18,22 +19,28 @@ export async function ecmFactorization(number, workerCount = 1) {
         throw new TypeError(`エラー: ecmFactorization() に渡された number (${number}) が BigInt ではありません。`);
     }
 
+    if (number <= 1n) return [number];
+
     let factors = [];
-    while (number > 1n) {
-        if (isPrimeMillerRabin(number)) {
-            console.log(`素因数を発見: ${number}`);
-            factors.push(number);
+    let composite = number;
+
+    while (composite > 1n) {
+        if (isPrimeMillerRabin(composite)) {
+            console.log(`素因数を発見: ${composite}`);
+            factors.push(composite);
             break;
         }
 
         let factor = null;
-        while (!factor || factor === number) {
-            console.log(`ECM を試行: ${number}`);
-            factor = await ecmOneNumber(number, { workerCount });
+
+        while (!factor || factor === composite) {
+            console.log(`ECM を試行: ${composite}`);
+            factor = await ecmOneNumber(composite, { workerCount });
 
             if (factor === null) {
-                console.error(`ECM では因数を発見できませんでした。`);
-                return ["FAIL"];
+                console.error(`ECM ではこれ以上因数を発見できませんでした。残りは素数か巨大な合成数です: ${composite}`);
+                factors.push(composite); 
+                return factors;
             }
         }
 
@@ -42,43 +49,38 @@ export async function ecmFactorization(number, workerCount = 1) {
         if (isPrimeMillerRabin(factor)) {
             factors.push(factor);
         } else {
-            console.log(`合成数を発見: ${factor} → さらに分解`);
+            console.log(`合成数を発見: ${factor} → さらに再帰分解`);
             let subFactors = await ecmFactorization(factor, workerCount);
-            if (subFactors.includes("FAIL")) return ["FAIL"];
             factors = factors.concat(subFactors);
         }
 
-        number /= factor;
+        composite /= factor;
     }
-    return factors;
+    
+    return factors.sort((a, b) => (a < b ? -1 : a > b ? 1 : 0));
 }
 
 // ECM 本体
 export async function ecmOneNumber(n, options = {}) {
   return new Promise((resolve, reject) => {
     const workers = [];
-    // workerCount オプションを処理
     const workerCount = (typeof options.workerCount === "number" && options.workerCount > 0)
       ? options.workerCount
       : 2;
 
-    let activeWorkers = workerCount;
+    let activeWorkers = 0;
     let finished = false;
     
-    // ECM用の戦略取得
     const strategies = getStrategies();
 
-    if (workerCount <= 0) {
-      resolve(null);
-      return;
-    }
-
+    // 全ワーカー終了
     function terminateAllWorkers() {
       for (const w of workers) {
         try { w.terminate(); } catch (e) {}
       }
     }
 
+    // 終了処理
     function finish(value, isReject = false) {
       if (finished) return;
       finished = true;
@@ -87,23 +89,35 @@ export async function ecmOneNumber(n, options = {}) {
       else resolve(value);
     }
 
+    // ワーカー終了処理
+    function handleWorkerExit(workerIndex) {
+        if (finished) return;
+
+        try { workers[workerIndex].terminate(); } catch(e) {}
+        activeWorkers--;
+
+        if (activeWorkers <= 0) {
+            finish(null, false);
+        }
+    }
+
+    // ワーカー初期化
     function postInitToWorker(worker, workerId, strategyIndex = 0) {
+      if (finished) return;
+
       if (strategyIndex >= strategies.length) {
-          try { worker.terminate(); } catch (e) {}
-          activeWorkers--;
-          if (!finished && activeWorkers === 0) finish(null, false);
+          handleWorkerExit(workerId);
           return;
       }
 
       const strat = strategies[strategyIndex];
-      // 異なるSigmaを生成 (ECM固有)
-      const base = BigInt(Math.floor(Math.random() * 1000000));
-      const sigma = base + BigInt(workerId * 1000) + BigInt(strategyIndex * 100000);
+      const randomSeed = BigInt(Math.floor(Math.random() * Number.MAX_SAFE_INTEGER));
+      const sigma = randomSeed + BigInt(workerId);
 
-      // 現在の戦略インデックスをWorkerに保存
       worker.currentStrategyIndex = strategyIndex;
 
       worker.postMessage({
+        workerId: workerId,
         n: n.toString(),
         B1: strat.B1,
         B2: strat.B2,
@@ -117,28 +131,17 @@ export async function ecmOneNumber(n, options = {}) {
       try {
         worker = new Worker("./src/workers/ecm.worker.js");
         workers.push(worker);
+        activeWorkers++;
       } catch (err) {
-        console.error(`worker ${i + 1} creation failed:`, err);
-        activeWorkers--;
-        if (activeWorkers <= 0) {
-          finish(null, false);
-          return;
-        }
+        console.error(`worker ${i + 1} の起動に失敗しました:`, err);
         continue;
       }
 
-      // ECMの最初の戦略を開始
-      try {
-        postInitToWorker(worker, i, 0);
-      } catch (err) {
-        console.error(`postInit failed for worker ${i + 1}:`, err);
-        try { worker.terminate(); } catch (e) {}
-        activeWorkers--;
-        if (!finished && activeWorkers === 0) finish(null, false);
-        continue;
-      }
+      worker.onerror = function (err) {
+        console.error(`worker ${i + 1} でエラーが発生しました:`, err.message || err);
+        handleWorkerExit(i);
+      };
 
-      // メッセージハンドラ
       worker.onmessage = function (event) {
         if (!event || !event.data) return;
         const data = event.data;
@@ -149,18 +152,15 @@ export async function ecmOneNumber(n, options = {}) {
         }
 
         if (data.error) {
-          console.error(`worker ${i + 1} error: ${data.error}`);
-          if (!finished) {
-             const nextStrat = (worker.currentStrategyIndex || 0) + 1;
-             postInitToWorker(worker, i, nextStrat);
-          }
+          console.error(`worker ${i + 1} からエラー報告がありました: ${data.error}`);
+          const nextStrat = (worker.currentStrategyIndex || 0) + 1;
+          postInitToWorker(worker, i, nextStrat);
           return;
         }
 
         if (data.factor) {
           try {
             const factorCandidate = BigInt(data.factor);
-            // 妥当な因数か検証
             if (factorCandidate > 1n && factorCandidate < n && n % factorCandidate === 0n) {
               finish(factorCandidate, false);
             } else {
@@ -168,34 +168,30 @@ export async function ecmOneNumber(n, options = {}) {
               postInitToWorker(worker, i, nextStrat);
             }
           } catch (e) {
-            console.error(`worker ${i + 1} factor parse error: ${e}`);
+            console.error(`worker ${i + 1} の因数解析に失敗しました: ${e}`);
+            const nextStrat = (worker.currentStrategyIndex || 0) + 1;
+            postInitToWorker(worker, i, nextStrat);
           }
           return;
         }
 
-        // 戦略完了通知
         if (data.done) {
           const nextStrat = (worker.currentStrategyIndex || 0) + 1;
-          
-          try {
-            postInitToWorker(worker, i, nextStrat);
-          } catch (err) {
-            console.error(`failed to restart worker ${i + 1}:`, err);
-            try { worker.terminate(); } catch (e) {}
-            activeWorkers--;
-            if (!finished && activeWorkers === 0) finish(null, false);
-          }
-
+          postInitToWorker(worker, i, nextStrat);
           return;
         }
       };
 
-      // エラー処理
-      worker.onerror = function (err) {
-        console.error(`worker ${i + 1} onerror:`, err.message || err);
-        try { worker.terminate(); } catch (e) {}
-        if (!finished) finish(err, true);
-      };
+      try {
+        postInitToWorker(worker, i, 0);
+      } catch (err) {
+        console.error(`worker ${i + 1} への初期化メッセージ送信に失敗しました:`, err);
+        handleWorkerExit(i);
+      }
+    }
+
+    if (activeWorkers === 0) {
+        resolve(null);
     }
   });
 }
