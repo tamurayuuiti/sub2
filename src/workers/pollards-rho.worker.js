@@ -1,4 +1,6 @@
-// ユークリッド（剰余）GCD
+// pollards-rho.worker.js - Pollard's Rho 法ワーカー
+
+// ユークリッドの互除法
 function gcd(a, b) {
   a = a < 0n ? -a : a;
   b = b < 0n ? -b : b;
@@ -10,18 +12,7 @@ function gcd(a, b) {
   return a;
 }
 
-// 短い非同期待ち
-function tick() {
-  return new Promise(resolve => setTimeout(resolve, 0));
-}
-
-// エラーメッセージをメインスレッドにポストし、false を返す
-function postErrorAndReturn(msg) {
-  try { postMessage({ error: msg }); } catch (e) {}
-  return false;
-}
-
-// 値が有限な正の整数 (Number) であることを検証
+// 引数検証
 function requireNumberFinitePositiveInteger(name, v) {
   if (typeof v !== "number") return postErrorAndReturn(`${name} must be Number.`);
   if (!Number.isFinite(v)) return postErrorAndReturn(`${name} must be finite Number.`);
@@ -30,37 +21,24 @@ function requireNumberFinitePositiveInteger(name, v) {
   return true;
 }
 
-// 値が BigInt であることを検証
+// BigInt検証
 function requireBigInt(name, v) {
   if (typeof v !== "bigint") return postErrorAndReturn(`${name} must be BigInt.`);
   return true;
 }
 
-// y を指定回進めて trialCount を更新
-function advanceYByStepsHelper(stepCountBI, state, MAX_TRIALS) {
-  const CHUNK_MAX = BigInt(1e6);
-  let remaining = stepCountBI;
-
-  let y = state.y;
-  const c = state.c;
-  const n = state.n;
-  let trial = state.trialCount;
-
-  while (remaining > 0n && trial < MAX_TRIALS) {
-    const takeBI = remaining > CHUNK_MAX ? CHUNK_MAX : remaining;
-    const take = Number(takeBI);
-    for (let k = 0; k < take && trial < MAX_TRIALS; k++) {
-      y = (y * y + c) % n;
-      trial++;
-    }
-    remaining -= BigInt(take);
-  }
-
-  state.y = y;
-  state.trialCount = trial;
+// エラーメッセージ送信と false 戻り
+function postErrorAndReturn(msg) {
+  try { postMessage({ error: msg }); } catch (e) {}
+  return false;
 }
 
-// stepLimit 進行中に部分積で GCD を判定
+// 非同期ティック
+function tick() {
+  return new Promise(resolve => setTimeout(resolve, 0));
+}
+
+// チャンク処理
 function processChunkHelper(x, stepLimit, state, PART_BLOCK, MAX_TRIALS) {
   let part = 1n;
   let inPart = 0;
@@ -124,7 +102,7 @@ function processChunkHelper(x, stepLimit, state, PART_BLOCK, MAX_TRIALS) {
   return { dFound: 1n, gcdCallsAdded, badCollision: false };
 }
 
-// フォールバック
+// フォールバック処理
 async function doFallbackHelper(x_prev, state, MAX_TRIALS, LOG_INTERVAL, maybeLogFunc, workerId) {
   let ys = x_prev;
   const c = state.c;
@@ -139,9 +117,9 @@ async function doFallbackHelper(x_prev, state, MAX_TRIALS, LOG_INTERVAL, maybeLo
     g = gcd(x_prev > ys ? x_prev - ys : ys - x_prev, n);
 
     if (typeof maybeLogFunc === "function") {
-      maybeLogFunc(trial, LOG_INTERVAL, () =>
-        `worker ${workerId + 1} フォールバック中 試行 ${trial}, c=${c}, g=${g}`
-      ).catch(() => {});
+      await maybeLogFunc(trial, LOG_INTERVAL, () =>
+        `worker ${workerId + 1} 再検査中... ${trial} ステップ (c=${c})`
+      );
     }
   }
 
@@ -149,31 +127,33 @@ async function doFallbackHelper(x_prev, state, MAX_TRIALS, LOG_INTERVAL, maybeLo
   return g;
 }
 
-// ログファクトリ
+// ログ出力用ファクトリ
 function makeMaybeLogger(initialThreshold) {
   let nextLogThreshold = initialThreshold;
   let emitCount = 0;
   return async function maybeLog(trialCount, logInterval, messageFunc) {
     if (!Number.isFinite(logInterval) || logInterval <= 0) return;
+    
     if (trialCount >= nextLogThreshold) {
       const msg = String(messageFunc());
       try { postMessage({ log: msg }); } catch (e) {}
+      
       const over = Math.floor((trialCount - nextLogThreshold) / logInterval) + 1;
       nextLogThreshold += over * logInterval;
+      
       emitCount++;
-      if (emitCount % 10 === 0) await tick();
+      if (emitCount % 5 === 0) await tick();
     }
   };
 }
 
-// ワーカーメイン
+// メイン処理
 self.onmessage = async function(event) {
   try {
     const n = event.data.n;
     const workerId = event.data.workerId;
     const initialX_in = event.data.initialX;
 
-    // 必須パラメータの型/値検証
     if (!requireNumberFinitePositiveInteger("MAX_TRIALS", event.data.MAX_TRIALS)) return;
     if (!requireNumberFinitePositiveInteger("logInterval", event.data.logInterval)) return;
     if (!requireBigInt("c", event.data.c)) return;
@@ -193,7 +173,6 @@ self.onmessage = async function(event) {
       return;
     }
 
-    // state 初期化
     const state = {
       y: (initialX_in !== undefined && initialX_in !== null) ? initialX_in : 2n,
       c,
@@ -204,7 +183,6 @@ self.onmessage = async function(event) {
     let badCollisions = 0;
     let gcdCalls = 0;
 
-    // 初期ステップ
     state.y = (state.y * state.y + c) % n;
     state.trialCount++;
 
@@ -214,17 +192,15 @@ self.onmessage = async function(event) {
 
     while (d === 1n && state.trialCount < MAX_TRIALS) {
       const x_prev = x;
-
-      // ブロック前進（r ステップ）
       x = state.y;
-      advanceYByStepsHelper(r, state, MAX_TRIALS);
-
-      // チャンク処理（m ごと）
+      
       let j = 0n;
       while (j < r && d === 1n && state.trialCount < MAX_TRIALS) {
         const stepLimitBI = (r - j) < m ? (r - j) : m;
         const stepLimit = Number(stepLimitBI);
+        
         const res = processChunkHelper(x, stepLimit, state, PART_BLOCK, MAX_TRIALS);
+        
         gcdCalls += res.gcdCallsAdded;
         if (res.dFound !== 1n) {
           if (res.badCollision) {
@@ -237,9 +213,12 @@ self.onmessage = async function(event) {
           }
         }
         j += BigInt(stepLimit);
+
+        await maybeLog(state.trialCount, LOG_INTERVAL, () =>
+          `worker ${workerId + 1} 探索中... ${state.trialCount} ステップ経過`
+        );
       }
 
-      // フォールバック
       if (d === n) {
         const g = await doFallbackHelper(x_prev, state, MAX_TRIALS, LOG_INTERVAL, maybeLog, workerId);
         d = g;
@@ -249,16 +228,11 @@ self.onmessage = async function(event) {
         }
       }
 
-      // ログ出力
-      maybeLog(state.trialCount, LOG_INTERVAL, () =>
-        `worker ${workerId + 1} 試行 ${state.trialCount}, gcdCalls=${gcdCalls}, c=${c}, PART_BLOCK=${PART_BLOCK}`
-      ).catch(() => {});
-
       if (d === 1n) r *= 2n;
     }
 
     console.log(
-      `worker ${workerId + 1} 終了: 試行 ${state.trialCount}, gcdCalls=${gcdCalls}, c=${c}, badCollisions=${badCollisions}, PART_BLOCK=${PART_BLOCK}`
+      `worker ${workerId + 1} 完了: ${state.trialCount} ステップ (c=${c})`
     );
 
     if (d > 1n && d !== n) {
