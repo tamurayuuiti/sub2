@@ -1,4 +1,4 @@
-// 素因数分解アプリケーションのメインスクリプト
+// main.js - メインアプリケーションコード
 
 import { isPrimeMillerRabin } from "./algorithms/miller-rabin.js";          // ミラーラビン素数判定法
 import { trialDivision, loadPrimes } from './algorithms/trial-division.js'; // 試し割り法
@@ -90,7 +90,6 @@ async function startFactorization() {
         console.log(`試し割り法完了。残りの数: ${remainder}`);
 
         if (remainder > 1n) {
-            // 残りの数が素数かどうか判定
             if (isPrimeMillerRabin(remainder)) {
                 console.log(`残りの数は素数と判定されました: ${remainder}`);
                 factors.push(remainder);
