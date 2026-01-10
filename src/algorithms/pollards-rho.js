@@ -1,12 +1,6 @@
-// ミラーラビン素数判定法
-import { isPrimeMillerRabin } from "./miller-rabin.js";
+// pollards-rho.js - Pollard's Rho 法による因数分解アルゴリズム
 
-// ランダムな c を生成
-function randomC(range = 1_000_000) {
-  let c = BigInt(Math.floor(Math.random() * range));
-  if (c === 0n) c = 1n;
-  return c;
-}
+import { isPrimeMillerRabin } from "./miller-rabin.js"; // ミラーラビン素数判定法
 
 // BigInt 用の簡易ランダム生成
 function randomBigIntBelow(rangeBigInt) {
@@ -22,7 +16,7 @@ function randomBigIntBelow(rangeBigInt) {
   return r;
 }
 
-// 安全な initialX を取得
+// ランダムな x を生成
 function getRandomX(n) {
   if (n <= 3n) return 2n;
   const range = n - 2n;
@@ -30,21 +24,14 @@ function getRandomX(n) {
   return r + 2n;
 }
 
-// ブロックスケールの決定
-function chooseBlockScaleByBits(n) {
-  const bits = n.toString(2).length;
-  if (bits < 80) return 32;
-  if (bits < 160) return 64;
-  if (bits < 320) return 128;
-  if (bits < 640) return 256;
-  return 512;
+// ランダムな c を生成
+function randomC(range = 1_000_000) {
+  let c = BigInt(Math.floor(Math.random() * range));
+  if (c === 0n) c = 1n;
+  return c;
 }
 
-function clampPartBlock(pb, min = 32, max = 1024) {
-  return Math.min(max, Math.max(min, pb));
-}
-
-// Pollard's Rho を再帰的に回して素因数を求める
+// 再帰的に Pollard's Rho を回して素因数を求める
 export async function pollardsRhoFactorization(number, workerCount = 1) {
     if (typeof number !== "bigint") {
         throw new TypeError(`エラー: pollardsRhoFactorization() に渡された number (${number}) が BigInt ではありません。`);
@@ -89,7 +76,6 @@ export async function pollardsRhoFactorization(number, workerCount = 1) {
 export async function pollardsRho(n, options = {}) {
   return new Promise((resolve, reject) => {
     const workers = [];
-    // workerCount オプションを処理
     const workerCount = (typeof options.workerCount === "number" && options.workerCount > 0)
       ? options.workerCount
       : 2;
@@ -102,15 +88,8 @@ export async function pollardsRho(n, options = {}) {
       return;
     }
 
-    // オプション処理と安全デフォルト
-    const thresholdBits = (typeof options.gcdThresholdBits === "number") ? options.gcdThresholdBits : 128;
-    const nBits = n.toString(2).length;
-    const useBinaryGcd = (nBits >= thresholdBits);
-
-    // 統合スケールから m (BigInt) と PART_BLOCK (Number) を導出
-    const scale = chooseBlockScaleByBits(n);
-    const m = BigInt(scale);
-    const PART_BLOCK = clampPartBlock(scale, 32, 1024);
+    const PART_BLOCK = 32;
+    const m = 32n;
 
     // 最大試行回数
     const MAX_TRIALS = (typeof options.MAX_TRIALS === "number" && Number.isFinite(options.MAX_TRIALS) && options.MAX_TRIALS > 0)
@@ -122,12 +101,14 @@ export async function pollardsRho(n, options = {}) {
       ? Math.floor(options.logInterval)
       : 1_000_000;
 
+    // 全ワーカー終了
     function terminateAllWorkers() {
       for (const w of workers) {
         try { w.terminate(); } catch (e) {}
       }
     }
 
+    // 終了処理
     function finish(value, isReject = false) {
       if (finished) return;
       finished = true;
@@ -136,14 +117,14 @@ export async function pollardsRho(n, options = {}) {
       else resolve(value);
     }
 
+    // ワーカー初期化メッセージ送信
     function postInitToWorker(worker, workerId, initialX, c) {
       worker.postMessage({
         n,
+        c,
+        m,
         workerId,
         initialX,
-        c,
-        useBinaryGcd,
-        m,
         PART_BLOCK,
         MAX_TRIALS,
         logInterval: LOG_INTERVAL
@@ -156,7 +137,7 @@ export async function pollardsRho(n, options = {}) {
         worker = new Worker("./src/workers/pollards-rho.worker.js");
         workers.push(worker);
       } catch (err) {
-        console.error(`worker ${i + 1} creation failed:`, err);
+        console.error(`worker ${i + 1} の起動に失敗しました:`, err);
         activeWorkers--;
         if (activeWorkers <= 0) {
           finish(null, false);
@@ -171,7 +152,7 @@ export async function pollardsRho(n, options = {}) {
       try {
         postInitToWorker(worker, i, initialX, c);
       } catch (err) {
-        console.error(`postInit failed for worker ${i + 1}:`, err);
+        console.error(`worker ${i + 1} への初期化メッセージ送信に失敗しました:`, err);
         try { worker.terminate(); } catch (e) {}
         activeWorkers--;
         if (!finished && activeWorkers === 0) finish(null, false);
@@ -188,21 +169,20 @@ export async function pollardsRho(n, options = {}) {
         }
 
         if (data.error) {
-          console.error(`worker ${i + 1} error: ${data.error}`);
+          console.error(`worker ${i + 1} からエラー報告がありました: ${data.error}`);
           return;
         }
 
         if (data.factor) {
           try {
             const factorCandidate = BigInt(data.factor);
-            // 妥当な因数か検証
             if (factorCandidate > 1n && factorCandidate < n && n % factorCandidate === 0n) {
               finish(factorCandidate, false);
             } else {
-              console.warn(`worker ${i + 1} returned invalid factor: ${factorCandidate}`);
+              console.warn(`worker ${i + 1} が無効な因数を返しました: ${factorCandidate}`);
             }
           } catch (e) {
-            console.error(`worker ${i + 1} factor parse error: ${e}`);
+            console.error(`worker ${i + 1} の因数解析に失敗しました: ${e}`);
           }
           return;
         }
@@ -210,8 +190,7 @@ export async function pollardsRho(n, options = {}) {
         if (data.stopped) {
           try { worker.terminate(); } catch (e) {}
           activeWorkers--;
-          
-          // すべてのワーカーが停止したら終了
+
           if (!finished && activeWorkers === 0) {
             finish(null, false); 
           }
@@ -220,7 +199,7 @@ export async function pollardsRho(n, options = {}) {
       };
 
       worker.onerror = function (err) {
-        console.error(`worker ${i + 1} onerror:`, err.message || err);
+        console.error(`worker ${i + 1} でエラーが発生しました:`, err.message || err);
         try { worker.terminate(); } catch (e) {}
         if (!finished) finish(err, true);
       };
