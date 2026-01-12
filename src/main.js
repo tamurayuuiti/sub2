@@ -91,9 +91,10 @@ async function startFactorization() {
 
         if (remainder > 1n) {
             if (isPrimeMillerRabin(remainder)) {
-                console.log(`残りの数は素数と判定されました: ${remainder}`);
+                console.log(`残りの数: ${remainder} は素数と判定されました`);
                 factors.push(remainder);
             } else {
+                console.log(`残りの数: ${remainder} は合成数と判定されました`);
                 const digitCount = remainder.toString().length;
                 let extraFactors;
                 const workerCount = getWorkerCount();
@@ -105,8 +106,8 @@ async function startFactorization() {
                     extraFactors = await pollardsRhoFactorization(remainder, workerCount);
 
                     // Pollard's Rho が失敗した場合は ECM にフォールバック
-                    if (Array.isArray(extraFactors) && extraFactors.includes("FAIL")) {
-                        console.warn(`Pollard's rho で因数を特定できませんでした。ECM に移行して再試行します。`);
+                    if (extraFactors === null) {
+                        console.warn(`Pollard's rho で因数を特定できませんでした。ECM に移行します`);
                         extraFactors = await ecmFactorization(remainder, workerCount);
                     }
                 } else {
@@ -122,7 +123,7 @@ async function startFactorization() {
                     return;
                 }
 
-                if (extraFactors.includes("FAIL")) {
+                if (extraFactors.includes("")) {
                     const elapsedTime = getElapsedTime();
                     console.error(`計算中断: アルゴリズムが因数を特定できず終了しました (経過時間: ${elapsedTime}s)`);
                     showError("素因数を特定できませんでした");
@@ -259,9 +260,9 @@ if (elements.numberInput) {
     const input = elements.numberInput;
     input.value = input.value.replace(/[^0-9]/g, '');
 
-    // 最大50桁に制限
-    if (input.value.length > 50) {
-      input.value = input.value.slice(0, 50);
+    // 最大30桁に制限
+    if (input.value.length > 30) {
+      input.value = input.value.slice(0, 30);
     }
 
     const len = input.value.length;
