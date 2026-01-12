@@ -68,16 +68,9 @@ async function startFactorization() {
             return;
         }
 
-        if (!primes || primes.length === 0) {
-            try {
-                primes = await loadPrimes();
-            } catch (e) {
-                console.warn("初期化警告: 素数リストの読み込みに失敗しました", e);
-                primes = [];
-            }
-            if (!primes || primes.length === 0) {
-                throw new Error("重大なエラー: 素数リストが空のため計算を続行できません");
-            }
+        if (!Array.isArray(primes) || primes.length === 0) {primes = await loadPrimes();}
+        if (!Array.isArray(primes) || primes.length === 0) {
+            throw new Error("素数リストが空のため計算を続行できません");
         }
 
         console.log("試し割り法を実行します");
@@ -139,7 +132,7 @@ async function startFactorization() {
         console.log(`素因数分解完了: ${factors.join(" × ")}, 計算時間: ${elapsedTime} 秒`);
     } catch (error) {
         const elapsedTime = getElapsedTime();
-        console.error(`予期せぬエラーが発生しました: ${error} (経過時間: ${elapsedTime}s)`);
+        console.error(`${error} (経過時間: ${elapsedTime}s)`);
         showError("エラーが発生しました");
     } finally {
         isCalculating = false;
