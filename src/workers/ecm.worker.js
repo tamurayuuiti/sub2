@@ -223,7 +223,7 @@ async function runCurves(n, B1, B2, curvesToRun, sigmaStart, workerId) {
         if (globalTotalTrials % 1 === 0) {
             const currentSigma = sigmaStart + BigInt(c);
             self.postMessage({
-                log: `worker ${workerId + 1} 進行中: 曲線数 ${globalTotalTrials} (σ=${currentSigma})`
+                log: `worker ${workerId + 1} 進行中。累積曲線数: ${globalTotalTrials}`
             });
             await new Promise(r => setTimeout(r, 0));
         }
