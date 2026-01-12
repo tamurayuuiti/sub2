@@ -44,7 +44,7 @@ export async function loadPrimes(progressCallback = null) {
         return primesCache;
 
     } catch (err) {
-        console.error("素数リスト読み込み失敗:", err);
+        console.error(err);
         progressCallback?.({ status: "error", message: String(err) });
         return [];
     }
