@@ -2,31 +2,19 @@
 
 import { isPrimeMillerRabin } from "./miller-rabin.js"; // ミラーラビン素数判定法
 
-// ECM用の戦略リスト取得
+// ECM用の戦略リスト
 function getStrategies() {
   return [
-    { Level: 1, B1: 2_000,     B2: 100_000,     curvesPerWorker: 100 },
-    { Level: 2, B1: 11_000,    B2: 1_100_000,   curvesPerWorker: 200 },
-    { Level: 3, B1: 50_000,    B2: 5_000_000,   curvesPerWorker: 500 },
-    { Level: 4, B1: 250_000,   B2: 25_000_000,  curvesPerWorker: 1000 },
-    { Level: 5, B1: 1_000_000, B2: 100_000_000, curvesPerWorker: 2000 }
+    { Level: 1, B1: 2_000,   B2: 200_000,   curvesPerWorker: 30 },
+    { Level: 2, B1: 30_000,  B2: 3_000_000, curvesPerWorker: 3 },
+    { Level: 3, B1: 100_000, B2: 10_000_000,curvesPerWorker: 1 },
   ];
-}
-
-// 初期戦略インデックス選択
-function selectInitialStrategyIndex(n) {
-    const digits = n.toString().length;
-    if (digits <= 20) return 0;
-    if (digits <= 28) return 1;
-    if (digits <= 34) return 2;
-    if (digits <= 42) return 3;
-    return 4;
 }
 
 // ECM を再帰的に回して素因数を求める
 export async function ecmFactorization(number, workerCount = 1) {
     if (typeof number !== "bigint") {
-        throw new TypeError(`エラー: ecmFactorization() に渡された number (${number}) が BigInt ではありません。`);
+        throw new TypeError(`ECM 法に渡された値: (${number}) が BigInt ではありません`);
     }
 
     if (number <= 1n) return [number];
@@ -48,7 +36,7 @@ export async function ecmFactorization(number, workerCount = 1) {
             factor = await ecmOneNumber(composite, { workerCount });
 
             if (factor === null) {
-                console.error(`ECM ではこれ以上因数を発見できませんでした。残りは素数か巨大な合成数です: ${composite}`);
+                console.error(`ECM ではこれ以上因数を発見できませんでした。残りは巨大な合成数です: ${composite}`);
                 factors.push(composite); 
                 return factors;
             }
@@ -78,13 +66,12 @@ export async function ecmOneNumber(n, options = {}) {
       ? options.workerCount
       : 2;
 
+    let strategyStarted = false;
     let activeWorkers = 0;
     let finished = false;
     
     const strategies = getStrategies();
-    const initialStrategyIndex = selectInitialStrategyIndex(n);
-    const initialStrategy = strategies[initialStrategyIndex];
-    console.log(`ECM 戦略 Lv${initialStrategyIndex + 1} 開始 (B1=${initialStrategy.B1}, B2=${initialStrategy.B2}, 曲線数=${initialStrategy.curvesPerWorker})`);
+    const initialStrategyIndex = 0;
 
     // 全ワーカー終了
     function terminateAllWorkers() {
@@ -115,15 +102,22 @@ export async function ecmOneNumber(n, options = {}) {
     }
 
     // ワーカー初期化
-    function postInitToWorker(worker, workerId, initialStrategyIndex) {
+    function postInitToWorker(worker, workerId, nextStrategyIndex) {
       if (finished) return;
 
-      if (initialStrategyIndex >= strategies.length) {
+      if (nextStrategyIndex >= strategies.length) {
         handleWorkerExit(workerId);
         return;
       }
 
-      const strat = strategies[initialStrategyIndex];
+      const strat = strategies[nextStrategyIndex];
+
+      if (!strategyStarted && nextStrategyIndex === 0) {
+        console.log(
+          `ECM 戦略 Lv1 を開始します`
+        );
+        strategyStarted = true;
+      }
 
       if (worker.sigmaBase === undefined) {
         worker.sigmaBase =
@@ -133,7 +127,7 @@ export async function ecmOneNumber(n, options = {}) {
       const sigmaStart = worker.sigmaBase;
 
       worker.sigmaBase += BigInt(strat.curvesPerWorker);
-      worker.currentStrategyIndex = initialStrategyIndex;
+      worker.currentStrategyIndex = nextStrategyIndex;
 
       worker.postMessage({
         workerId: workerId,
@@ -192,8 +186,17 @@ export async function ecmOneNumber(n, options = {}) {
         }
 
         if (data.done) {
-          console.log(`worker ${i + 1} が次の戦略へ移行しました`);
-          postInitToWorker(worker, i, worker.currentStrategyIndex + 1);
+          const nextIndex = worker.currentStrategyIndex + 1;
+
+          if (nextIndex < strategies.length) {
+            console.log(
+              `worker ${i + 1} が Lv${worker.currentStrategyIndex + 1} を完了しました。Lv${nextIndex + 1}を開始します`);
+            postInitToWorker(worker, i, nextIndex);
+          } else {
+            console.log(
+              `worker ${i + 1} が Lv${worker.currentStrategyIndex + 1} を完了しました`);
+            handleWorkerExit(i);
+          }
           return;
         }
       };
